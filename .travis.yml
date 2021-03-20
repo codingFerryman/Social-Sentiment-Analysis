@@ -1,0 +1,16 @@
+# run automated tests with travis
+# Initial code below is taken from https://github.com/fchollet/keras/blob/master/.travis.yml
+sudo: required
+dist: trusty
+language: python
+python: # Only one version for now
+  - "3.8"
+# command to install dependencies
+install:
+  - pip install -r requirements.txt
+
+tests:
+  - python download_dataset.py
+  - bash tests/all_test.sh
+
+# TODO: report metrics

@@ -1,0 +1,10 @@
+yapf
+unittest
+numpy
+scipy
+sklearn
+scikit
+xgboost
+pandas
+tensorflow 2.4
+
