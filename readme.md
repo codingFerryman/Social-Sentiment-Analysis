@@ -8,7 +8,7 @@ To work for this project create a virtual environment in a folder outside the re
 
 For code formatting please do these steps:
 1. install yapf: `pip install yapf`
-2. Download the yapf configuration file at and add it to `<your-repo-path>/.style.yapf`
+2. ~~Download the yapf configuration file at and add it to `<your-repo-path>/.style.yapf`~~
 3. Download the pre-commit.sh file from this repo and add it to `<your-repo-path>/.git/hooks/pre-commit`
 4. Make sure pre-commit.sh is marked as executable
 
