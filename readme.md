@@ -10,7 +10,7 @@ For code formatting please do these steps:
 1. install yapf: `pip install yapf`
 2. ~~Download the yapf configuration file at and add it to `<your-repo-path>/.style.yapf`~~
 3. Download the pre-commit.sh file from this repo and add it to `<your-repo-path>/.git/hooks/pre-commit`
-4. Make sure pre-commit.sh is marked as executable
+4. Make sure pre-commit is marked as executable
 
 When commiting always enable virtual environment so that the OS can find yapf.
 For more information about yapf: See here: https://github.com/google/yapf
