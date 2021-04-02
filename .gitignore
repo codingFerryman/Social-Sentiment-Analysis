@@ -2,3 +2,5 @@
 *.pyc
 *.png
 *.csv
+venv/*
+vscode/*
