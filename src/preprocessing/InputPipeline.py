@@ -1,8 +1,8 @@
 import abc
+import typing
 
 
-
-class InputPipeline(meta=abc.ABCMeta):
+class InputPipeline(metaclass=abc.ABCMeta):
     """ This is an interface that has to be implemented by
     classes that preprocess data before proviging them to models.
     For example you may want each word to be presented as a numerical value
@@ -61,7 +61,7 @@ class InputPipeline(meta=abc.ABCMeta):
         """
         raise NotImplementedError
     @abc.abstractmethod
-    def textsToMatrix(self, texts: list) -> tf.Tensor:
+    def textsToMatrix(self, texts: list) -> 'tf.Tensor':
         """ This method transforms the encoded words at each list candidate (tweet) to 
         a matrix with columns refering to words and cells carrying number of occurrence or presence.
         Typically needs too much memory and is used in direct application of ML algorithms 
@@ -91,7 +91,7 @@ class InputPipeline(meta=abc.ABCMeta):
         """
         raise NotImplementedError
     @abc.abstractmethod
-    def textsPosToMatrix(self) -> tf.Tensor:
+    def textsPosToMatrix(self) -> 'tf.Tensor':
         """ This method transforms the texts of positive tweets via the textsToMatrix method.
 
         Returns:
@@ -99,7 +99,7 @@ class InputPipeline(meta=abc.ABCMeta):
         """
         raise NotImplementedError
     @abc.abstractmethod
-    def textsNegToMatrix(self) -> tf.Tensor:
+    def textsNegToMatrix(self) -> 'tf.Tensor':
         """ This method transforms the texts of negative tweets via the textsToMatrix method.
 
         Returns:
