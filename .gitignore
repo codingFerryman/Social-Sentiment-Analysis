@@ -4,3 +4,4 @@
 *.csv
 venv/*
 vscode/*
+sklearn
