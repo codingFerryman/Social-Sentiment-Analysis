@@ -9,7 +9,6 @@ from preprocessing.bagOfWordsPipeline import BagOfWordsPipeLine
 from models.Model import ModelConstruction
 import inputFunctions
 import loggers
-import pdb
 
 logger = loggers.getLogger("BagOfWordsModel", True)
 
@@ -56,13 +55,13 @@ class BagOfWords2LayerModel(ModelConstruction):
         model.add(tf.keras.layers.Dense(1))
         return model
 
-    def trainModel(self, train_data: typing.Tuple[list, np.ndarray], trainable=True, **kwargs):
+    def trainModel(self, train_data: typing.Tuple[list, np.ndarray], val_data: typing.Tuple[list, np.ndarray]=[], trainable=True, **kwargs):
         assert self._dataLoaded, "Data was not loaded before launching training"
         logger.info("fetching data for training")
         trainSequences, y = train_data
         encData = tf.data.Dataset.from_tensor_slices((
             trainSequences,
-            list(y),)).batch(batch_size=32)
+            list(y),)).shuffle(1000).batch(batch_size=32)
         max_sequence_length = trainSequences[0].shape[0]
         logger.debug(f"sequence length= {max_sequence_length}")
         self._model = self.createModel(max_sequence_length=max_sequence_length,
@@ -88,7 +87,7 @@ class BagOfWords2LayerModel(ModelConstruction):
             train_dataX, test_dataX, train_datay, test_datay = itSplitter(*self.all_data, test_size= kwargs["test_size"], **iteratorConfig)
             l1, l2 = len(train_dataX), len(train_datay)
             logger.debug(f"{l1}, {l2}")
-            # pdb.set_trace()
+            
             self.trainModel((train_dataX, train_datay), **kwargs)
             res = self._model.evaluate(test_dataX, test_datay, return_dict=True)
             trainingsResults.append(res)
