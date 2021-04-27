@@ -8,3 +8,7 @@ tensorflow
 transformers
 coloredlogs
 yapf
+spacy
+ftfy==4.4.3
+SentencePiece
+torch

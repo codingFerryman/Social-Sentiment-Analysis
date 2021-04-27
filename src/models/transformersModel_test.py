@@ -1,36 +1,48 @@
 import unittest
-import robertaModel
+import transformers
+import transformersModel
 import numpy as np
 import tensorflow as tf
 import sys, os
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 import inputFunctions
-from preprocessing import pretrainedTransformersPipeline
-
+from preprocessing.pretrainedTransformersPipeline import PretrainedTransformersPipeLine
+from models.modelMaps import getModelMapAvailableNames
 import loggers
 
 logger = loggers.getLogger("RobertaModelTest", debug=True)
 
 
-class RobertaModelTest(unittest.TestCase):
+class TransformersModelTest(unittest.TestCase):
     def __init__(self, *args, **kwargs):
-        super(RobertaModelTest, self).__init__(*args, **kwargs)
+        super(TransformersModelTest, self).__init__(*args, **kwargs)
         
     
-    def test_createModel(self):
-        logger.debug("Testing createModel")
-        roberta = robertaModel.RobertaModel()
-        roberta.pipeLine.loadFunction = inputFunctions.loadDataForUnitTesting
-        roberta.loadData()
-        roberta.createModel()
+    # def test_createModelRoberta(self):
+    #     logger.debug("Testing createModel Roberta")
+    #     roberta = transformersModel.TransformersModel()
+    #     roberta.pipeLine.loadFunction = inputFunctions.loadDataForUnitTesting
+    #     roberta.loadData()
+    #     roberta.createModel()
 
-    def test_testModel(self):
-        logger.debug("Testing testModel")
-        roberta = robertaModel.RobertaModel()
-        roberta.pipeLine.loadFunction = inputFunctions.loadDataForUnitTesting
-        roberta.loadData()
-        roberta.registerMetric(tf.keras.metrics.SparseCategoricalAccuracy('accuracy'))
-        roberta.testModel(epochs=2)
+    def test_createAllTransformerModels(self):
+        # logger.debug("Testing createModel Electra")
+        # ptp = PretrainedTransformersPipeLine(tokenizer=transformers.ElectraTokenizer,
+        #                                                 pretrainedTokenizerName='google/electra-small-discriminator')
+        for name in getModelMapAvailableNames():
+            logger.debug(f"Testing createModel for {name}")
+            transfModel = transformersModel.TransformersModel(pipeLine={'modelName': name}, modelName=name)
+            transfModel.pipeLine.loadFunction = inputFunctions.loadDataForUnitTesting
+            transfModel.loadData()
+            transfModel.createModel()
+
+    # def test_testModel(self):
+    #     logger.debug("Testing testModel")
+    #     roberta = transformersModel.TransformersModel()
+    #     roberta.pipeLine.loadFunction = inputFunctions.loadDataForUnitTesting
+    #     roberta.loadData()
+    #     roberta.registerMetric(tf.keras.metrics.SparseCategoricalAccuracy('accuracy'))
+    #     roberta.testModel(epochs=2)
 
 if __name__ == "__main__":
     unittest.main()

@@ -9,11 +9,11 @@ import os, sys
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from preprocessing.pretrainedTransformersPipeline import PretrainedTransformersPipeLine
 from models.Model import ModelConstruction
-
+from modelMaps import mapStrToTransformerModel
+from preprocessing.pipelineMaps import mapStrToTransformersTokenizer
 import inputFunctions
 import loggers
 import pdb
-
 
 logger = loggers.getLogger("RobertaModel", True)
 
@@ -24,11 +24,20 @@ def getDefaultTokenizer(loadFunction=None):
     else:
         return PretrainedTransformersPipeLine(loadFunction=loadFunction, tokenizer=transformers.RobertaTokenizer, 
                                                         pretrainedTokenizerName='roberta-base')
+
+def getTransformersTokenizer(transformersModelName:str, loadFunction:typing.Callable=None) -> PretrainedTransformersPipeLine:
+    if loadFunction == None:
+        return PretrainedTransformersPipeLine(tokenizer=mapStrToTransformersTokenizer(transformersModelName))
+    else:
+        return PretrainedTransformersPipeLine(loadFunction=loadFunction, tokenizer=mapStrToTransformersTokenizer(transformersModelName))
+
 class TransformersModel(ModelConstruction):
     def __init__(self, dataPath:str=None, pipeLine=None, loadFunction=None, modelName:str="roberta"):
         self.configuration = transformers.RobertaConfig()
         if pipeLine == None:
             self.pipeLine = getDefaultTokenizer(loadFunction=loadFunction)
+        elif type(pipeLine) == type({}):
+            self.pipeLine = getTransformersTokenizer(pipeLine['modelName'], loadFunction)
         else:
             self.pipeLine = pipeLine
         self._registeredMetrics = []
@@ -42,7 +51,7 @@ class TransformersModel(ModelConstruction):
     def createModel(self, **kwargs) -> tf.keras.Model:
         assert self._dataLoaded, "data should be loaded before calling createModel"
         # assert self.pipeLine.num_words != None, "pipeline should have num_words != None"
-        model = transformers.TFRobertaForSequenceClassification.from_pretrained('roberta-base')
+        model = mapStrToTransformerModel(self._modelName)
         return model
 
     def testModel(self, train_val_split_iterator: typing.Iterator = [sklearn.model_selection.train_test_split], **kwargs):

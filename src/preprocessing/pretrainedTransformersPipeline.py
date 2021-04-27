@@ -12,7 +12,7 @@ import pdb
 logger = loggers.getLogger("PretrainedTransformersPipeLine", debug=True)
 
 class PretrainedTransformersPipeLine(InputPipeline.InputPipeline):
-    def __init__(self, dataPath=None, loadFunction:callable=None, tokenizer=None, pretrainedTokenizerName='bert-base-uncased'):
+    def __init__(self, dataPath=None, loadFunction:callable=None, tokenizer=None, pretrainedTokenizerName:str=''):
         logger.info("PretrainedTransformersPipeLine created")
         self.dataPath = dataPath        
         self.allData = []
@@ -23,11 +23,17 @@ class PretrainedTransformersPipeLine(InputPipeline.InputPipeline):
             self.loadFunction = inputFunctions.loadData
         else:
             self.loadFunction = loadFunction
-        self._pretrainedTokenizerName = pretrainedTokenizerName
         if tokenizer == None:
             self._tokenizer = transformers.BertTokenizer.from_pretrained('bert-base-uncased')
         else:
-            self._tokenizer = tokenizer.from_pretrained(pretrainedTokenizerName)
+            if pretrainedTokenizerName != '':
+                self._tokenizer = tokenizer.from_pretrained(pretrainedTokenizerName)
+            else:
+                self._tokenizer = tokenizer
+        if pretrainedTokenizerName != '':
+            self._pretrainedTokenizerName = self._tokenizer.pretrained_init_configuration.get('pretrained_model_name_or_path')
+        else:
+            self._pretrainedTokenizerName = pretrainedTokenizerName
         self._dataLoaded = False
 
     def loadData(self):
