@@ -1,4 +1,4 @@
-# Computation Intelligence Lab Project 2
+# Computational Intelligence Lab Project 2
 This is the project 2 of CIL course in ETHZ.
 
 ## Developing
