@@ -1,4 +1,5 @@
 import tensorflow as tf
+import torch
 import transformers
 import os, sys
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
@@ -7,9 +8,28 @@ import inputFunctions
 import loggers
 import numpy as np
 import typing
-import pdb
-
+from enum import Enum
 logger = loggers.getLogger("PretrainedTransformersPipeLine", debug=True)
+
+
+class torchOrTFEnum(Enum):
+    TF = 0
+    TORCH = 1
+
+class TwitterDatasetTorch(torch.utils.data.Dataset):
+    def __init__(self, encodings:dict, labels:list, shuffle:bool=False, shufflingParameter:int=-1):
+        self.encodings = encodings
+        self.labels = torch.from_numpy(np.array(labels)).long()
+
+    def __getitem__(self, idx):
+        item = {key: torch.tensor(val[idx]) for key, val in self.encodings.items()}
+        item['labels'] = torch.tensor(self.labels[idx])
+        return item
+
+    def __len__(self):
+        return len(self.labels)
+
+
 
 class PretrainedTransformersPipeLine(InputPipeline.InputPipeline):
     def __init__(self, dataPath=None, loadFunction:callable=None, tokenizer=None, pretrainedTokenizerName:str=''):
@@ -51,17 +71,24 @@ class PretrainedTransformersPipeLine(InputPipeline.InputPipeline):
 
     def textsToSequences(self, texts: list) -> tf.Tensor:
         ret = self._tokenizer(texts, add_special_tokens=True, 
-                                truncation=True, padding=False)
+                                truncation=True, padding=False, return_tensors="pt")
         return ret
         
     def textsToPaddedSequences(self, texts: list, length:int=-1):
         logger.info(f"transforming texts to padded sequences with PretrainedTransformersPipeLine {self._pretrainedTokenizerName}")
+        # try:
         if length == -1:
             ret = self._tokenizer(texts, add_special_tokens=True, 
-                                truncation=True, padding='longest')
+                                truncation=True, padding='longest', return_tensors="pt")
         else:
             ret = self._tokenizer(texts, add_special_tokens=True, 
-                                truncation=True, padding='longest', max_length=length)
+                                truncation=True, padding='longest', max_length=length, return_tensors="pt")
+        # except:
+        #     ret = self._tokenizer(texts)
+        #     # if length == -1:
+
+        #     # else:
+        #     #     ret = self._tokenizer(texts)
         return ret
     
     def textsToMatrix(self, texts: list) -> tf.Tensor:
@@ -130,8 +157,30 @@ class PretrainedTransformersPipeLine(InputPipeline.InputPipeline):
 
         return min_len, max_len, zero_len_idx
     
-    def getEncodedDataset(self, splitter:typing.Callable=None, posLabel=1, negLabel=0, **splitterConfig):
+    def getEncodedDatasetTF(self, train_dataX:list, train_datay:list, val_dataX:list, val_datay:list, max_len:int, shufflingParameter:int, batch_size:int):
+        encDataTrain = tf.data.Dataset.from_tensor_slices((
+            dict(self.textsToPaddedSequences(train_dataX, length=max_len)),
+            list(train_datay))).shuffle(shufflingParameter).batch(batch_size=batch_size)
+        encDataVal = tf.data.Dataset.from_tensor_slices((
+            dict(self.textsToPaddedSequences(val_dataX, length=max_len)),
+            list(val_datay))).shuffle(shufflingParameter).batch(batch_size=batch_size)
+        
+        return encDataTrain, encDataVal
+
+
+    def getEncodedDatasetTorch(self, train_dataX:list, train_datay:list, val_dataX:list, val_datay:list, max_len:int, shufflingParameter:int, batch_size:int):
+
+        encDataTrain = TwitterDatasetTorch(dict(self.textsToPaddedSequences(train_dataX, length=max_len)), train_datay, True, shufflingParameter)
+        encDataVal = TwitterDatasetTorch(dict(self.textsToPaddedSequences(val_dataX, length=max_len)), val_datay, True, shufflingParameter)
+        
+        return encDataTrain, encDataVal
+
+
+    def getEncodedDataset(self, splitter:typing.Callable=None, posLabel=1, negLabel=0, tfOrPyTorch:torchOrTFEnum=torchOrTFEnum.TF,**splitterConfig):
         assert self._dataLoaded, "Data should be loaded to get the encoded dataset"
+        # default parameters
+        shufflingParameter = 1000
+        batch_size=64
         # create labels
         negAsZeros = np.zeros((len(self.dataNeg),), dtype=np.int32)
         posAsOnes = np.ones((len(self.dataPos),), dtype=np.int32)
@@ -144,22 +193,25 @@ class PretrainedTransformersPipeLine(InputPipeline.InputPipeline):
             logger.debug('Deleting zero length texts and labels because min_len = 0')
             self.allData = [d for i,d in enumerate(self.allData) if not(i in zero_len_idx)]
             labels = [l for i,l in enumerate(labels) if not(i in zero_len_idx)]
+
         if splitter == None:
-            tokenLists = self.textsToPaddedSequences(self.allData, max_len)
-            encDataTrain = tf.data.Dataset.from_tensor_slices((
-                dict(tokenLists),
-                list(labels))).shuffle(1000).batch(batch_size=32)
-            encDataVal = tf.data.Dataset.from_tensor_slices((
-                {},
-                [])).shuffle(1000).batch(batch_size=32)
+            # tokenLists = self.textsToPaddedSequences(self.allData, max_len)
+
+            if tfOrPyTorch == torchOrTFEnum.TF:
+                encDataTrain, encDataVal = self.getEncodedDatasetTF(train_dataX=self.allData, train_datay=list(labels), 
+                                                                    val_dataX={}, val_datay=[], max_len=max_len, shufflingParameter=shufflingParameter, batch_size=batch_size)
+            else:
+                encDataTrain, encDataVal = self.getEncodedDatasetTorch(train_dataX=self.allData, train_datay=list(labels), 
+                                                                    val_dataX={}, val_datay=[], max_len=max_len, shufflingParameter=shufflingParameter, batch_size=batch_size)
         else:
-            train_dataX, test_dataX, train_datay, test_datay = splitter(self.allData, labels, **splitterConfig)
-            
-            encDataTrain = tf.data.Dataset.from_tensor_slices((
-                dict(self.textsToPaddedSequences(train_dataX, length=max_len)),
-                list(train_datay))).shuffle(1000).batch(batch_size=32)
-            encDataVal = tf.data.Dataset.from_tensor_slices((
-                dict(self.textsToPaddedSequences(test_dataX, length=max_len)),
-                list(test_datay))).shuffle(1000).batch(batch_size=32)
+            train_dataX, val_dataX, train_datay, val_datay = splitter(self.allData, labels, **splitterConfig)
+
+            if tfOrPyTorch == torchOrTFEnum.TF:
+                encDataTrain, encDataVal = self.getEncodedDatasetTF(train_dataX=train_dataX, train_datay=list(train_datay), 
+                                                                    val_dataX=val_dataX, val_datay=list(val_datay), max_len=max_len, shufflingParameter=shufflingParameter, batch_size=batch_size)
+            else:                
+                encDataTrain, encDataVal = self.getEncodedDatasetTorch(train_dataX=train_dataX, train_datay=list(train_datay), 
+                                                                    val_dataX=val_dataX, val_datay=list(val_datay), max_len=max_len, shufflingParameter=shufflingParameter, batch_size=batch_size)
+
         
         return encDataTrain, encDataVal

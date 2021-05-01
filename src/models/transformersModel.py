@@ -4,10 +4,11 @@ from transformers import RobertaConfig
 import numpy as np
 import sklearn
 from sklearn import model_selection
+from sklearn.metrics import accuracy_score
 import typing
 import os, sys
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-from preprocessing.pretrainedTransformersPipeline import PretrainedTransformersPipeLine
+from preprocessing.pretrainedTransformersPipeline import PretrainedTransformersPipeLine, torchOrTFEnum
 from models.Model import ModelConstruction
 from modelMaps import mapStrToTransformerModel
 from preprocessing.pipelineMaps import mapStrToTransformersTokenizer
@@ -31,6 +32,16 @@ def getTransformersTokenizer(transformersModelName:str, loadFunction:typing.Call
     else:
         return PretrainedTransformersPipeLine(loadFunction=loadFunction, tokenizer=mapStrToTransformersTokenizer(transformersModelName))
 
+def compute_metrics(pred):
+    labels = pred.label_ids
+    preds = pred.predictions.argmax(-1)
+    acc = accuracy_score(labels, preds)
+    return {
+        'accuracy': acc,
+    }
+
+
+
 class TransformersModel(ModelConstruction):
     def __init__(self, dataPath:str=None, pipeLine=None, loadFunction=None, modelName:str="roberta"):
         self.configuration = transformers.RobertaConfig()
@@ -48,7 +59,7 @@ class TransformersModel(ModelConstruction):
         # self.pipeLine.trainTokenizer()
         self._dataLoaded = True
     
-    def createModel(self, **kwargs) -> tf.keras.Model:
+    def createModel(self, **kwargs) -> typing.Union[transformers.PreTrainedModel, tf.keras.Model]:
         assert self._dataLoaded, "data should be loaded before calling createModel"
         # assert self.pipeLine.num_words != None, "pipeline should have num_words != None"
         model = mapStrToTransformerModel(self._modelName)
@@ -59,12 +70,49 @@ class TransformersModel(ModelConstruction):
         num_epochs = kwargs['epochs']
         for i, train_test_split in enumerate(train_val_split_iterator):
             logger.debug(f'{i}-th enumeration of train_val split iterator under cross validation')
-            train_dataset, val_dataset = self.pipeLine.getEncodedDataset(None)
             self.model = self.createModel()
-            optimizer = tf.keras.optimizers.Adam(learning_rate=3e-5, epsilon=1e-08, clipnorm=1.0)
-            loss = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
-            self.model.compile(optimizer=optimizer, loss=loss, metrics=self._registeredMetrics)
-            self.model.fit(train_dataset, epochs=num_epochs)
+            # optimizer = tf.keras.optimizers.Adam(learning_rate=3e-5, epsilon=1e-08, clipnorm=1.0)
+            # loss = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
+            if callable(getattr(self.model, 'compile', None)): # if tf model
+                train_dataset, val_dataset = self.pipeLine.getEncodedDataset(train_test_split)
+                # self.model.compile(optimizer=optimizer, loss=loss, metrics=self._registeredMetrics)
+                # self.model.fit(train_dataset, epochs=num_epochs)
+                training_args = transformers.TFTrainingArguments(
+                    output_dir='./results',          # output directory
+                    num_train_epochs=2,              # total # of training epochs
+                    per_device_train_batch_size=64,  # batch size per device during training
+                    per_device_eval_batch_size=64,   # batch size for evaluation
+                    warmup_steps=10,                 # number of warmup steps for learning rate scheduler
+                    weight_decay=0.01,               # strength of weight decay
+                    logging_dir='./logs',            # directory for storing logs
+                )
+                trainer = transformers.TFTrainer(
+                    model=self.model,                # the instantiated 🤗 Transformers model to be trained
+                    args=training_args,              # training arguments, defined above
+                    train_dataset=train_dataset,     # tensorflow_datasets training dataset
+                    eval_dataset=val_dataset,        # tensorflow_datasets evaluation dataset
+                    compute_metrics=compute_metrics  # metrics to compute while training
+                )
+            else:# if pytorch model
+                train_dataset, val_dataset = self.pipeLine.getEncodedDataset(train_test_split, tfOrPyTorch=torchOrTFEnum.TORCH)
+                training_args = transformers.TrainingArguments(
+                    output_dir='./results',          # output directory
+                    num_train_epochs=2,              # total number of training epochs
+                    per_device_train_batch_size=64,  # batch size per device during training
+                    per_device_eval_batch_size=64,   # batch size for evaluation
+                    warmup_steps=10,                 # number of warmup steps for learning rate scheduler
+                    weight_decay=0.01,               # strength of weight decay
+                    logging_dir='./logs',            # directory for storing logs
+                    logging_steps=10,
+                )
+                trainer = transformers.Trainer(
+                    model=self.model,                # the instantiated 🤗 Transformers model to be trained
+                    args=training_args,              # training arguments, defined above
+                    train_dataset=train_dataset,     # training dataset
+                    eval_dataset=val_dataset,        # evaluation dataset
+                    compute_metrics=compute_metrics  # metrics to compute while training
+                )
+                trainer.train()
 
     def getTestResults(self) -> typing.List[dict]:
         """This method gets results from last training
