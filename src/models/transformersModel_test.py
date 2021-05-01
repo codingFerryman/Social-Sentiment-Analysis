@@ -39,7 +39,7 @@ class TransformersModelTest(unittest.TestCase):
         roberta.pipeLine.loadFunction = inputFunctions.loadDataForUnitTesting
         roberta.loadData()
         roberta.registerMetric(tf.keras.metrics.SparseCategoricalAccuracy('accuracy'))
-        roberta.testModel(epochs=2)
+        roberta.testModel(epochs=2, batch_size=64, weight_decay=0.01, warmup_steps=10)
 
     def test_testModelAllTransformerModels(self):
         for name in getModelMapAvailableNames():
@@ -48,7 +48,7 @@ class TransformersModelTest(unittest.TestCase):
             transfModel.pipeLine.loadFunction = inputFunctions.loadDataForUnitTesting
             transfModel.loadData()
             transfModel.registerMetric(tf.keras.metrics.SparseCategoricalAccuracy('accuracy'))
-            transfModel.testModel(epochs=2)
+            transfModel.testModel(epochs=2, batch_size=64, weight_decay=0.01, warmup_steps=10)
         
 if __name__ == "__main__":
     unittest.main()

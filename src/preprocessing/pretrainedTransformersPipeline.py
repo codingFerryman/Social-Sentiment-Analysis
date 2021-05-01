@@ -176,11 +176,8 @@ class PretrainedTransformersPipeLine(InputPipeline.InputPipeline):
         return encDataTrain, encDataVal
 
 
-    def getEncodedDataset(self, splitter:typing.Callable=None, posLabel=1, negLabel=0, tfOrPyTorch:torchOrTFEnum=torchOrTFEnum.TF,**splitterConfig):
+    def getEncodedDataset(self, splitter:typing.Callable=None, posLabel=1, negLabel=0, shufflingParameter:int=1000, batch_size:int=64, tfOrPyTorch:torchOrTFEnum=torchOrTFEnum.TF,**splitterConfig):
         assert self._dataLoaded, "Data should be loaded to get the encoded dataset"
-        # default parameters
-        shufflingParameter = 1000
-        batch_size=64
         # create labels
         negAsZeros = np.zeros((len(self.dataNeg),), dtype=np.int32)
         posAsOnes = np.ones((len(self.dataPos),), dtype=np.int32)

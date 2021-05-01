@@ -68,49 +68,50 @@ class TransformersModel(ModelConstruction):
     def testModel(self, train_val_split_iterator: typing.Iterator = [sklearn.model_selection.train_test_split], **kwargs):
         logger.info("Starting testing of RobertaModel")
         num_epochs = kwargs['epochs']
+        batch_size = kwargs['batch_size']
         for i, train_test_split in enumerate(train_val_split_iterator):
             logger.debug(f'{i}-th enumeration of train_val split iterator under cross validation')
             self.model = self.createModel()
             # optimizer = tf.keras.optimizers.Adam(learning_rate=3e-5, epsilon=1e-08, clipnorm=1.0)
             # loss = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
             if callable(getattr(self.model, 'compile', None)): # if tf model
-                train_dataset, val_dataset = self.pipeLine.getEncodedDataset(train_test_split)
+                train_dataset, val_dataset = self.pipeLine.getEncodedDataset(train_test_split, batch_size=batch_size)
                 # self.model.compile(optimizer=optimizer, loss=loss, metrics=self._registeredMetrics)
                 # self.model.fit(train_dataset, epochs=num_epochs)
                 training_args = transformers.TFTrainingArguments(
-                    output_dir='./results',          # output directory
-                    num_train_epochs=2,              # total # of training epochs
-                    per_device_train_batch_size=64,  # batch size per device during training
-                    per_device_eval_batch_size=64,   # batch size for evaluation
-                    warmup_steps=10,                 # number of warmup steps for learning rate scheduler
-                    weight_decay=0.01,               # strength of weight decay
-                    logging_dir='./logs',            # directory for storing logs
+                    output_dir=f'./results/{self.modelName}', # output directory
+                    num_train_epochs=num_epochs,              # total number of training epochs
+                    per_device_train_batch_size=batch_size,   # batch size per device during training
+                    per_device_eval_batch_size=batch_size,    # batch size for evaluation
+                    warmup_steps=kwargs['warmup_steps'],      # number of warmup steps for learning rate scheduler
+                    weight_decay=kwargs['weight_decay'],      # strength of weight decay
+                    logging_dir='./logs',                     # directory for storing logs
                 )
                 trainer = transformers.TFTrainer(
-                    model=self.model,                # the instantiated 🤗 Transformers model to be trained
-                    args=training_args,              # training arguments, defined above
-                    train_dataset=train_dataset,     # tensorflow_datasets training dataset
-                    eval_dataset=val_dataset,        # tensorflow_datasets evaluation dataset
-                    compute_metrics=compute_metrics  # metrics to compute while training
+                    model=self.model,                         # the instantiated 🤗 Transformers model to be trained
+                    args=training_args,                       # training arguments, defined above
+                    train_dataset=train_dataset,              # tensorflow_datasets training dataset
+                    eval_dataset=val_dataset,                 # tensorflow_datasets evaluation dataset
+                    compute_metrics=compute_metrics           # metrics to compute while training
                 )
             else:# if pytorch model
-                train_dataset, val_dataset = self.pipeLine.getEncodedDataset(train_test_split, tfOrPyTorch=torchOrTFEnum.TORCH)
+                train_dataset, val_dataset = self.pipeLine.getEncodedDataset(train_test_split, batch_size=batch_size, tfOrPyTorch=torchOrTFEnum.TORCH)
                 training_args = transformers.TrainingArguments(
-                    output_dir='./results',          # output directory
-                    num_train_epochs=2,              # total number of training epochs
-                    per_device_train_batch_size=64,  # batch size per device during training
-                    per_device_eval_batch_size=64,   # batch size for evaluation
-                    warmup_steps=10,                 # number of warmup steps for learning rate scheduler
-                    weight_decay=0.01,               # strength of weight decay
-                    logging_dir='./logs',            # directory for storing logs
+                    output_dir=f'./results/{self.modelName}', # output directory
+                    num_train_epochs=num_epochs,              # total number of training epochs
+                    per_device_train_batch_size=batch_size,   # batch size per device during training
+                    per_device_eval_batch_size=batch_size,    # batch size for evaluation
+                    warmup_steps=kwargs['warmup_steps'],      # number of warmup steps for learning rate scheduler
+                    weight_decay=kwargs['weight_decay'],      # strength of weight decay
+                    logging_dir='./logs',                     # directory for storing logs
                     logging_steps=10,
                 )
                 trainer = transformers.Trainer(
-                    model=self.model,                # the instantiated 🤗 Transformers model to be trained
-                    args=training_args,              # training arguments, defined above
-                    train_dataset=train_dataset,     # training dataset
-                    eval_dataset=val_dataset,        # evaluation dataset
-                    compute_metrics=compute_metrics  # metrics to compute while training
+                    model=self.model,                         # the instantiated 🤗 Transformers model to be trained
+                    args=training_args,                       # training arguments, defined above
+                    train_dataset=train_dataset,              # training dataset
+                    eval_dataset=val_dataset,                 # evaluation dataset
+                    compute_metrics=compute_metrics           # metrics to compute while training
                 )
                 trainer.train()
 
