@@ -12,3 +12,9 @@ spacy
 ftfy==4.4.3
 SentencePiece
 torch
+hyperopt
+kaggle
+wordcloud
+nltk
+gensim
+pyLDAvis
