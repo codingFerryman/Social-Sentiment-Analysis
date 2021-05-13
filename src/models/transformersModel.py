@@ -43,13 +43,12 @@ def getTransformersTokenizer(transformersModelName:str, loadFunction:typing.Call
     else:
         return PretrainedTransformersPipeLine(loadFunction=loadFunction, tokenizer=mapStrToTransformersTokenizer(transformersModelName))
 
-def compute_metrics(results:object) -> dict:
-    """This function is used by TFtrainer and Trainer classes in the transformers library.
-    They compute metrics for the transformer model while it is training.
-
+def compute_metrics(results:object, metrics:typing.Dict[str,typing.Callable[[list,list],list]]) -> dict:
+    """This function is used by TFtrainer and Trainer classes in the transformers library. 
+    However it can more bradly used to compute metrics during training or testing for evaluation.
     Args:
         results (object): An object containing label_ids (the groundtruth labels) and predictions (the logit predictions of the model)
-
+        metrics (dict): A dictionary of metric names to metric functions
     Returns:
         dict: a dictionary holding the name of the metrics as keys and their values as values of the dictionary
     """
@@ -57,10 +56,19 @@ def compute_metrics(results:object) -> dict:
     preds = results.predictions.argmax(-1)
     acc = accuracy_score(labels, preds)
     return {
-        'accuracy': acc,
+            k: v(labels, preds) for k,v in metrics.items()
     }
 
-
+def get_compute_metrics(metrics:typing.List[dict]) -> typing.Callable[[object], dict]:
+    """
+    Args:
+        metrics (list): A list of metric names
+    """
+    metrics_dict = {
+            metric['name'] : sklearn.metrics.get_scorer(metric['name'], **metric.get('args',{})) for metric in metrics
+    }
+    
+    return lambda results: compute_metrics(results, metrics_dict)
 
 class TransformersModel(ModelConstruction):
     def __init__(self, dataPath:str=None, pipeLine=None, loadFunction=None, modelName:str="roberta"):
@@ -99,7 +107,7 @@ class TransformersModel(ModelConstruction):
                 # self.model.compile(optimizer=optimizer, loss=loss, metrics=self._registeredMetrics)
                 # self.model.fit(train_dataset, epochs=num_epochs)
                 training_args = transformers.TFTrainingArguments(
-                    output_dir=f'./results/{self.modelName}', # output directory
+                    output_dir=f'./results/{self._modelName}', # output directory
                     num_train_epochs=num_epochs,              # total number of training epochs
                     per_device_train_batch_size=batch_size,   # batch size per device during training
                     per_device_eval_batch_size=batch_size,    # batch size for evaluation
@@ -112,12 +120,12 @@ class TransformersModel(ModelConstruction):
                     args=training_args,                       # training arguments, defined above
                     train_dataset=train_dataset,              # tensorflow_datasets training dataset
                     eval_dataset=val_dataset,                 # tensorflow_datasets evaluation dataset
-                    compute_metrics=compute_metrics           # metrics to compute while training
+                    compute_metrics=get_compute_metrics(self._registeredMetrics) # metrics to compute while training
                 )
             else:# if pytorch model
                 train_dataset, val_dataset = self.pipeLine.getEncodedDataset(train_test_split, batch_size=batch_size, tfOrPyTorch=torchOrTFEnum.TORCH)
                 training_args = transformers.TrainingArguments(
-                    output_dir=f'./results/{self.modelName}', # output directory
+                    output_dir=f'./results/{self._modelName}', # output directory
                     num_train_epochs=num_epochs,              # total number of training epochs
                     per_device_train_batch_size=batch_size,   # batch size per device during training
                     per_device_eval_batch_size=batch_size,    # batch size for evaluation
@@ -131,7 +139,7 @@ class TransformersModel(ModelConstruction):
                     args=training_args,                       # training arguments, defined above
                     train_dataset=train_dataset,              # training dataset
                     eval_dataset=val_dataset,                 # evaluation dataset
-                    compute_metrics=compute_metrics           # metrics to compute while training
+                    compute_metrics=get_compute_metrics(self._registeredMetrics) # metrics to compute while training
                 )
                 trainer.train()
 
