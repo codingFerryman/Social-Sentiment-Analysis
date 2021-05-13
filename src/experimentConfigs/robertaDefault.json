@@ -1,0 +1,13 @@
+{
+    "model_type": "transformers",
+    "model" : "roberta",
+    "tokenizer_type" : "transformers",
+    "tokenizer": "roberta",
+    "args": {
+        "epochs": 2,
+        "batch_size": 64,
+        "warmup_steps": 10,
+        "weight_decay": 0.001
+    }
+
+}
