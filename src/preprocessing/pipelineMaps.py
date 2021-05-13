@@ -44,5 +44,5 @@ def mapStrToTransformersTokenizer(tokenizerName: str) -> transformers.PreTrained
     tokenizerMap = getTokenizerMap()
     return tokenizerMap[tokenizerName]()
 
-def getModelMapAvailableNames() -> typing.List[str]:
+def getTokenizerMapAvailableNames() -> typing.List[str]:
     return [k for k in getTokenizerMap().keys()]

@@ -18,7 +18,7 @@ import pdb
 
 logger = loggers.getLogger("RobertaModel", True)
 
-def getDefaultTokenizer(loadFunction=None):
+def getDefaultTokenizer(loadFunction:typing.Callable[[str], typing.Tuple[list,list,list]]=None):
     if loadFunction == None:
         return PretrainedTransformersPipeLine(tokenizer=transformers.RobertaTokenizer, 
                                                         pretrainedTokenizerName='roberta-base')
@@ -26,15 +26,35 @@ def getDefaultTokenizer(loadFunction=None):
         return PretrainedTransformersPipeLine(loadFunction=loadFunction, tokenizer=transformers.RobertaTokenizer, 
                                                         pretrainedTokenizerName='roberta-base')
 
-def getTransformersTokenizer(transformersModelName:str, loadFunction:typing.Callable=None) -> PretrainedTransformersPipeLine:
+def getTransformersTokenizer(transformersModelName:str, loadFunction:typing.Callable[[str], typing.Tuple[list,list,list]]=None) -> PretrainedTransformersPipeLine:
+    """This function returns the transformers tokenizer resepctive with the transformers model name.
+    Each transformers model uses a respective tokenizer with the same name.
+    The loadFunction loads the dataset into a tuple with 3 lists: train_positive_tweets, train_negative_tweets, test_tweets.
+
+    Args:
+        transformersModelName (str): The name of the transformers model
+        loadFunction (typing.Callable[[str], typing.Tuple[list,list,list]], optional): A callable load function that loads the dataset. Defaults to None.
+
+    Returns:
+        PretrainedTransformersPipeLine: The transformers pipeline with the pretrained tokenizer for the respective model. The tokenizer may be trained on a much different dataset than tweets
+    """
     if loadFunction == None:
         return PretrainedTransformersPipeLine(tokenizer=mapStrToTransformersTokenizer(transformersModelName))
     else:
         return PretrainedTransformersPipeLine(loadFunction=loadFunction, tokenizer=mapStrToTransformersTokenizer(transformersModelName))
 
-def compute_metrics(pred):
-    labels = pred.label_ids
-    preds = pred.predictions.argmax(-1)
+def compute_metrics(results:object) -> dict:
+    """This function is used by TFtrainer and Trainer classes in the transformers library.
+    They compute metrics for the transformer model while it is training.
+
+    Args:
+        results (object): An object containing label_ids (the groundtruth labels) and predictions (the logit predictions of the model)
+
+    Returns:
+        dict: a dictionary holding the name of the metrics as keys and their values as values of the dictionary
+    """
+    labels = results.label_ids
+    preds = results.predictions.argmax(-1)
     acc = accuracy_score(labels, preds)
     return {
         'accuracy': acc,
