@@ -5,3 +5,4 @@
 venv/*
 vscode/*
 sklearn
+.ipynb_checkpoints/*
