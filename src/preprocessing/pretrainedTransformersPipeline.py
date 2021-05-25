@@ -13,11 +13,21 @@ logger = loggers.getLogger("PretrainedTransformersPipeLine", debug=True)
 
 
 class torchOrTFEnum(Enum):
+    """ Enumeration to pick between the tensorflow interface and pytorch
+    """ 
     TF = 0
     TORCH = 1
 
 class TwitterDatasetTorch(torch.utils.data.Dataset):
     def __init__(self, encodings:dict, labels:list, shuffle:bool=False, shufflingParameter:int=-1):
+        """ This is a wrapper to pass data of the twitter dataset to pytorch.
+        Args:
+            encodings (dict): The encodings is a dictionary which is turned from a list of the tokenized tweet texts.
+            labels (list): The labels from the dataset.
+            shuffle (bool): To shuffle or not shuffle data. Default False = does not shuffle.
+            shufflingParameter (int): The parameter to initialize the shuffling with.
+
+        """
         self.encodings = encodings
         self.labels = torch.from_numpy(np.array(labels)).long()
 
@@ -32,17 +42,33 @@ class TwitterDatasetTorch(torch.utils.data.Dataset):
 
 
 class PretrainedTransformersPipeLine(InputPipeline.InputPipeline):
-    def __init__(self, dataPath=None, loadFunction:callable=None, tokenizer=None, pretrainedTokenizerName:str=''):
+    def __init__(self, dataPath:str=None, loadFunction:callable=None, tokenizer=None, pretrainedTokenizerName:str=''):
+        """ This class accepts tokenizers from the transformers library and wraps their functionality, so that every tokenizer is used
+        the same way and can be also used from the model wrapper for the pretrainedTransformersModel. Most tokenizers are pretrained to
+        other datasets such as wikipedia. To see all available tokenizers see the file: ./pipelineMaps.py .
+
+        Args:
+            dataPath (str): The path of the tweet dataset. Defaults to None, where the default path of the load function is used.
+            loadFunction (callable): The function to load the tweet texts from the dataset.
+            tokenizer: tokenizer used from the transformers library. Defaults to None which uses the 'bert-base-uncased'. 
+            pretrainedTokenizerName (str): The name of the tokenizer if this is supplied explicitely. Defaults to ''.
+
+        """
+        
         logger.info("PretrainedTransformersPipeLine created")
         self.dataPath = dataPath        
         self.allData = []
         self.dataPos = []
         self.dataNeg = []
         self.num_words:int = None
+        # if no lad function is set, then the default load data is
+        # used which loads all data
         if loadFunction == None:
             self.loadFunction = inputFunctions.loadData
         else:
             self.loadFunction = loadFunction
+        # If no tokenizer is used then 
+        # bert tokenizer will be used. The Bert tokenizer is already pretrained
         if tokenizer == None:
             self._tokenizer = transformers.BertTokenizer.from_pretrained('bert-base-uncased')
         else:
@@ -50,6 +76,8 @@ class PretrainedTransformersPipeLine(InputPipeline.InputPipeline):
                 self._tokenizer = tokenizer.from_pretrained(pretrainedTokenizerName)
             else:
                 self._tokenizer = tokenizer
+        # The pretrained tokenizer name helps to identify which tokenizer is used when logging messages
+        # while training or using this pipeline from a model wrapper
         if pretrainedTokenizerName != '':
             self._pretrainedTokenizerName = self._tokenizer.pretrained_init_configuration.get('pretrained_model_name_or_path')
         else:
@@ -57,6 +85,10 @@ class PretrainedTransformersPipeLine(InputPipeline.InputPipeline):
         self._dataLoaded = False
 
     def loadData(self):
+        """ This loads the data using the loadFunction supplied by the inputFunctions in the constructor.
+        It receives the data separately and mixes them together afterwards. Because for training these tokenizers dont care about
+        the final labeling.
+        """
         logger.info(f"loading data for PretrainedTransformersPipeLine {self._pretrainedTokenizerName}")
         train_pos, train_neg, test_data = self.loadFunction(self.dataPath)
         self.dataPos = train_pos
@@ -110,7 +142,18 @@ class PretrainedTransformersPipeLine(InputPipeline.InputPipeline):
     def textsNegToMatrix(self):
         return self.textsToMatrix(self.dataNeg)
 
-    def argmixPositiveNegative(self, textsPos:list, textsNeg:list) -> list:
+    def argmixPositiveNegative(self, textsPos:list, textsNeg:list) -> np.ndarray:
+        """
+
+        Args:
+            textsPos (list[str]): List of strings with the positive labeled tweet texts.
+            textsNeg (list[str]): List of strings with the negative labeled tweet texts.
+
+        Returns:
+            np.ndarray: A randomly shuffled list with the the labels of positive text (=1) and negative text (=0). 
+
+        """
+        
         negAsZeros = np.zeros((len(textsNeg),), dtype=np.int32)
         posAsOnes = np.ones((len(textsPos),), dtype=np.int32)
         concatenated = np.concatenate((negAsZeros, posAsOnes))
@@ -118,6 +161,19 @@ class PretrainedTransformersPipeLine(InputPipeline.InputPipeline):
         return concatenated
     
     def getLabels(self, argMix:list=[], posList:list=[], negList:list=[], posLabel:int=1, negLabel:int=-1) -> np.ndarray:
+        """ This returns the renewed labels for the positive and negative tweets randomly shuffled accoording to argMix argument.
+        TODO: Explain better.
+        Args:
+            argMix (list): list of mixed labels.
+            posList (list): list of strings of positive tweets.
+            negList (list): list of strings of negative tweets.
+            posLabel (int): positive label values. Defaults to 1.
+            negLabel (int): negative label value. Defaults to -1.
+
+        Returns:
+           (np.ndarray): The labels for the the positive and negative tweets concatenated in the same order as they appear in argMix. 
+
+        """
         # y = pipeline.getLabels(...)
         assert ((len(argMix) == 0) != (len(posList) == len(negList) == 0)),\
             "argMix should be == [] if posList and negList != [] else argMix should be != [] and posList, negList == []"
@@ -137,6 +193,13 @@ class PretrainedTransformersPipeLine(InputPipeline.InputPipeline):
         return y
     
     def getSequenceMaxLength(self) -> typing.Tuple[int,int,list]:
+        """
+
+        Returns:
+            tuple(int,int,list): text's minimum length in words, texts' maximum length in words, texts with zero length
+        Raises:
+            Exception: In case no data has been loaded
+        """
         assert self._dataLoaded, "Data should be loaded to get sequences max length"
         # The maximum, minimum number of words in tweets
         # ... and empty entries
@@ -209,6 +272,5 @@ class PretrainedTransformersPipeLine(InputPipeline.InputPipeline):
             else:                
                 encDataTrain, encDataVal = self.getEncodedDatasetTorch(train_dataX=train_dataX, train_datay=list(train_datay), 
                                                                     val_dataX=val_dataX, val_datay=list(val_datay), max_len=max_len, shufflingParameter=shufflingParameter, batch_size=batch_size)
-
         
         return encDataTrain, encDataVal

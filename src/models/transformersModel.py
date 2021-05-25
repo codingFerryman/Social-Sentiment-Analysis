@@ -9,8 +9,8 @@ import typing
 import os, sys
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from preprocessing.pretrainedTransformersPipeline import PretrainedTransformersPipeLine, torchOrTFEnum
-from models.Model import ModelConstruction
-from modelMaps import mapStrToTransformerModel
+from models.Model import ModelConstruction, get_iterator_splitter_from_name
+from models.modelMaps import mapStrToTransformerModel
 from preprocessing.pipelineMaps import mapStrToTransformersTokenizer
 import inputFunctions
 import loggers
@@ -70,8 +70,9 @@ def get_compute_metrics(metrics:typing.List[dict]) -> typing.Callable[[object], 
     
     return lambda results: compute_metrics(results, metrics_dict)
 
+
 class TransformersModel(ModelConstruction):
-    def __init__(self, dataPath:str=None, pipeLine=None, loadFunction=None, modelName:str="roberta"):
+    def __init__(self, dataPath:str=None, pipeLine=None, loadFunction=None, modelName:str="roberta", **kwargs):
         self.configuration = transformers.RobertaConfig()
         if pipeLine == None:
             self.pipeLine = getDefaultTokenizer(loadFunction=loadFunction)
@@ -81,6 +82,7 @@ class TransformersModel(ModelConstruction):
             self.pipeLine = pipeLine
         self._registeredMetrics = []
         self._modelName = modelName
+        self._dataLoaded = False
 
     def loadData(self):
         self.pipeLine.loadData()
@@ -93,11 +95,13 @@ class TransformersModel(ModelConstruction):
         model = mapStrToTransformerModel(self._modelName)
         return model
 
-    def testModel(self, train_val_split_iterator: typing.Iterator = [sklearn.model_selection.train_test_split], **kwargs):
+    def testModel(self, train_val_split_iterator:str="train_test_split", **kwargs) -> dict:
         logger.info("Starting testing of RobertaModel")
         num_epochs = kwargs['epochs']
         batch_size = kwargs['batch_size']
-        for i, train_test_split in enumerate(train_val_split_iterator):
+        evals = []
+        iterator = get_iterator_splitter_from_name(kwargs[train_val_split_iterator])
+        for i, train_test_split in enumerate(iterator):
             logger.debug(f'{i}-th enumeration of train_val split iterator under cross validation')
             self.model = self.createModel()
             # optimizer = tf.keras.optimizers.Adam(learning_rate=3e-5, epsilon=1e-08, clipnorm=1.0)
@@ -141,7 +145,9 @@ class TransformersModel(ModelConstruction):
                     eval_dataset=val_dataset,                 # evaluation dataset
                     compute_metrics=get_compute_metrics(self._registeredMetrics) # metrics to compute while training
                 )
-                trainer.train()
+            # trainer.train()
+            evals.append(trainer.evaluate())
+        return evals
 
     def getTestResults(self) -> typing.List[dict]:
         """This method gets results from last training
