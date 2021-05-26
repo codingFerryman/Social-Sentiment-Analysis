@@ -18,36 +18,33 @@ class TransformersModelTest(unittest.TestCase):
         super(TransformersModelTest, self).__init__(*args, **kwargs)
         
     
-    def test_createModelRoberta(self):
-        logger.debug("Testing createModel Roberta")
-        roberta = transformersModel.TransformersModel()
-        roberta.pipeLine.loadFunction = inputFunctions.loadDataForUnitTesting
-        roberta.loadData()
-        roberta.createModel()
+    # def test_createModelRoberta(self):
+    #     logger.debug("Testing createModel Roberta")
+    #     roberta = transformersModel.TransformersModel(loadFunction=inputFunctions.loadDataForUnitTesting)
+    #     roberta.loadData()
+    #     roberta.createModel()
 
-    def test_createAllTransformerModels(self):
-        for name in getModelMapAvailableNames():
-            logger.debug(f"Testing createModel for {name}")
-            transfModel = transformersModel.TransformersModel(pipeLine={'modelName': name}, modelName=name)
-            transfModel.pipeLine.loadFunction = inputFunctions.loadDataForUnitTesting
-            transfModel.loadData()
-            transfModel.createModel()
+    # def test_createAllTransformerModels(self):
+    #     for name in getModelMapAvailableNames():
+    #         logger.debug(f"Testing createModel for {name}")
+    #         transfModel = transformersModel.TransformersModel(pipeLine={'modelName': name}, modelName=name, loadFunction=inputFunctions.loadDataForUnitTesting)
+    #         transfModel.pipeLine.loadFunction = 
+    #         transfModel.loadData()
+    #         transfModel.createModel()
 
-    def test_testModel(self):
-        logger.debug("Testing testModel")
-        roberta = transformersModel.TransformersModel()
-        roberta.pipeLine.loadFunction = inputFunctions.loadDataForUnitTesting
-        roberta.loadData()
-        roberta.registerMetric({'name': 'accuracy'})
-        roberta.testModel(epochs=2, batch_size=64, weight_decay=0.01, warmup_steps=10)
+    # def test_testModel(self):
+    #     logger.debug("Testing testModel")
+    #     roberta = transformersModel.TransformersModel()
+    #     roberta.loadData()
+    #     # roberta.registerMetric({'name': 'accuracy'})
+    #     roberta.testModel(epochs=2, batch_size=32, weight_decay=0.01, warmup_steps=10)
 
     def test_testModelAllTransformerModels(self):
         for name in getModelMapAvailableNames():
             logger.debug(f"Testing testModel for {name}")
-            transfModel = transformersModel.TransformersModel(pipeLine={'modelName': name}, modelName=name)
-            transfModel.pipeLine.loadFunction = inputFunctions.loadDataForUnitTesting
+            transfModel = transformersModel.TransformersModel(pipeLine={'modelName': name}, modelName=name, loadFunction=inputFunctions.loadDataForUnitTesting)
             transfModel.loadData()
-            transfModel.registerMetric({'name': 'accuracy'})
+            # transfModel.registerMetric({'name': 'accuracy'})
             transfModel.testModel(epochs=2, batch_size=64, weight_decay=0.01, warmup_steps=10)
 
 if __name__ == "__main__":

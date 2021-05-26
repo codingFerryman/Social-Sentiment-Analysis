@@ -238,7 +238,16 @@ class PretrainedTransformersPipeLine(InputPipeline.InputPipeline):
         
         return encDataTrain, encDataVal
 
-
+    def getClassWeight(self, posLabel=1, negLabel=0) -> typing.Dict[int, float]:
+        assert self._dataLoaded, "Data should be loaded to get the encoded dataset"
+        numNeg = np.size(self.dataNeg)
+        numPos = np.size(self.dataPos)
+        numTotal = numNeg + numPos
+        ret = {
+            posLabel: numPos/(numTotal),
+            negLabel: numNeg/(numTotal)
+        }
+        return ret
     def getEncodedDataset(self, splitter:typing.Callable=None, posLabel=1, negLabel=0, shufflingParameter:int=1000, batch_size:int=64, tfOrPyTorch:torchOrTFEnum=torchOrTFEnum.TF,**splitterConfig):
         assert self._dataLoaded, "Data should be loaded to get the encoded dataset"
         # create labels
@@ -256,7 +265,7 @@ class PretrainedTransformersPipeLine(InputPipeline.InputPipeline):
 
         if splitter == None:
             # tokenLists = self.textsToPaddedSequences(self.allData, max_len)
-
+            logger.debug("No splitter specified")
             if tfOrPyTorch == torchOrTFEnum.TF:
                 encDataTrain, encDataVal = self.getEncodedDatasetTF(train_dataX=self.allData, train_datay=list(labels), 
                                                                     val_dataX={}, val_datay=[], max_len=max_len, shufflingParameter=shufflingParameter, batch_size=batch_size)
