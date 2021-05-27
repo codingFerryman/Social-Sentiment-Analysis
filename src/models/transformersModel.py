@@ -99,17 +99,24 @@ class TransformersModel(ModelConstruction):
         return model
 
     def testModel(self, train_val_split_iterator:str="train_test_split", **kwargs) -> dict:
-        logger.info("Starting testing of RobertaModel")
+        logger.info(f"Starting testing of {self._modelName}")
         num_epochs = kwargs['epochs']
         batch_size = kwargs['batch_size']
         evals = []
-        iterator = get_iterator_splitter_from_name(train_val_split_iterator)
-        for i, train_test_split in enumerate(iterator):
+        splitter = get_iterator_splitter_from_name(train_val_split_iterator)
+        i = 0
+        temp_model = self.createModel()
+        if (callable(getattr(temp_model, 'compile', None))):
+            tfOrPyTorch = torchOrTFEnum.TF
+        else:
+            tfOrPyTorch = torchOrTFEnum.TORCH
+        for dataset_tuple in self.pipeLine.getEncodedDataset(splitter, batch_size=batch_size, tfOrPyTorch=tfOrPyTorch):
+            train_dataset, val_dataset = dataset_tuple
             logger.debug(f'{i}-th enumeration of train_val split iterator under cross validation')
             self.model = self.createModel()
-            if callable(getattr(self.model, 'compile', None)): # if tf model
+            logger.debug(f"tfOrPyTorch={tfOrPyTorch}")
+            if tfOrPyTorch == torchOrTFEnum.TF: # if tf model
                 logger.debug("training tf model")
-                train_dataset, val_dataset = self.pipeLine.getEncodedDataset(train_test_split, batch_size=batch_size)
                 classWeights = self.pipeLine.getClassWeight()
                 optimizer = tf.keras.optimizers.Adam(learning_rate=3e-5, epsilon=1e-08, clipnorm=1.0)
                 loss = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
@@ -123,11 +130,11 @@ class TransformersModel(ModelConstruction):
                                    loss=loss,
                                    metrics=self._registeredMetrics)
                 
-                self.model.fit(train_dataset, epochs=num_epochs,
-                                   validation_data=val_dataset,
-                                   class_weight=classWeights,
-                                   callbacks=[save_callback, tensorboard_callback],
-                                   validation_freq=max(int(num_epochs/10), 1))
+                self.model.fit(train_dataset.prefetch(2), epochs=num_epochs,
+                                validation_data=val_dataset.prefetch(2),
+                                class_weight=classWeights if kwargs.get('useClassWeights', False) else None,
+                                callbacks=[save_callback, tensorboard_callback],
+                                validation_freq=max(int(num_epochs/10), 1))
                 evals.append(self.model.evaluate(x=val_dataset))
                 # training_args = transformers.TFTrainingArguments(
                 #     output_dir=f'./results/{self._modelName}',# output directory
@@ -147,7 +154,6 @@ class TransformersModel(ModelConstruction):
                 # )
             else:# if pytorch model
                 logger.debug("training pytorch model")
-                train_dataset, val_dataset = self.pipeLine.getEncodedDataset(train_test_split, batch_size=batch_size, tfOrPyTorch=torchOrTFEnum.TORCH)
                 training_args = transformers.TrainingArguments(
                     output_dir=f'./results/{self._modelName}',# output directory
                     num_train_epochs=num_epochs,              # total number of training epochs
@@ -167,8 +173,8 @@ class TransformersModel(ModelConstruction):
                 )
                 trainer.train()
                 evals.append(trainer.evaluate())
-            logger.debug("Model has finished training and evaluation")
-            # logger.debug(f"Training has stopped and now evaluation starts")
+            logger.debug(f"Model {i}-th enumeration has finished training and evaluation")
+            i += 1
         return evals
 
     def getTestResults(self) -> typing.List[dict]:

@@ -8,7 +8,8 @@
         "batch_size": 64,
         "warmup_steps": 10,
         "weight_decay": 0.001,
-        "iterator" : "cross_validation2"
+        "train_val_split_iterator" : "train_test_split",
+        "useClassWeights" : false
     },
     "metrics": []
 

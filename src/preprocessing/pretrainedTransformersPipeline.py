@@ -10,7 +10,7 @@ import numpy as np
 import typing
 from enum import Enum
 logger = loggers.getLogger("PretrainedTransformersPipeLine", debug=True)
-
+import pdb
 
 class torchOrTFEnum(Enum):
     """ Enumeration to pick between the tensorflow interface and pytorch
@@ -248,6 +248,7 @@ class PretrainedTransformersPipeLine(InputPipeline.InputPipeline):
             negLabel: numNeg/(numTotal)
         }
         return ret
+    
     def getEncodedDataset(self, splitter:typing.Callable=None, posLabel=1, negLabel=0, shufflingParameter:int=1000, batch_size:int=64, tfOrPyTorch:torchOrTFEnum=torchOrTFEnum.TF,**splitterConfig):
         assert self._dataLoaded, "Data should be loaded to get the encoded dataset"
         # create labels
@@ -262,24 +263,27 @@ class PretrainedTransformersPipeLine(InputPipeline.InputPipeline):
             logger.debug('Deleting zero length texts and labels because min_len = 0')
             self.allData = [d for i,d in enumerate(self.allData) if not(i in zero_len_idx)]
             labels = [l for i,l in enumerate(labels) if not(i in zero_len_idx)]
-
+        
+        self.splitter = splitter
+        
         if splitter == None:
             # tokenLists = self.textsToPaddedSequences(self.allData, max_len)
             logger.debug("No splitter specified")
             if tfOrPyTorch == torchOrTFEnum.TF:
-                encDataTrain, encDataVal = self.getEncodedDatasetTF(train_dataX=self.allData, train_datay=list(labels), 
+                encDataTrain, encDataVal = self.getEncodedDatasetTF(train_dataX=self.allData, train_datay=list(labels),
                                                                     val_dataX={}, val_datay=[], max_len=max_len, shufflingParameter=shufflingParameter, batch_size=batch_size)
             else:
-                encDataTrain, encDataVal = self.getEncodedDatasetTorch(train_dataX=self.allData, train_datay=list(labels), 
+                encDataTrain, encDataVal = self.getEncodedDatasetTorch(train_dataX=self.allData, train_datay=list(labels),
                                                                     val_dataX={}, val_datay=[], max_len=max_len, shufflingParameter=shufflingParameter, batch_size=batch_size)
+            yield (encDataTrain, encDataVal)
         else:
-            train_dataX, val_dataX, train_datay, val_datay = splitter(self.allData, labels, **splitterConfig)
-
-            if tfOrPyTorch == torchOrTFEnum.TF:
-                encDataTrain, encDataVal = self.getEncodedDatasetTF(train_dataX=train_dataX, train_datay=list(train_datay), 
-                                                                    val_dataX=val_dataX, val_datay=list(val_datay), max_len=max_len, shufflingParameter=shufflingParameter, batch_size=batch_size)
-            else:                
-                encDataTrain, encDataVal = self.getEncodedDatasetTorch(train_dataX=train_dataX, train_datay=list(train_datay), 
-                                                                    val_dataX=val_dataX, val_datay=list(val_datay), max_len=max_len, shufflingParameter=shufflingParameter, batch_size=batch_size)
-        
-        return encDataTrain, encDataVal
+            for train_index, val_index in self.splitter.split(self.allData, labels, **splitterConfig):
+                train_dataX, val_dataX = [self.allData[i] for i in train_index], [self.allData[i] for i in val_index]
+                train_datay, val_datay = labels[train_index], labels[val_index]
+                if tfOrPyTorch == torchOrTFEnum.TF:
+                    encDataTrain, encDataVal = self.getEncodedDatasetTF(train_dataX=train_dataX, train_datay=list(train_datay),
+                                                                        val_dataX=val_dataX, val_datay=list(val_datay), max_len=max_len, shufflingParameter=shufflingParameter, batch_size=batch_size)
+                else:                
+                    encDataTrain, encDataVal = self.getEncodedDatasetTorch(train_dataX=train_dataX, train_datay=list(train_datay),
+                                                                        val_dataX=val_dataX, val_datay=list(val_datay), max_len=max_len, shufflingParameter=shufflingParameter, batch_size=batch_size)
+                yield (encDataTrain, encDataVal)
