@@ -63,16 +63,17 @@ def launchExperimentFromDict(d:dict, reportPath:str='./report.json'):
         model = transformersModel.TransformersModel(pipeLine={'modelName': name}, modelName=name, **d)
     # By default choose the sparse categorical accuracy
     # model.registerMetric(tf.keras.metrics.SparseCategoricalAccuracy('accuracy'))
-    model.registerMetric({'name': 'accuracy'})
-    for metric in d.get('metrics',[]):
-        # model.registerMetric(tf.keras.metrics.get(metric))
-        model.registerMetric({'name': metric})
+    # model.registerMetric({'name': 'accuracy'})
+    # for metric in d.get('metrics',[]):
+    #     # model.registerMetric(tf.keras.metrics.get(metric))
+    #     model.registerMetric({'name': metric})
     
     if(d['tokenizer_type'] != TokenizerType.transformers.value):
         name = d['tokenizer']
+        print("NOT YET IMPLEMENTED")
         # TODO: transformers model is used, but a general model is needed here
-        tokenizer = mapStrToTransformersTokenizer(name)
-        model.pipeLine = transformersModel.getTransformersTokenizer(mapStrToTransformersTokenizer())
+        # tokenizer = mapStrToTransformersTokenizer(name)
+        model.pipeLine = transformersModel.getTransformersTokenizer(name)
     model.loadData()
     evals = model.testModel(**d['args'])
     report(info={**d, 

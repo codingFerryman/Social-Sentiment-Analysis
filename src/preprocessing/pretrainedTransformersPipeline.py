@@ -249,7 +249,10 @@ class PretrainedTransformersPipeLine(InputPipeline.InputPipeline):
         }
         return ret
     
-    def getEncodedDataset(self, splitter:typing.Callable=None, posLabel=1, negLabel=0, shufflingParameter:int=1000, batch_size:int=64, tfOrPyTorch:torchOrTFEnum=torchOrTFEnum.TF,**splitterConfig):
+    def getEncodedDataset(self, splitter:typing.Callable=None,
+                    posLabel=1, negLabel=0, shufflingParameter:int=1000,
+                    batch_size:int=64, tfOrPyTorch:torchOrTFEnum=torchOrTFEnum.TF,
+                    saveSplitDatasets:bool=False, fileToLoadSplitDatasets:str='', **splitterConfig):
         assert self._dataLoaded, "Data should be loaded to get the encoded dataset"
         # create labels
         negAsZeros = np.zeros((len(self.dataNeg),), dtype=np.int32)
@@ -287,3 +290,7 @@ class PretrainedTransformersPipeLine(InputPipeline.InputPipeline):
                     encDataTrain, encDataVal = self.getEncodedDatasetTorch(train_dataX=train_dataX, train_datay=list(train_datay),
                                                                         val_dataX=val_dataX, val_datay=list(val_datay), max_len=max_len, shufflingParameter=shufflingParameter, batch_size=batch_size)
                 yield (encDataTrain, encDataVal)
+    def loadEncodedDataset(self, posLabel=1, negLabel=0, shufflingParameter:int=1000, batch_size:int=64, tfOrPyTorch:torchOrTFEnum=torchOrTFEnum.TF,**splitterConfig):
+        pass
+    def saveEncodedDataset(self, file:str, iterationNumber:int=0):
+        pass
