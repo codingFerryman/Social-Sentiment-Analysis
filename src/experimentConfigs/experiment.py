@@ -4,6 +4,7 @@ import json
 import hyperopt
 import os, sys
 import enum
+import datetime as dt
 import tensorflow as tf
 import transformers
 sys.path.append(os.path.join(os.path.dirname(__file__),'..'))
@@ -78,7 +79,8 @@ def launchExperimentFromDict(d:dict, reportPath:str='./report.json'):
     evals = model.testModel(**d['args'])
     report(info={**d, 
             "results": evals,
-            "output_dir": f'./results/{model._modelName}'}, # for server make this absolute server
+            "output_dir": f'./results/{model._modelName}', # for server make this absolute server
+            "time_stamp": dt.datetime.now()},
            reportPath=reportPath)
 
 def launchExperimentFromJson(fpath:str, reportPath:str):

@@ -11,6 +11,6 @@
         "train_val_split_iterator" : "train_test_split",
         "useClassWeights" : false
     },
-    "metrics": []
-
+    "metrics": [],
+    "description": "Test default Roberta model" 
 }
