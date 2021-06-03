@@ -12,5 +12,7 @@ install:
 tests:
   - python download_dataset.py
   - bash tests/all_test.sh
-
+report:
+  - cd src/experimentConfigs
+  - python -m http.server
 # TODO: report metrics
