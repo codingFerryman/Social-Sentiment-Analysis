@@ -5,7 +5,7 @@ xgboost
 pandas
 tensorflow
 transformers
-git
+GitPython
 datasets
 coloredlogs
 yapf
