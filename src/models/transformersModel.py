@@ -1,4 +1,6 @@
 import tensorflow as tf
+import torch
+import torchmetrics
 import transformers
 from transformers import RobertaConfig
 import numpy as np
@@ -120,6 +122,7 @@ class TransformersModel(ModelConstruction):
                 classWeights = self.pipeLine.getClassWeight()
                 optimizer = tf.keras.optimizers.Adam(learning_rate=3e-5, epsilon=1e-08, clipnorm=1.0)
                 loss = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
+                standard_metric = tf.keras.metrics.SparseCategoricalAccuracy('accuracy')
                 save_callback = tf.keras.callbacks.ModelCheckpoint(filepath=f'./results/{self._modelName}',# output directory
                                                                  save_weights_only=True,
                                                                  verbose=1)
@@ -128,7 +131,7 @@ class TransformersModel(ModelConstruction):
 
                 self.model.compile(optimizer=optimizer, 
                                    loss=loss,
-                                   metrics=self._registeredMetrics)
+                                   metrics=[standard_metric])# + [tf.keras.metric.get(m['name']) for m in self._registeredMetrics])
                 
                 self.model.fit(train_dataset.prefetch(2), epochs=num_epochs,
                                 validation_data=val_dataset.prefetch(2),
@@ -154,6 +157,7 @@ class TransformersModel(ModelConstruction):
                 # )
             else:# if pytorch model
                 logger.debug("training pytorch model")
+                standard_metric = torchmetrics.Accuracy()
                 training_args = transformers.TrainingArguments(
                     output_dir=f'./results/{self._modelName}',# output directory
                     num_train_epochs=num_epochs,              # total number of training epochs
@@ -169,7 +173,7 @@ class TransformersModel(ModelConstruction):
                     args=training_args,                       # training arguments, defined above
                     train_dataset=train_dataset,              # training dataset
                     eval_dataset=val_dataset,                 # evaluation dataset
-                    # compute_metrics={"accuracy": lambda results: compute_metrics(results, {})} # metrics to compute while training
+                    compute_metrics=get_compute_metrics([])   # metrics to compute accuracy after per training epoch
                 )
                 trainer.train()
                 evals.append(trainer.evaluate())

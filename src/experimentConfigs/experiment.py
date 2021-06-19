@@ -1,11 +1,13 @@
 # This experiment file it is quite heavy on loading considering
 # the imported packages
 import json
+import numpy as np
 import hyperopt
 import hyperopt.pyll
 from hyperopt.pyll import scope
 import os, sys
 import enum
+import datetime as dt
 import tensorflow as tf
 import transformers
 sys.path.append(os.path.join(os.path.dirname(__file__),'..'))
@@ -65,24 +67,26 @@ def launchExperimentFromDict(d:dict, reportPath:str='./report.json'):
         model = transformersModel.TransformersModel(pipeLine={'modelName': name}, modelName=name, **d)
     # By default choose the sparse categorical accuracy
     # model.registerMetric(tf.keras.metrics.SparseCategoricalAccuracy('accuracy'))
-    model.registerMetric({'name': 'accuracy'})
-    for metric in d.get('metrics',[]):
-        # model.registerMetric(tf.keras.metrics.get(metric))
-        model.registerMetric({'name': metric})
+    # model.registerMetric({'name': 'accuracy'})
+    # for metric in d.get('metrics',[]):
+    #     # model.registerMetric(tf.keras.metrics.get(metric))
+    #     model.registerMetric({'name': metric})
     
     if(d['tokenizer_type'] != TokenizerType.transformers.value):
         name = d['tokenizer']
+        print("NOT YET IMPLEMENTED")
         # TODO: transformers model is used, but a general model is needed here
-        tokenizer = mapStrToTransformersTokenizer(name)
-        model.pipeLine = transformersModel.getTransformersTokenizer(mapStrToTransformersTokenizer())
+        # tokenizer = mapStrToTransformersTokenizer(name)
+        model.pipeLine = transformersModel.getTransformersTokenizer(name)
     model.loadData()
     hyperoptActive = d.get('use_hyperopt', False)
     if not hyperoptActive:
-        evals = model.testModel(**d['args'])
-        report(info={**d, 
-                "results": evals,
-                "output_dir": f'./results/{model._modelName}'}, # for server make this absolute server
-            reportPath=reportPath)
+    evals = model.testModel(**d['args'])
+    report(info={**d, 
+            "results": evals,
+            "output_dir": f'./results/{model._modelName}', # for server make this absolute server
+            "time_stamp": dt.datetime.now()},
+           reportPath=reportPath)
     else:
         # if use_hyperopt = True inside the dictionary
         # prepare hyperopt to run for various values
@@ -93,6 +97,7 @@ def launchExperimentFromDict(d:dict, reportPath:str='./report.json'):
             for argName, argValue in d['args']}
 
             
+
 
 def getHyperoptValue(val: any):
     USE_HYPEROPT = "use_hyperopt"

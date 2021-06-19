@@ -1,4 +1,5 @@
 #!/bin/bash
+declare TEST_PATH=$1
 
-python experiment.py
+python experiment.py $TEST_PATH
 sh uploadNewReport.sh
