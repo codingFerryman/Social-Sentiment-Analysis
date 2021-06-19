@@ -2,6 +2,8 @@
 # the imported packages
 import json
 import hyperopt
+import hyperopt.pyll
+from hyperopt.pyll import scope
 import os, sys
 import enum
 import tensorflow as tf
@@ -74,12 +76,37 @@ def launchExperimentFromDict(d:dict, reportPath:str='./report.json'):
         tokenizer = mapStrToTransformersTokenizer(name)
         model.pipeLine = transformersModel.getTransformersTokenizer(mapStrToTransformersTokenizer())
     model.loadData()
-    evals = model.testModel(**d['args'])
-    report(info={**d, 
-            "results": evals,
-            "output_dir": f'./results/{model._modelName}'}, # for server make this absolute server
-           reportPath=reportPath)
+    hyperoptActive = d.get('use_hyperopt', False)
+    if not hyperoptActive:
+        evals = model.testModel(**d['args'])
+        report(info={**d, 
+                "results": evals,
+                "output_dir": f'./results/{model._modelName}'}, # for server make this absolute server
+            reportPath=reportPath)
+    else:
+        # if use_hyperopt = True inside the dictionary
+        # prepare hyperopt to run for various values
+        # search for values having this dictionary structure:
+        # {"use_hyperopt" , "hyperopt_function", "arguments"}
+        # see robertaHyperopt.json for more details.
+        space = {argName: getHyperoptValue(argValue)
+            for argName, argValue in d['args']}
 
+            
+
+def getHyperoptValue(val: any):
+    USE_HYPEROPT = "use_hyperopt"
+    HYPEROPT_FUNC = "hyperopt_function"
+    HYPEROPT_ARGS = "arguments"
+    if val is dict:
+        answers = [k in val.keys() for k in [USE_HYPEROPT , HYPEROPT_FUNC, HYPEROPT_ARGS]]
+        if np.all(answers):
+            # actual hyperopt descriptor
+            if val[USE_HYPEROPT]:
+                hpfunc = getHypervisorFunction()
+        else:
+            # a key-value has been forgotten
+            assert not(np.any(answers))
 def launchExperimentFromJson(fpath:str, reportPath:str):
     """This launches experiment described in a json file.
     It reads a json file it transforms is to  dict and calls the launchExperimentFromDict
