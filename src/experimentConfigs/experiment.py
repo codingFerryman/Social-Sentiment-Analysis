@@ -81,37 +81,84 @@ def launchExperimentFromDict(d:dict, reportPath:str='./report.json'):
     model.loadData()
     hyperoptActive = d.get('use_hyperopt', False)
     if not hyperoptActive:
-    evals = model.testModel(**d['args'])
-    report(info={**d, 
-            "results": evals,
-            "output_dir": f'./results/{model._modelName}', # for server make this absolute server
-            "time_stamp": dt.datetime.now()},
-           reportPath=reportPath)
+        evals = model.testModel(**d['args'])
+        report(info={**d, 
+                "results": evals,
+                "output_dir": f'./results/{model._modelName}', # for server make this absolute server
+                "time_stamp": dt.datetime.now()},
+            reportPath=reportPath)
     else:
         # if use_hyperopt = True inside the dictionary
         # prepare hyperopt to run for various values
         # search for values having this dictionary structure:
         # {"use_hyperopt" , "hyperopt_function", "arguments"}
         # see robertaHyperopt.json for more details.
-        space = {argName: getHyperoptValue(argValue)
-            for argName, argValue in d['args']}
-
+        space = {argName: getHyperoptValue(argName, argValue)
+            for argName, argValue in d['args'].items()}
+        def getEvalsError(args):
+            # find which arguments use hyperopt
+            # and stop them from being a dictionary
+            actualArgs = {}
+            for argName, argVal in args.items():
+                if type(d['args'][argName]) is dict:
+                    if d['args'][argName].get("use_hyperopt", False):
+                        actualArgs[argName] = argVal[argName]
+                    else:
+                        actualArgs[argName] = argVal
+                else:
+                    actualArgs[argName] = argVal
+            # test the model
+            # and get evaluations
+            evals = model.testModel(**actualArgs)
+            res = 100 - np.sum(evals) / np.size(evals)
+            return res
+        bestHyperparametersDict = hyperopt.fmin(getEvalsError, space, hyperopt.tpe.suggest, max_evals=d['hyperopt_max_evals'])
+        report(info={**bestHyperparametersDict, 
+                "results": evals,
+                "output_dir": f'./results/{model._modelName}', # for server make this absolute server
+                "time_stamp": dt.datetime.now()},
+            reportPath=reportPath)
             
 
 
-def getHyperoptValue(val: any):
+def getHypervisorFunction(funcName: str) -> callable:
+    d = {
+        "normal": hyperopt.hp.normal,
+        "lognormal": hyperopt.hp.lognormal,
+        "loguniform": hyperopt.hp.loguniform,
+        "qlognormal": hyperopt.hp.qlognormal,
+        "qnormal": hyperopt.hp.qnormal,
+        "randint": hyperopt.hp.randint,
+        "uniform": hyperopt.hp.uniform,
+        "uniformint": hyperopt.hp.uniformint,
+        "choice": hyperopt.hp.choice,
+        "pchoice": hyperopt.hp.pchoice
+    }
+    assert(funcName in d.keys()), f"{funcName} not in supported hp functions"
+    return d.get(funcName)
+
+import pdb
+def getHyperoptValue(name:str, val: any):
     USE_HYPEROPT = "use_hyperopt"
     HYPEROPT_FUNC = "hyperopt_function"
     HYPEROPT_ARGS = "arguments"
-    if val is dict:
+    if type(val) is dict:
         answers = [k in val.keys() for k in [USE_HYPEROPT , HYPEROPT_FUNC, HYPEROPT_ARGS]]
         if np.all(answers):
             # actual hyperopt descriptor
             if val[USE_HYPEROPT]:
-                hpfunc = getHypervisorFunction()
+                hpfunc = getHypervisorFunction(val[HYPEROPT_FUNC])
+                return {name:hpfunc(name, **val[HYPEROPT_ARGS])}
+            else:
+                print("Error: Having a hyperopt descriptor but hyperopt usage is not active")
+                assert(False)
+                return {name: ""}
         else:
             # a key-value has been forgotten
             assert not(np.any(answers))
+            return val
+    else:
+        return val
 def launchExperimentFromJson(fpath:str, reportPath:str):
     """This launches experiment described in a json file.
     It reads a json file it transforms is to  dict and calls the launchExperimentFromDict

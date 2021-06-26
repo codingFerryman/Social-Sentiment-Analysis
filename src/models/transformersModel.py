@@ -101,6 +101,7 @@ class TransformersModel(ModelConstruction):
         return model
 
     def testModel(self, train_val_split_iterator:str="train_test_split", **kwargs) -> dict:
+        print(train_val_split_iterator, kwargs)
         logger.info(f"Starting testing of {self._modelName}")
         num_epochs = kwargs['epochs']
         batch_size = kwargs['batch_size']

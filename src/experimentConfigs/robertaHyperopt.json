@@ -5,12 +5,13 @@
     "tokenizer": "roberta",
     "args": {
         "epochs": 2,
-        "batch_size": 64,
-        "warmup_steps": 10,
+        "batch_size": {"use_hyperopt": true, "hyperopt_function":"choice", "arguments": {"options": [8,16,32,64]}},
+        "warmup_steps": {"use_hyperopt": true, "hyperopt_function":"choice", "arguments": {"options": [20]}},
         "weight_decay": 0.001,
         "train_val_split_iterator" : "train_test_split",
         "useClassWeights" : false
     },
-    "metrics": []
-
+    "metrics": [],
+    "use_hyperopt": true,
+    "hyperopt_max_evals": 2
 }
