@@ -1,0 +1,9 @@
+{
+  "num_labels": 2,
+  "problem_type": "single_label_classification",
+  "min_length": 2,
+  "max_length": 64,
+  "output_attentions": false,
+  "output_hidden_states": false,
+  "finetuning_task": null
+}

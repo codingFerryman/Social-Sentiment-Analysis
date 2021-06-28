@@ -1,13 +1,8 @@
+import os
+import sys
 import unittest
-import transformers
-import transformersModel
-import numpy as np
-import tensorflow as tf
-import sys, os
+
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-import inputFunctions
-from preprocessing.pretrainedTransformersPipeline import PretrainedTransformersPipeLine
-from models.modelMaps import getModelMapAvailableNames
 import loggers
 
 logger = loggers.getLogger("RobertaModelTest", debug=True)
@@ -39,13 +34,13 @@ class TransformersModelTest(unittest.TestCase):
     #     # roberta.registerMetric({'name': 'accuracy'})
     #     roberta.testModel(epochs=2, batch_size=32, weight_decay=0.01, warmup_steps=10)
 
-    def test_testModelAllTransformerModels(self):
-        for name in getModelMapAvailableNames():
-            logger.debug(f"Testing testModel for {name}")
-            transfModel = transformersModel.TransformersModel(pipeLine={'modelName': name}, modelName=name, loadFunction=inputFunctions.loadDataForUnitTesting)
-            transfModel.loadData()
-            # transfModel.registerMetric({'name': 'accuracy'})
-            transfModel.testModel(epochs=2, batch_size=64, weight_decay=0.01, warmup_steps=10)
+    # def test_testModelAllTransformerModels(self):
+    #     for name in getModelMapAvailableNames():
+    #         logger.debug(f"Testing testModel for {name}")
+    #         transfModel = transformersModel.TransformersModel(pipeLine={'modelName': name}, modelName=name, loadFunction=inputFunctions.loadDataForUnitTesting)
+    #         transfModel.loadData()
+    #         # transfModel.registerMetric({'name': 'accuracy'})
+    #         transfModel.trainModel(epochs=2, batch_size=64, weight_decay=0.01, warmup_steps=10)
 
 if __name__ == "__main__":
     unittest.main()
