@@ -6,6 +6,8 @@ from icecream import ic
 
 from inputFunctions import loadData
 
+ic.disable()
+
 data_pos, data_neg, test_full = loadData(ratio='full')
 
 
