@@ -1,6 +1,7 @@
 import json
 import os
 import sys
+import time
 import typing
 from pathlib import Path
 
@@ -85,8 +86,10 @@ class TransformersModel(ModelConstruction):
         self._registeredMetrics = []
 
         self.model = None
-
+        self.trainer = None
         self.project_directory = get_project_path()
+        self.training_saving_path = Path(self.project_directory, 'trainings', 'logging',
+                                         self._modelName, time.strftime("%Y%m%d-%H%M%S"))
 
     def loadData(self, ratio='sub'):
         self.pipeLine.loadData(ratio)
@@ -118,6 +121,7 @@ class TransformersModel(ModelConstruction):
 
     @staticmethod
     def get_frozen_layers(model_name):
+        # TODO: make it more reasonable
         if 'roberta-base' in model_name:
             num_layers = 12
             frozen_layers = ['embeddings'] + ['layer.' + str(i) for i in range(int(num_layers * 0.75))]
@@ -189,15 +193,14 @@ class TransformersModel(ModelConstruction):
         if "batch_size" in kwargs.keys():
             trainer_config["per_device_train_batch_size"] = kwargs["batch_size"]
             trainer_config["per_device_eval_batch_size"] = kwargs["batch_size"]
-        training_saving_path = Path(self.project_directory, 'trainings')
         training_args = TrainingArguments(
-            logging_dir=Path(training_saving_path, 'logs'),
-            output_dir=Path(training_saving_path, 'checkpoints'),
+            logging_dir=Path(self.training_saving_path, 'logs'),
+            output_dir=Path(self.training_saving_path, 'checkpoints'),
             **trainer_config
         )
 
         early_stopping_patience = kwargs.pop('early_stopping_patience', 3)
-        trainer = Trainer(
+        self.trainer = Trainer(
             model=self.model,
             args=training_args,
             train_dataset=train_dataset,
@@ -205,29 +208,18 @@ class TransformersModel(ModelConstruction):
             compute_metrics=compute_metrics,
             callbacks=[EarlyStoppingCallback(early_stopping_patience=early_stopping_patience)],
         )
-        trainer.train()
+        self.trainer.train()
 
-        return trainer
+        return self.trainer.state.log_history
 
-    # def getTestResults(self) -> typing.List[dict]:
-    #     """This method gets results from last training
-    #
-    #     Returns:
-    #         typing.List[dict]: list of dictionaries containing metric results
-    #     """
-    #     return self.currentResults
+    def getTrainer(self):
+        return self.trainer
 
-    # def registerMetric(self, metric: 'tf.keras.metrics.Metric'):
-    #     self._registeredMetrics.append(metric)
+    def getLastEval(self):
+        return self.trainer.state.log_history[-2]
 
-    # def save(self, model_path: str, model_id: int):
-    #     logger.info("Saving TransformersModel")
-    #     self.model_params["class"] = self.__class__.__name__
-    #     with open(os.path.join(model_path, 'params.json'), 'w') as json_file:
-    #         json.dump(self.model_params, json_file)
-    #     self.model.save(os.path.join(model_path, f'{self._modelName}_{model_id}.h5'))
-
-    # @staticmethod
-    # def load(load_folder_path: str, model_name: str, model_id: int):
-    #     return BaseJointTransformerModel.load_model_by_class(JointTransRobertaModel, load_folder_path,
-    #                                                          f'{model_name}_{model_id}.h5')
+    def save(self, model_path: str = None):
+        if model_path is None:
+            model_path = Path(self.training_saving_path, 'model')
+        logger.info("Saving TransformersModel")
+        self.trainer.save(model_path)
