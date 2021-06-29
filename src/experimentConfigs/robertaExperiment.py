@@ -16,7 +16,11 @@ pipeline = PretrainedTransformersPipeLine(model_name)
 pipeline.loadData(ratio='sub')
 encDataTrain, encDataVal = pipeline.getEncodedDataset(splitter=train_test_split, test_size=0.1)
 model = TransformersModel(modelName_or_pipeLine=pipeline)
-eval_log = model.trainModel(freeze_model=False)
+eval_log = model.trainModel(model_config_name_or_path=None,
+                            tokenizer_config_dict_or_path=None,
+                            trainer_config_dict_or_path=None,
+                            freeze_model=False
+                            )
 trainer = model.getTrainer()
 # %%
 
