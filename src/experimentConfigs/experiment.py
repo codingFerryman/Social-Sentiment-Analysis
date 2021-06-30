@@ -12,7 +12,7 @@ import numpy as np
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from models.Model import ModelConstruction
-from models import transformersModel
+from models.transformersModel import TransformersModel
 
 
 # from preprocessing.pipelineMaps import mapStrToTransformersTokenizer, getTokenizerMapAvailableNames
@@ -63,8 +63,8 @@ def launchExperimentFromDict(d: dict, reportPath: str = './report.json'):
     # if ModelType gets more than 3 types this should be changed
     # to a larger match case
     if (d['model_type'] == ModelType.transformers.value):
-        name = d['model']
-        model = transformersModel.TransformersModel(pipeLine={'modelName': name}, modelName=name, **d)
+        model_name_or_path = d['model_name_or_path']
+        model = TransformersModel(modelName_or_pipeLine=model_name_or_path)
     # By default choose the sparse categorical accuracy
     # model.registerMetric(tf.keras.metrics.SparseCategoricalAccuracy('accuracy'))
     # model.registerMetric({'name': 'accuracy'})
@@ -77,11 +77,19 @@ def launchExperimentFromDict(d: dict, reportPath: str = './report.json'):
         print("NOT YET IMPLEMENTED")
         # TODO: transformers model is used, but a general model is needed here
         # tokenizer = mapStrToTransformersTokenizer(name)
-        model.pipeLine = transformersModel.getTransformersTokenizer(name)
-    model.loadData()
+        pipeLine = model.getPipeLine()
+
+    model.loadData(ratio=d['data_load_ratio'])
+
     hyperoptActive = d.get('use_hyperopt', False)
     if not hyperoptActive:
-        evals = model.trainModel(**d['args'])
+        evals = model.trainModel(
+            train_val_split_iterator=d['args'].pop('train_val_split_iterator', "train_test_split"),
+            model_config=d['model_config'],
+            tokenizer_config=d['tokenizer_config'],
+            trainer_config=d['args'],
+            freeze_model=False
+        )
         report(info={**d,
                      "results": evals,
                      "output_dir": f'./results/{model._modelName}',  # for server make this absolute server

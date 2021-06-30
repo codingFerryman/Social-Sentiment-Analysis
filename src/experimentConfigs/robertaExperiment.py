@@ -1,30 +1,36 @@
+import json
 import os
 import sys
-import time
-from pathlib import PurePath
 
 from sklearn.model_selection import train_test_split
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from preprocessing import PretrainedTransformersPipeLine
 from models import TransformersModel
+from utilities import get_project_path
 
-os.environ['CUDA_VISIBLE_DEVICES'] = "1"
+project_directory = get_project_path()
+
+os.environ['CUDA_VISIBLE_DEVICES'] = "0"
 # Load the model
-model_name = 'cardiffnlp/twitter-roberta-base-sentiment'
+# model_name = 'cardiffnlp/twitter-roberta-base-sentiment'
+model_name = 'roberta-base'
 pipeline = PretrainedTransformersPipeLine(model_name)
-pipeline.loadData(ratio='sub')
+pipeline.loadData(ratio=0.0002)
 encDataTrain, encDataVal = pipeline.getEncodedDataset(splitter=train_test_split, test_size=0.1)
 model = TransformersModel(modelName_or_pipeLine=pipeline)
-eval_log = model.trainModel(model_config_name_or_path=None,
-                            tokenizer_config_dict_or_path=None,
-                            trainer_config_dict_or_path=None,
-                            freeze_model=False
-                            )
-trainer = model.getTrainer()
-# %%
+with open('/home/he/Workspace/CIL/src/experimentConfigs/robertaDefault.json', 'r') as fp:
+    config = json.load(fp)
+eval_log = model.trainModel(
+    train_val_split_iterator=config['args'].pop('train_val_split_iterator', "train_test_split"),
+    model_config=config['model_config'],
+    tokenizer_config=config['tokenizer_config'],
+    trainer_config=config['args'],
+    freeze_model=False
+)
 
-trainer.save_model(PurePath('/trainings', 'model', model_name, time.strftime("%Y%m%d-%H%M%S")))
+trainer = model.getTrainer()
+# trainer.save_model(PurePath(project_directory, 'trainings', 'model', model_name, time.strftime("%Y%m%d-%H%M%S")))
 
 # %%
 #
