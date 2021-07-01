@@ -2,12 +2,10 @@ import json
 import os
 import sys
 
-from sklearn.model_selection import train_test_split
-
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from preprocessing import PretrainedTransformersPipeLine
 from models import TransformersModel
-from utilities import get_project_path
+from utils import get_project_path
 
 project_directory = get_project_path()
 
@@ -16,11 +14,14 @@ os.environ['CUDA_VISIBLE_DEVICES'] = "0"
 # model_name = 'cardiffnlp/twitter-roberta-base-sentiment'
 model_name = 'roberta-base'
 pipeline = PretrainedTransformersPipeLine(model_name)
-pipeline.loadData(ratio=0.0002)
-encDataTrain, encDataVal = pipeline.getEncodedDataset(splitter=train_test_split, test_size=0.1)
+pipeline.loadData(ratio=0.01)
+# encDataTrain, encDataVal = pipeline.getEncodedDataset(splitter=train_test_split, test_size=0.1)
 model = TransformersModel(modelName_or_pipeLine=pipeline)
 with open('/home/he/Workspace/CIL/src/experimentConfigs/robertaDefault.json', 'r') as fp:
     config = json.load(fp)
+
+metric = ['glue', 'mrpc']
+model.registerMetric(*metric)
 eval_log = model.trainModel(
     train_val_split_iterator=config['args'].pop('train_val_split_iterator', "train_test_split"),
     model_config=config['model_config'],

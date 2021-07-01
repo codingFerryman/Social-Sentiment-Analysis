@@ -5,17 +5,16 @@ import enum
 import json
 import os
 import sys
+from typing import Tuple
 
 import hyperopt
 import hyperopt.pyll
 import numpy as np
+from datasets import list_metrics
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from models.Model import ModelConstruction
 from models.transformersModel import TransformersModel
-
-
-# from preprocessing.pipelineMaps import mapStrToTransformersTokenizer, getTokenizerMapAvailableNames
 
 
 # Here are the possible model
@@ -34,7 +33,7 @@ def report(info: dict, reportPath: str):
     The final reported experiment is presented in an html file in github.
 
     Args:
-        reportPath (str): The json file to write or append the report. to.
+        reportPath (str): The json file to write or append the report to.
     """
     if not os.path.exists(reportPath):
         alreadyReported = {'num_experiments': 0,
@@ -50,6 +49,25 @@ def report(info: dict, reportPath: str):
         json.dump(alreadyReported, fw)
 
 
+def processTransformersLog(log_history: list) -> Tuple[dict, dict]:
+    """
+    This function preprocess the log history from transformers before reporting.
+    The type of the log_history is always list. The items from 1 to N-1 are evaluation results.
+    ... and the last item is a training summary.
+    The keys in evaluation results are: eval_loss, eval_accuracy, eval_runtime, eval_samples_per_second, epoch, step
+    ... and the keys in training summary are: train_runtime, train_samples_per_second, total_flos, epoch, step
+
+    Args:
+        log_history (list): The training log returned by transformers.trainer.state.log_history
+
+    Returns:
+        Tuple[dict, dict]: the last evaluation log, and the training summary
+    """
+    last_eval_state = log_history[-2]
+    training_state = log_history[-1]
+    return last_eval_state, training_state
+
+
 def launchExperimentFromDict(d: dict, reportPath: str = './report.json'):
     """ This function launches experiment from a dictionary.
 
@@ -62,36 +80,34 @@ def launchExperimentFromDict(d: dict, reportPath: str = './report.json'):
     # check if model type is of type transformers
     # if ModelType gets more than 3 types this should be changed
     # to a larger match case
-    if (d['model_type'] == ModelType.transformers.value):
+    if d['model_type'] == ModelType.transformers.value:
+        # TODO: transformers model is used, but a general model is needed here
         model_name_or_path = d['model_name_or_path']
         model = TransformersModel(modelName_or_pipeLine=model_name_or_path)
-    # By default choose the sparse categorical accuracy
-    # model.registerMetric(tf.keras.metrics.SparseCategoricalAccuracy('accuracy'))
-    # model.registerMetric({'name': 'accuracy'})
-    # for metric in d.get('metrics',[]):
-    #     # model.registerMetric(tf.keras.metrics.get(metric))
-    #     model.registerMetric({'name': metric})
 
-    if (d['tokenizer_type'] != TokenizerType.transformers.value):
-        name = d['tokenizer']
-        print("NOT YET IMPLEMENTED")
-        # TODO: transformers model is used, but a general model is needed here
-        # tokenizer = mapStrToTransformersTokenizer(name)
-        pipeLine = model.getPipeLine()
+    if type(d['metric']) is str:
+        d['metric'] = [d['metric']]
+    assert (d['metric'][0] in list_metrics()), \
+        f"The metric for evaluation is not supported.\n" \
+        f"It should be in https://huggingface.co/metrics"
+
+    model.registerMetric(*d['metric'])
 
     model.loadData(ratio=d['data_load_ratio'])
 
     hyperoptActive = d.get('use_hyperopt', False)
     if not hyperoptActive:
-        evals = model.trainModel(
+        _ = model.trainModel(
             train_val_split_iterator=d['args'].pop('train_val_split_iterator', "train_test_split"),
             model_config=d['model_config'],
             tokenizer_config=d['tokenizer_config'],
             trainer_config=d['args'],
             freeze_model=False
         )
+        best_model_metric = model.getBestMetric()
+
         report(info={**d,
-                     "results": evals,
+                     "results": {d['args']['metric_for_best_model']: best_model_metric},
                      "output_dir": f'./results/{model._modelName}',  # for server make this absolute server
                      "time_stamp": dt.datetime.now()},
                reportPath=reportPath)

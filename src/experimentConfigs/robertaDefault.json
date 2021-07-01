@@ -17,7 +17,12 @@
         "overwrite_output_dir": true,
         "load_best_model_at_end": true,
         "metric_for_best_model": "accuracy",
-        "train_val_split_iterator": "train_test_split"
+        "train_val_split_iterator": "train_test_split",
+        "fine_tune_layers": {
+            "freeze": false,
+            "num_unfrozen_layers": 1,
+            "unfrozen_embeddings": false
+        }
     },
     "tokenizer_config": {
         "add_special_tokens": true,
@@ -35,6 +40,9 @@
         "output_hidden_states": false,
         "finetuning_task": null
     },
-    "metrics": [],
+    "metric": [
+        "glue",
+        "mrpc"
+    ],
     "description": "Test default Roberta model"
 }

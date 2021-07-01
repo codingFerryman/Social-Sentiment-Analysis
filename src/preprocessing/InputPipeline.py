@@ -31,12 +31,14 @@ class InputPipeline(metaclass=abc.ABCMeta):
 
         """
         raise NotImplementedError
-    # @abc.abstractmethod
-    # def trainTokenizer(self):
-    #     """ This function trains the tokenizer on the text that was provided.
-    #     Essentially the tokenizer creates an encoding (in int) of each word appearing in the provided texts.
-    #     """
-    #     raise NotImplementedError
+
+    @abc.abstractmethod
+    def trainTokenizer(self):
+        """ This function trains the tokenizer on the text that was provided.
+        Essentially the tokenizer creates an encoding (in int) of each word appearing in the provided texts.
+        """
+        raise NotImplementedError
+
     # @abc.abstractmethod
     # def textsToSequences(self, texts: list):
     #     """ This transforms the encoded words at each list candidate (tweet) to a tuple of encoded words (ints).

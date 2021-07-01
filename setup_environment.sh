@@ -1,13 +1,15 @@
 #!/bin/bash
 
 # The next line should be executed directly in your terminal again
-# ... if you want to run $python $PYTHON_FILE.py directly
+# ... before running $python PYTHON_FILE.py outside this script
+# If you want you can also add it to your ~/.bashrc
 module load gcc/6.3.0 python_gpu/3.8.5 hdf5/1.10.1
 
 python -m venv ./cil_venv
 
 # The next line should be executed directly in your terminal again
-# ... if you want to run $python $PYTHON_FILE.py directly
+# ... before running $python PYTHON_FILE.py outside this script
+# If you want you can also add it to your ~/.bashrc
 source ./cil_venv/bin/activate
 
 pip install --upgrade pip setuptools wheel

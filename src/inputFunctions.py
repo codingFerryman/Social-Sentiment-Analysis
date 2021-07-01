@@ -1,29 +1,30 @@
-import os
 import random
-import sys
-import typing
 from pathlib import PurePath
+from typing import Union, Tuple
 
 import numpy as np
-from icecream import ic
 
-sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-
-from utilities import get_data_path
+import loggers
+from utils import get_data_path
 
 DATA_DIRECTORY = get_data_path()
+logger = loggers.getLogger("InputPipeline", debug=True)
 
 
-def loadData(dataDirectory: str = None, ratio='sub') -> typing.Tuple[list, list, list]:
+def loadData(dataDirectory: str = None, ratio: Union[str, float, int] = None) -> Tuple[list, list, list]:
     """
     Load datasets
-    dataDirectory: The root path of datasets
-    ratio: "sub", "full"; Or a float number between 0 and 1, which is the proportion of the full set
+    Args:
+        dataDirectory (str or pathlib.Path):
+        ratio: "sub", "full"; Or a float number between 0 and 1, which is the proportion of the full set
 
-    Returns: Positive training set, Negative training set, Test set
+    Returns:
+        3 lists: Positive training set, Negative training set and Test set
     """
     if dataDirectory is None:
         dataDirectory = DATA_DIRECTORY
+    if ratio is None:
+        ratio = "sub"
     with open(PurePath(dataDirectory, 'train_pos.txt'), 'r', encoding='utf-8') as fp:
         train_pos_sub = fp.readlines()
     with open(PurePath(dataDirectory, 'train_neg.txt'), 'r', encoding='utf-8') as fp:
@@ -53,21 +54,16 @@ def loadData(dataDirectory: str = None, ratio='sub') -> typing.Tuple[list, list,
             neg = train_neg_sub
         else:
             raise AttributeError('The input should be \'full\', \'sub\', or a (float) number between 0 and 1')
-    ic(len(pos), len(neg), len(test_full))
+    logger.info(f"Dataset loaded!")
+    logger.debug(f"Positive: {len(pos)}, Negative: {len(neg)}, Test: {len(test_full)}")
     return pos, neg, test_full
 
 
-def loadDataForUnitTesting(dataDirectory: str = None) -> typing.Tuple[list, list, list]:
-    return loadData(dataDirectory, ratio=0.0002)
+def loadDataForUnitTesting(dataDirectory: str = None, ratio: float = 0.0002) -> Tuple[list, list, list]:
+    return loadData(dataDirectory, ratio)
 
 
-def randomizeData(train_pos: list, train_neg: list) -> typing.Tuple[np.ndarray, np.ndarray]:
+def randomizeData(train_pos: list, train_neg: list) -> Tuple[np.ndarray, np.ndarray]:
     res_pos = np.random.shuffle(train_pos)
     res_neg = np.random.shuffle(train_neg)
     return res_pos, res_neg
-
-
-# def addLabelsToData():
-
-if __name__ == '__main__':
-    load_testing = loadDataForUnitTesting()

@@ -62,6 +62,9 @@ ic(full_df_highfreq.describe())
 full_df_highfreq_high_ratio = full_df_highfreq[(full_df_highfreq.PosRatio > 0.7) | (full_df_highfreq.NegRatio > 0.7)]
 ic(full_df_highfreq_high_ratio.describe())
 
+with open('hashtag.json', 'w') as fp:
+    fp.write(full_df.to_json(orient='index', indent=4))
+
 with open('hashtag_highfreq_high_ratio.json', 'w') as fp:
     fp.write(full_df_highfreq_high_ratio.to_json(orient='index', indent=4))
 

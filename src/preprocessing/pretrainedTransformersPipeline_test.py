@@ -1,12 +1,11 @@
 import unittest
 
 import numpy as np
-from sklearn import model_selection
+from sklearn.model_selection import train_test_split
 
 import inputFunctions
 import loggers
-# sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-import pretrainedTransformersPipeline
+from pretrainedTransformersPipeline import PretrainedTransformersPipeLine
 
 logger = loggers.getLogger("PretrainedTransformersPipeLineTest", debug=True)
 
@@ -23,17 +22,17 @@ class PretrainedTransformersPipeLineTest(unittest.TestCase):
             self.assertEqual(arr1.take(i), arr2.take(i))
 
     def test_loading(self):
-        newBowp = pretrainedTransformersPipeline.PretrainedTransformersPipeLine(
+        newBowp = PretrainedTransformersPipeLine(
             loadFunction=inputFunctions.loadDataForUnitTesting)
         newBowp.loadData()
 
     def test_getEncodedDataset(self):
         logger.debug("Testing getEncodedDataset")
-        newBowp = pretrainedTransformersPipeline.PretrainedTransformersPipeLine(
+        newBowp = PretrainedTransformersPipeLine(
             loadFunction=inputFunctions.loadDataForUnitTesting)
         newBowp.loadData()
         encDataTrain, encDataVal = newBowp.getEncodedDataset(
-            splitter=lambda *x: model_selection.train_test_split(*x, test_size=0.4))
+            splitter=train_test_split)
 
 
 if __name__ == "__main__":

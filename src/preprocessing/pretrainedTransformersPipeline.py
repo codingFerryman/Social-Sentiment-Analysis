@@ -1,5 +1,5 @@
 import re
-import typing
+from typing import Tuple, Dict, Callable
 
 import numpy as np
 import torch
@@ -24,7 +24,7 @@ class TwitterDatasetTorch(Dataset):
             labels (list): The labels from the dataset.
             tokenizer (PreTrainedTokenizerBase): The pretrained tokenizer from transformers
             max_length (int): The max length of the padding/truncation
-
+            tokenizerConfig (dict): A dictionary with tokenizers configuration
         """
         self.text_list = text
         self.labels = labels
@@ -71,24 +71,20 @@ class PretrainedTransformersPipeLine(InputPipeline.InputPipeline):
 
     def __init__(self, model_name_or_path: str = None, dataPath: str = None, loadFunction: callable = None):
         """
-        Args: model_name_or_path (str): The name of huggingface transformers model. transformers.AutoTokenizer will
-        automatically load the appropriate tokenizer dataPath (str): The path of the tweet dataset. Defaults to None,
-        where the default path of the load function is used. loadFunction (callable): The function to load the tweet
-        texts from the dataset.
+        Args:
+            model_name_or_path (str): The name of a checkpoint of huggingface transformers model.
+            dataPath (str): The path of the tweet dataset. Defaults to None,
+            loadFunction (callable): The function to load the tweet texts from the dataset.
         """
 
-        # self.splitter = splitter
         logger.info("PretrainedTransformersPipeLine created")
         self.dataPath = dataPath
         self.allData = []
         self.dataPos = []
         self.dataNeg = []
-        # self.num_words: int = None
 
         if model_name_or_path is None:
             model_name_or_path = 'roberta-base'
-        # if no lad function is set, then the default load data is
-        # used which loads all data
         if loadFunction is None:
             self.loadFunction = inputFunctions.loadData
         else:
@@ -99,7 +95,7 @@ class PretrainedTransformersPipeLine(InputPipeline.InputPipeline):
     def loadData(self, ratio='sub'):
         """ This loads the data using the loadFunction supplied by the inputFunctions in the constructor.
         It receives the data separately and mixes them together afterwards. Because for training these tokenizers
-        dont care about the final labeling.
+        don't care about the final labeling.
         """
         logger.info(f"loading data for PretrainedTransformersPipeLine {self.tokenizer.name_or_path}")
         train_pos, train_neg, test_data = self.loadFunction(self.dataPath, ratio)
@@ -113,8 +109,9 @@ class PretrainedTransformersPipeLine(InputPipeline.InputPipeline):
 
     def getLabels(self, argMix: list = [], posList: list = [], negList: list = [], posLabel: int = 1,
                   negLabel: int = -1) -> np.ndarray:
-        """ This returns the renewed labels for the positive and negative tweets randomly shuffled accoording to argMix argument.
-        TODO: Explain better.
+        """
+        This returns the renewed labels for the positive and negative tweets randomly shuffled
+        ... according to argMix argument.
         Args:
             argMix (list): list of mixed labels.
             posList (list): list of strings of positive tweets.
@@ -123,7 +120,8 @@ class PretrainedTransformersPipeLine(InputPipeline.InputPipeline):
             negLabel (int): negative label value. Defaults to -1.
 
         Returns:
-           (np.ndarray): The labels for the the positive and negative tweets concatenated in the same order as they appear in argMix.
+           (np.ndarray): The labels for the the positive and negative tweets concatenated in the same order
+            ... as they appear in argMix.
 
         """
         # y = pipeline.getLabels(...)
@@ -144,7 +142,7 @@ class PretrainedTransformersPipeLine(InputPipeline.InputPipeline):
             y = np.array(y, dtype=np.int32)
         return y
 
-    def getSequenceMaxLength(self) -> typing.Tuple[int, int, list]:
+    def getSequenceMaxLength(self) -> Tuple[int, int, list]:
         """
         Returns:
             tuple(int,int,list): text's minimum length in words, texts' maximum length in words, texts with zero length
@@ -173,6 +171,7 @@ class PretrainedTransformersPipeLine(InputPipeline.InputPipeline):
 
     def getEncodedDatasetTorch(self, train_dataX: list, train_datay: list, val_dataX: list, val_datay: list,
                                max_len: int, tokenizerConfig: dict):
+        """Convert the raw texts to PyTorch Datasets for training"""
 
         encDataTrain = TwitterDatasetTorch(text=train_dataX, labels=train_datay,
                                            tokenizer=self.tokenizer,
@@ -184,7 +183,7 @@ class PretrainedTransformersPipeLine(InputPipeline.InputPipeline):
                                          tokenizerConfig=tokenizerConfig)
         return encDataTrain, encDataVal
 
-    def getClassWeight(self, posLabel=1, negLabel=0) -> typing.Dict[int, float]:
+    def getClassWeight(self, posLabel=1, negLabel=0) -> Dict[int, float]:
         assert self._dataLoaded, "Data should be loaded to get the encoded dataset"
         numNeg = np.size(self.dataNeg)
         numPos = np.size(self.dataPos)
@@ -195,10 +194,20 @@ class PretrainedTransformersPipeLine(InputPipeline.InputPipeline):
         }
         return ret
 
-    def getEncodedDataset(self, splitter: typing.Callable = None,
+    def getEncodedDataset(self, splitter: Callable = None,
                           posLabel=1, negLabel=0, stratify=True,
                           tokenizerConfig: dict = None,
                           **splitterConfig):
+        """
+        Split the training dataset to encoded training and validation datasets.
+        Args:
+            splitter (Callable): the function to split the dataset
+            posLabel (int): the label of positive texts
+            negLabel (int): the label of negative texts
+            stratify (bool): if stratify then keep the labels balanced during splitting.
+            tokenizerConfig (dict): tokenizer configuration; "tokenizer_config" field in the training configuration file
+            **splitterConfig: the configuration for the splitter
+        """
         assert self._dataLoaded, "Data should be loaded to get the encoded dataset"
         # create labels
         negAsZeros = np.zeros((len(self.dataNeg),), dtype=np.int32)
@@ -237,62 +246,28 @@ class PretrainedTransformersPipeLine(InputPipeline.InputPipeline):
                                                                    tokenizerConfig=tokenizerConfig)
             return encDataTrain, encDataVal
 
-    # def getEncodedDataset(self, splitter: typing.Callable = None,
-    #                       posLabel=1, negLabel=0, shufflingParameter: int = 1000,
-    #                       batch_size: int = 64, tfOrPyTorch: torchOrTFEnum = torchOrTFEnum.TF,
-    #                       saveSplitDatasets: bool = False, fileToLoadSplitDatasets: str = '', **splitterConfig):
-    #     assert self._dataLoaded, "Data should be loaded to get the encoded dataset"
-    #     # create labels
-    #     negAsZeros = np.zeros((len(self.dataNeg),), dtype=np.int32)
-    #     posAsOnes = np.ones((len(self.dataPos),), dtype=np.int32)
-    #     argMix = list(np.concatenate((posAsOnes, negAsZeros)))
-    #     labels = self.getLabels(argMix=argMix, posLabel=posLabel, negLabel=negLabel)
-    #     # get max sequence length
-    #     min_len, max_len, zero_len_idx = self.getSequenceMaxLength()
-    #     # if min length == 0 delete the empty texts
-    #     if min_len == 0:
-    #         logger.debug('Deleting zero length texts and labels because min_len = 0')
-    #         self.allData = [d for i, d in enumerate(self.allData) if not (i in zero_len_idx)]
-    #         labels = [l for i, l in enumerate(labels) if not (i in zero_len_idx)]
-    #
-    #     if splitter == None:
-    #         # tokenLists = self.textsToPaddedSequences(self.allData, max_len)
-    #         logger.debug("No splitter specified")
-    #         if tfOrPyTorch == torchOrTFEnum.TF:
-    #             encDataTrain, encDataVal = self.getEncodedDatasetTF(train_dataX=self.allData, train_datay=list(labels),
-    #                                                                 val_dataX={}, val_datay=[], max_len=max_len,
-    #                                                                 shufflingParameter=shufflingParameter,
-    #                                                                 batch_size=batch_size)
-    #         else:
-    #             encDataTrain, encDataVal = self.getEncodedDatasetTorch(train_dataX=self.allData,
-    #                                                                    train_datay=list(labels),
-    #                                                                    val_dataX={}, val_datay=[], max_len=max_len,
-    #                                                                    shufflingParameter=shufflingParameter,
-    #                                                                    batch_size=batch_size)
-    #         yield (encDataTrain, encDataVal)
-    #     else:
-    #         for train_index, val_index in self.splitter.split(self.allData, labels, **splitterConfig):
-    #             train_dataX, val_dataX = [self.allData[i] for i in train_index], [self.allData[i] for i in val_index]
-    #             train_datay, val_datay = labels[train_index], labels[val_index]
-    #             if tfOrPyTorch == torchOrTFEnum.TF:
-    #                 encDataTrain, encDataVal = self.getEncodedDatasetTF(train_dataX=train_dataX,
-    #                                                                     train_datay=list(train_datay),
-    #                                                                     val_dataX=val_dataX, val_datay=list(val_datay),
-    #                                                                     max_len=max_len,
-    #                                                                     shufflingParameter=shufflingParameter,
-    #                                                                     batch_size=batch_size)
-    #             else:
-    #                 encDataTrain, encDataVal = self.getEncodedDatasetTorch(train_dataX=train_dataX,
-    #                                                                        train_datay=list(train_datay),
-    #                                                                        val_dataX=val_dataX,
-    #                                                                        val_datay=list(val_datay), max_len=max_len,
-    #                                                                        shufflingParameter=shufflingParameter,
-    #                                                                        batch_size=batch_size)
-    #             yield (encDataTrain, encDataVal)
+    def trainTokenizer(self):
+        assert self.allData != [], "no data to train"
+        logger.info(f"No train phase in PretrainedTransformersPipeLine {self.tokenizer.name_or_path}")
 
-    # def trainTokenizer(self):
-    #     assert self.allData != [], "no data to train"
-    #     logger.info(f"No train phase in PretrainedTransformersPipeLine {self._tokenizer.name_or_path}")
+    @staticmethod
+    def argmixPositiveNegative(textsPos: list, textsNeg: list) -> np.ndarray:
+        """
+
+        Args:
+            textsPos (list[str]): List of strings with the positive labeled tweet texts.
+            textsNeg (list[str]): List of strings with the negative labeled tweet texts.
+
+        Returns:
+            np.ndarray: A randomly shuffled list with the the labels of positive text (=1) and negative text (=0).
+
+        """
+
+        negAsZeros = np.zeros((len(textsNeg),), dtype=np.int32)
+        posAsOnes = np.ones((len(textsPos),), dtype=np.int32)
+        concatenated = np.concatenate((negAsZeros, posAsOnes))
+        np.random.shuffle(concatenated)  # does not use more memory
+        return concatenated
 
     # def textsToSequences(self, texts: list) -> tf.Tensor:
     #     ret = self._tokenizer(texts, add_special_tokens=True,
@@ -334,40 +309,3 @@ class PretrainedTransformersPipeLine(InputPipeline.InputPipeline):
     #
     # def textsNegToMatrix(self):
     #     return self.textsToMatrix(self.dataNeg)
-
-    # def argmixPositiveNegative(self, textsPos: list, textsNeg: list) -> np.ndarray:
-    #     """
-    #
-    #     Args:
-    #         textsPos (list[str]): List of strings with the positive labeled tweet texts.
-    #         textsNeg (list[str]): List of strings with the negative labeled tweet texts.
-    #
-    #     Returns:
-    #         np.ndarray: A randomly shuffled list with the the labels of positive text (=1) and negative text (=0).
-    #
-    #     """
-    #
-    #     negAsZeros = np.zeros((len(textsNeg),), dtype=np.int32)
-    #     posAsOnes = np.ones((len(textsPos),), dtype=np.int32)
-    #     concatenated = np.concatenate((negAsZeros, posAsOnes))
-    #     np.random.shuffle(concatenated)  # does not use more memory
-    #     return concatenated
-
-    # def getEncodedDatasetTF(self, train_dataX: list, train_datay: list, val_dataX: list, val_datay: list, max_len: int,
-    #                         shufflingParameter: int, batch_size: int):
-    #     encDataTrain = tf.data.Dataset.from_tensor_slices((
-    #         dict(self.textsToPaddedSequences(train_dataX, length=max_len)),
-    #         list(train_datay))).shuffle(shufflingParameter).batch(batch_size=batch_size)
-    #     encDataVal = tf.data.Dataset.from_tensor_slices((
-    #         dict(self.textsToPaddedSequences(val_dataX, length=max_len)),
-    #         list(val_datay))).shuffle(shufflingParameter).batch(batch_size=batch_size)
-    #
-    #     return encDataTrain, encDataVal
-
-    #
-    # def loadEncodedDataset(self, posLabel=1, negLabel=0, shufflingParameter: int = 1000, batch_size: int = 64,
-    #                        tfOrPyTorch: torchOrTFEnum = torchOrTFEnum.TF, **splitterConfig):
-    #     pass
-    #
-    # def saveEncodedDataset(self, file: str, iterationNumber: int = 0):
-    #     pass
