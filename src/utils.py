@@ -2,6 +2,7 @@ from pathlib import Path
 
 
 def get_project_path() -> Path:
+    """The function for getting the root directory of the project"""
     try:
         import git
         return git.Repo(Path(), search_parent_directories=True).git.rev_parse("--show-toplevel")
@@ -14,7 +15,7 @@ def get_data_path() -> Path:
 
 
 def prepend_multiple_lines(file_name, list_of_lines):
-    """Insert given list of strings as a new lines at the beginning of a file"""
+    """Insert given list of strings as new lines at the beginning of a file"""
     # define name of temporary dummy file
     dummy_file = file_name + '.bak'
     # open given original file in read mode and dummy file in write mode
