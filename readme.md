@@ -55,15 +55,20 @@ The most important parts of this repository structure are presented below.
 
 │   │   ├── [bagOfWordsPipeline.py](./src/preprocessing/bagOfWordsPipeline.py) A simple bag of words tokenizer. This works with `bagOfWords2LayersModel`.
 
-│   │   ├── [pipelineMaps.py](./src/preprocessing/pipelineMaps.py) A mapping for tokenizers and their constructors. Currently this is only for transformer tokenizers.
+│ │ ├── [pipelineMaps.py](./src/preprocessing/pipelineMaps.py) A mapping for tokenizers and their constructors.
+Currently this is only for transformer tokenizers.
 
-│   │   ├── [pretrainedTransformersPipeline.py](./src/preprocessing/pretrainedTransformersPipeline.py) A generic wrapper for reading the tweeter dataset for the pytorch or the tensorflow framework. It works with `transformersModel` wrapper.
+│ │ ├── [pretrainedTransformersPipeline.py](./src/preprocessing/pretrainedTransformersPipeline.py) A generic wrapper for
+reading the tweeter dataset for the pytorch or the tensorflow framework. It works with `transformersModel` wrapper.
 
 ├── [tests](./tests/) test bash scripts or integration tests in any language are put here.
 
 ├── [trainings](./trainings/) Here the training of each model are stored to a specific folder.
 
-
 ## Dependencies
+
+To run the code on ETHz's HPC, please load the module as:
+
+module load module load gcc/6.3.0 python_gpu/3.8.5 hdf5/1.10.1
 
 See [requirements.txt](./requirements.txt).

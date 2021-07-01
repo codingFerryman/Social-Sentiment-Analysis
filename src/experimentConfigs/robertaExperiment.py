@@ -14,7 +14,7 @@ os.environ['CUDA_VISIBLE_DEVICES'] = "0"
 # model_name = 'cardiffnlp/twitter-roberta-base-sentiment'
 model_name = 'roberta-base'
 pipeline = PretrainedTransformersPipeLine(model_name)
-pipeline.loadData(ratio=0.01)
+pipeline.loadData(ratio=0.001)
 # encDataTrain, encDataVal = pipeline.getEncodedDataset(splitter=train_test_split, test_size=0.1)
 model = TransformersModel(modelName_or_pipeLine=pipeline)
 with open('/home/he/Workspace/CIL/src/experimentConfigs/robertaDefault.json', 'r') as fp:
@@ -26,8 +26,7 @@ eval_log = model.trainModel(
     train_val_split_iterator=config['args'].pop('train_val_split_iterator', "train_test_split"),
     model_config=config['model_config'],
     tokenizer_config=config['tokenizer_config'],
-    trainer_config=config['args'],
-    freeze_model=False
+    trainer_config=config['args']
 )
 
 trainer = model.getTrainer()

@@ -125,7 +125,7 @@ class TransformersModel(ModelConstruction):
                                                                      test_size=0.2)
 
         # Fine tune on last N layers
-        frozen_config = model_config.pop('fine_tune_layers')
+        frozen_config = trainer_config.pop('fine_tune_layers')
         self.model = self.createModel(model_config)
         if frozen_config['freeze']:
             frozen_layers = self.get_frozen_layers(self._modelName,
