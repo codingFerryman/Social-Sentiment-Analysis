@@ -1,6 +1,9 @@
 import os
 
 from setuptools import setup, find_packages
+import os
+_current_path = os.path.dirname(os.path.realpath(__file__))
+_src_path = os.path.join(_current_path, "src")
 
 _current_path = os.path.dirname(os.path.realpath(__file__))
 _src_path = os.path.join(_current_path, "src")

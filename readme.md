@@ -69,6 +69,8 @@ reading the tweeter dataset for the pytorch or the tensorflow framework. It work
 
 To run the code on ETHz's HPC, please load the module as:
 
-module load module load gcc/6.3.0 python_gpu/3.8.5 hdf5/1.10.1
+```bash
+module load gcc/6.3.0 python_gpu/3.8.5 hdf5/1.10.1
+```
 
 See [requirements.txt](./requirements.txt).
