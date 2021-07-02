@@ -3,9 +3,8 @@ import unittest
 import numpy as np
 from sklearn.model_selection import train_test_split
 
-import inputFunctions
-import loggers
 from pretrainedTransformersPipeline import PretrainedTransformersPipeLine
+from utils import inputFunctions, loggers
 
 logger = loggers.getLogger("PretrainedTransformersPipeLineTest", debug=True)
 

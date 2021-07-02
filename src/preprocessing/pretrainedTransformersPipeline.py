@@ -8,11 +8,11 @@ from transformers import AutoTokenizer
 from transformers.file_utils import PaddingStrategy
 from transformers.tokenization_utils_base import PreTrainedTokenizerBase
 
-import inputFunctions
-import loggers
-from preprocessing import InputPipeline
+from preprocessing.InputPipeline import InputPipeline
+from utils.inputFunctions import loadData
+from utils.loggers import getLogger
 
-logger = loggers.getLogger("PretrainedTransformersPipeLine", debug=True)
+logger = getLogger("PretrainedTransformersPipeLine", debug=True)
 
 
 class TwitterDatasetTorch(Dataset):
@@ -30,7 +30,7 @@ class TwitterDatasetTorch(Dataset):
         self.labels = labels
         self.tokenizer = tokenizer
         if tokenizerConfig is None:
-            tokenizerConfig = {"padding": PaddingStrategy.DO_NOT_PAD}
+            tokenizerConfig = {"padding": PaddingStrategy.MAX_LENGTH}
         if max_length is None:
             tokenizerConfig["max_length"] = 256
         else:
@@ -63,7 +63,7 @@ class TwitterDatasetTorch(Dataset):
         return re.sub(r'(<.*?>)|(\r\n|\r|\n)|(\'|\")', '', text.lstrip())
 
 
-class PretrainedTransformersPipeLine(InputPipeline.InputPipeline):
+class PretrainedTransformersPipeLine(InputPipeline):
     """ This class accepts tokenizers from the transformers library and wraps their functionality, so that every
     tokenizer is used the same way and can be also used from the model wrapper for the pretrainedTransformersModel.
     Most tokenizers are pretrained to other datasets such as wikipedia.
@@ -86,7 +86,7 @@ class PretrainedTransformersPipeLine(InputPipeline.InputPipeline):
         if model_name_or_path is None:
             model_name_or_path = 'roberta-base'
         if loadFunction is None:
-            self.loadFunction = inputFunctions.loadData
+            self.loadFunction = loadData
         else:
             self.loadFunction = loadFunction
         self.tokenizer = AutoTokenizer.from_pretrained(model_name_or_path)

@@ -1,19 +1,21 @@
-import tensorflow as tf
+import os
+import sys
+import typing
+
 import numpy as np
 import sklearn
-from sklearn import model_selection
-import typing
-import os, sys
+import tensorflow as tf
+
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from preprocessing.bagOfWordsPipeline import BagOfWordsPipeLine
 from models.Model import ModelConstruction
-import inputFunctions
-import loggers
+from utils import loggers
 
 logger = loggers.getLogger("BagOfWordsModel", True)
 
+
 class BagOfWords2LayerModel(ModelConstruction):
-    def __init__(self, dataPath:str=None, pipeLine=BagOfWordsPipeLine()):
+    def __init__(self, dataPath: str = None, pipeLine=BagOfWordsPipeLine()):
         logger.info("BagOfWordsModel created")
         self.dataPath = dataPath
         self._model = None
@@ -103,4 +105,3 @@ class BagOfWords2LayerModel(ModelConstruction):
 
     def registerMetric(self, metric: 'tf.keras.metrics.Metric'):
         self._registeredMetrics.append(metric)
-    

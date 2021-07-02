@@ -1,5 +1,6 @@
-import coloredlogs
 import logging
+
+import coloredlogs
 
 
 def getLogger(name: str, debug=False):

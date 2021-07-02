@@ -4,11 +4,11 @@ from typing import Union, Tuple
 
 import numpy as np
 
-import loggers
-from utils import get_data_path
+from utils.loggers import getLogger
+from utils.utils import get_data_path
 
 DATA_DIRECTORY = get_data_path()
-logger = loggers.getLogger("InputPipeline", debug=True)
+logger = getLogger("InputPipeline", debug=True)
 
 
 def loadData(dataDirectory: str = None, ratio: Union[str, float, int] = None) -> Tuple[list, list, list]:

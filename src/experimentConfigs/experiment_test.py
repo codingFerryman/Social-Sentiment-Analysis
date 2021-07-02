@@ -1,13 +1,14 @@
+import os
+import sys
 import unittest
-import experiment
-import os, sys
-sys.path.append(os.path.join(os.path.dirname(__file__),'..'))
-import inputFunctions
+
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+
 
 class ExperimentTest(unittest.TestCase):
     def __init__(self, *args, **kwargs):
         super(ExperimentTest, self).__init__(*args, **kwargs)
-    
+
     def test_robertaDefault(self):
         pass
 

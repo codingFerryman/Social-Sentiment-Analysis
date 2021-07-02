@@ -13,9 +13,11 @@ import numpy as np
 from datasets import list_metrics
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+from utils.utils import get_project_path
 from models.Model import ModelConstruction
 from models.transformersModel import TransformersModel
 
+PROJECT_DIRECTORY = get_project_path()
 
 # Here are the possible model
 # types denoted
@@ -46,7 +48,7 @@ def report(info: dict, reportPath: str):
     experiments.append(info)
     alreadyReported['experiments'] = experiments
     with open(reportPath, 'w') as fw:
-        json.dump(alreadyReported, fw)
+        fw.write(json.dumps(alreadyReported, indent=4))
 
 
 def processTransformersLog(log_history: list) -> Tuple[dict, dict]:
@@ -68,13 +70,15 @@ def processTransformersLog(log_history: list) -> Tuple[dict, dict]:
     return last_eval_state, training_state
 
 
-def launchExperimentFromDict(d: dict, reportPath: str = './report.json'):
+def launchExperimentFromDict(d: dict, reportPath: str = None):
     """ This function launches experiment from a dictionary.
 
     Args:
         d (dict): [description]
         reportPath (str, optional): The json file to write or append the report. to. Defaults to './report.json'.
     """
+    if reportPath is None:
+        reportPath = os.path.join(PROJECT_DIRECTORY, 'src', 'experimentConfigs', 'report.json')
     model = ModelConstruction  # default model which does nothing
 
     # check if model type is of type transformers
@@ -102,14 +106,13 @@ def launchExperimentFromDict(d: dict, reportPath: str = './report.json'):
             model_config=d['model_config'],
             tokenizer_config=d['tokenizer_config'],
             trainer_config=d['args'],
-            freeze_model=False
         )
         best_model_metric = model.getBestMetric()
-
+        model_saved_path = model.getBestModelCheckpoint()
         report(info={**d,
                      "results": {d['args']['metric_for_best_model']: best_model_metric},
-                     "output_dir": f'./results/{model._modelName}',  # for server make this absolute server
-                     "time_stamp": dt.datetime.now()},
+                     "output_dir": model_saved_path,
+                     "time_stamp": str(dt.datetime.now())},
                reportPath=reportPath)
     else:
         # if use_hyperopt = True inside the dictionary
@@ -226,4 +229,7 @@ def main(args: list):
 
 
 if __name__ == "__main__":
-    main(sys.argv)
+    # main(sys.argv)
+    os.environ['CUDA_VISIBLE_DEVICES'] = "0"
+    launchExperimentFromJson(fpath="./robertaDefault.json", reportPath='./reportExample.json')
+    launchExperimentFromJson(fpath="./berttweetDefault.json", reportPath='./reportExample.json')

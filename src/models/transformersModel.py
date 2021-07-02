@@ -9,10 +9,9 @@ from transformers import AutoModelForSequenceClassification, AutoConfig
 from transformers import EarlyStoppingCallback
 from transformers import TrainingArguments, Trainer
 
-import loggers
 from models.Model import ModelConstruction, get_iterator_splitter_from_name
 from preprocessing.pretrainedTransformersPipeline import PretrainedTransformersPipeLine
-from utils import get_project_path, get_transformers_layers_num
+from utils import get_project_path, get_transformers_layers_num, loggers
 
 logger = loggers.getLogger("RobertaModel", True)
 
@@ -125,26 +124,24 @@ class TransformersModel(ModelConstruction):
                                                                      test_size=0.2)
 
         # Fine tune on last N layers
-        frozen_config = trainer_config.pop('fine_tune_layers')
-        self.model = self.createModel(model_config)
-        if frozen_config['freeze']:
-            frozen_layers = self.get_frozen_layers(self._modelName,
-                                                   frozen_config['num_unfrozen_layers'],
-                                                   frozen_config['unfrozen_embeddings'])
-            for name, param in self.model.named_parameters():
-                for frozen_name in frozen_layers:
-                    if frozen_name in name:
-                        param.requires_grad = False
-        logger.debug("training pytorch model")
-
-        # Set default configuration
-        # load additional configurations
-        # ... and adapt the keys in configuration to transformers
-        if not trainer_config:
+        if trainer_config:
+            frozen_config = trainer_config.pop('fine_tune_layers')
+            self.model = self.createModel(model_config)
+            if frozen_config['freeze']:
+                frozen_layers = self.get_frozen_layers(self._modelName,
+                                                       frozen_config['num_unfrozen_layers'],
+                                                       frozen_config['unfrozen_embeddings'])
+                for name, param in self.model.named_parameters():
+                    for frozen_name in frozen_layers:
+                        if frozen_name in name:
+                            param.requires_grad = False
+        else:
+            self.model = self.createModel()
             trainer_config = {
                 "epochs": 1,
                 "batch_size": 128
             }
+
         for k in kwargs.keys():
             trainer_config[k] = kwargs[k]
         if "epochs" in trainer_config.keys():

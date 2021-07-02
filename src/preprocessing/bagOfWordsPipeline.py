@@ -1,9 +1,11 @@
+import os
+import sys
+
 import tensorflow as tf
-import os, sys
+
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from preprocessing import InputPipeline
-import inputFunctions
-import loggers
+from utils import inputFunctions, loggers
 import numpy as np
 import typing
 
