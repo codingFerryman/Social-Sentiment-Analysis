@@ -26,10 +26,10 @@ fi
 
 # Download the data if it not exists
 ssh $ETH_USERNAME@login.leonhard.ethz.ch '
-bash '${CIL_LOCALREPO}'/setup_dataset.sh
+source '${CIL_LOCALREPO}'/setup_dataset.sh
 '
 
 # Setup the environment
 ssh $ETH_USERNAME@login.leonhard.ethz.ch '
-bash '${CIL_LOCALREPO}'/setup_environment.sh
+source '${CIL_LOCALREPO}'/setup_environment.sh
 '

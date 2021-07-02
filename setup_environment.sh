@@ -2,15 +2,11 @@
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
 
-# The next line should be executed directly in your terminal again
-# ... before running $python PYTHON_FILE.py outside this script
 # If you want you can also add it to your ~/.bashrc
 module load gcc/6.3.0 python_gpu/3.8.5 hdf5/1.10.1
 
 python -m venv "${SCRIPT_DIR}"/venv
 
-# The next line should be executed directly in your terminal again
-# ... before running $python PYTHON_FILE.py outside this script
 # If you want you can also add it to your ~/.bashrc
 source "${SCRIPT_DIR}"/venv/bin/activate
 
