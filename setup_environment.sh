@@ -19,5 +19,5 @@ pip install 'torchtext<0.10'
 pip install --upgrade 'spacy[cuda102,transformers,lookups]'
 spacy download en_core_web_sm
 spacy download en_core_web_trf
-pip install -r requirements.txt
-python setup.py
+pip install -r "${SCRIPT_DIR}"/requirements.txt
+python "${SCRIPT_DIR}"/setup.py
