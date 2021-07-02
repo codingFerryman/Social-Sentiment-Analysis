@@ -1,10 +1,10 @@
 import json
 import os
-import sys
+from pathlib import Path
 
-sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-from preprocessing import PretrainedTransformersPipeLine
 from models import TransformersModel
+# sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+from preprocessing import PretrainedTransformersPipeLine
 from utils import get_project_path
 
 project_directory = get_project_path()
@@ -17,7 +17,8 @@ pipeline = PretrainedTransformersPipeLine(model_name)
 pipeline.loadData(ratio=0.001)
 # encDataTrain, encDataVal = pipeline.getEncodedDataset(splitter=train_test_split, test_size=0.1)
 model = TransformersModel(modelName_or_pipeLine=pipeline)
-with open('/home/he/Workspace/CIL/src/experimentConfigs/robertaDefault.json', 'r') as fp:
+
+with open(Path(project_directory, 'src', 'experimentConfigs', './robertaDefault.json'), 'r') as fp:
     config = json.load(fp)
 
 metric = ['glue', 'mrpc']
