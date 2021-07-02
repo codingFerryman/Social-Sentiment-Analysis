@@ -8,7 +8,7 @@ if [ "$DATA_FILE_COUNT" != "5" ]; then
   echo "Downloading data files ..."
   rm "${SCRIPT_DIR}"/data/*.txt
   wget http://www.da.inf.ethz.ch/files/twitter-datasets.zip -O "${SCRIPT_DIR}"/data/twitter-datasets.zip
-  unzip "${SCRIPT_DIR}"/data/twitter-datasets.zip -d "${SCRIPT_DIR}"/data
+  unzip -j "${SCRIPT_DIR}"/data/twitter-datasets.zip -d "${SCRIPT_DIR}"/data
   rm "${SCRIPT_DIR}"/data/twitter-datasets.zip
   echo "Downloaded!"
 else
