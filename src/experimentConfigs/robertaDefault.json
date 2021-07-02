@@ -3,7 +3,6 @@
     "data_load_ratio": 0.05,
     "model_type": "transformers",
     "tokenizer_type": "transformers",
-    "tokenizer": "roberta",
     "args": {
         "epochs": 2,
         "batch_size": 64,
