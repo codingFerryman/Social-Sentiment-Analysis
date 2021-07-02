@@ -1,5 +1,4 @@
 roberta-base
-cardiffnlp/twitter-roberta-base-sentiment
 bert-base-uncased
 xlnet-base-cased
 vinai/bertweet-base
