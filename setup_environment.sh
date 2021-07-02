@@ -1,4 +1,5 @@
 #!/bin/bash
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
 
 # The next line should be executed directly in your terminal again

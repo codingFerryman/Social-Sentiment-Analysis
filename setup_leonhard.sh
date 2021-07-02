@@ -1,4 +1,7 @@
 #!/bin/bash
+
+# This script is for setting up the environment on the ETHz Leonhard
+
 # Please connect to ETHZ internal network before using this script
 declare ETH_USERNAME=$1
 declare CIL_LOCALREPO=${2:-'~/cil-project'}
@@ -18,7 +21,8 @@ fi
 '
 
 # ... or if you do not want to clone from GitHub but copy the project from local machine
-#scp -r ../../src $USERNAME@login.leonhard.ethz.ch:cil-project
+#ssh $ETH_USERNAME@login.leonhard.ethz.ch 'rm -r '${CIL_LOCALREPO}'; mkdir -p '${CIL_LOCALREPO}''
+#scp -r ./src $ETH_USERNAME@login.leonhard.ethz.ch:${CIL_LOCALREPO}/src
 
 # Download the data if it not exists
 ssh $ETH_USERNAME@login.leonhard.ethz.ch '
