@@ -229,7 +229,7 @@ def main(args: list):
 
 
 if __name__ == "__main__":
-    # main(sys.argv)
-    os.environ['CUDA_VISIBLE_DEVICES'] = "0"
-    launchExperimentFromJson(fpath="./robertaDefault.json", reportPath='./reportExample.json')
-    launchExperimentFromJson(fpath="./berttweetDefault.json", reportPath='./reportExample.json')
+    main(sys.argv)
+    # os.environ['CUDA_VISIBLE_DEVICES'] = "0"
+    # launchExperimentFromJson(fpath="./robertaDefault.json", reportPath='./reportExample.json')
+    # launchExperimentFromJson(fpath="./berttweetDefault.json", reportPath='./reportExample.json')
