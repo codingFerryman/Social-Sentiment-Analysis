@@ -2,7 +2,12 @@
 *.pyc
 *.png
 *.csv
+data/*.txt
 venv/*
 vscode/*
 sklearn
 .ipynb_checkpoints/*
+trainings/
+dist/
+src/*.egg-info/
+build/
