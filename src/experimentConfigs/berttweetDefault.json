@@ -36,8 +36,7 @@
         "min_length": 2,
         "max_length": 64,
         "output_attentions": false,
-        "output_hidden_states": false,
-        "finetuning_task": null
+        "output_hidden_states": false
     },
     "metric": [
         "glue",
