@@ -20,4 +20,4 @@ pip install --upgrade 'spacy[cuda102,transformers,lookups]'
 spacy download en_core_web_sm
 spacy download en_core_web_trf
 pip install -r "${SCRIPT_DIR}"/requirements.txt
-python "${SCRIPT_DIR}"/setup.py
+python "${SCRIPT_DIR}"/setup.py install
