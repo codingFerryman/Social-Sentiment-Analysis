@@ -11,6 +11,7 @@ chmod +x ${CIL_LOCALREPO}/setup_environment.sh
 ${CIL_LOCALREPO}/setup_dataset.sh
 
 python -m venv "${SCRIPT_DIR}"/venv
+source "${SCRIPT_DIR}"/venv/bin/activate
 pip install --upgrade pip setuptools wheel
 pip install torch==1.8.1+cu102 -f https://download.pytorch.org/whl/lts/1.8/torch_lts.html
 pip install 'torchtext<0.10'
