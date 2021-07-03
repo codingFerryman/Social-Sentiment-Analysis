@@ -1,4 +1,5 @@
 import re
+import os
 from pathlib import Path
 
 from transformers import PreTrainedModel
@@ -26,6 +27,8 @@ def get_transformers_layers_num(model: PreTrainedModel) -> int:
 
 def prepend_multiple_lines(file_name, list_of_lines):
     """Insert given list of strings as new lines at the beginning of a file"""
+    # Create the file if it does not exist
+    open(file_name, 'a').close()
     # define name of temporary dummy file
     dummy_file = str(file_name) + '.bak'
     # open given original file in read mode and dummy file in write mode
@@ -36,3 +39,5 @@ def prepend_multiple_lines(file_name, list_of_lines):
         # Read lines from original file one by one and append them to the dummy file
         for line in read_obj:
             write_obj.write(line)
+    os.remove(file_name)
+    os.rename(dummy_file, file_name)

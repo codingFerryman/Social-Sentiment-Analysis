@@ -1,4 +1,5 @@
 import re
+import random
 from typing import Tuple, Dict, Callable
 
 import numpy as np
@@ -249,6 +250,17 @@ class PretrainedTransformersPipeLine(InputPipeline):
     def trainTokenizer(self):
         assert self.allData != [], "no data to train"
         logger.info(f"No train phase in PretrainedTransformersPipeLine {self.tokenizer.name_or_path}")
+
+    def randomizeAllData(self):
+        assert self._dataLoaded, "Data not loaded yet"
+        _pos = self.dataPos
+        _neg = self.dataNeg
+        _allData = _pos + _neg
+        _allLabels = [1]*len(_pos) + [0]*len(_neg)
+        _tmp = list(zip(_allData, _allLabels))
+        random.shuffle(_tmp)
+        _allData, _allLabels = zip(*_tmp)
+        return _allData, _allLabels
 
     @staticmethod
     def argmixPositiveNegative(textsPos: list, textsNeg: list) -> np.ndarray:
