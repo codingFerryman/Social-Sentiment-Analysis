@@ -128,7 +128,7 @@ class TransformersModel(ModelConstruction):
             frozen_config = trainer_config.pop('fine_tune_layers')
             self.model = self.createModel(model_config)
             if frozen_config['freeze']:
-                frozen_layers = self.get_frozen_layers(self._modelName,
+                frozen_layers = self.get_frozen_layers(self.model,
                                                        frozen_config['num_unfrozen_layers'],
                                                        frozen_config['unfrozen_embeddings'])
                 for name, param in self.model.named_parameters():
