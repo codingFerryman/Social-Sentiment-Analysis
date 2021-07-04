@@ -1,5 +1,6 @@
 import re
 import random
+import pathlib
 from typing import Tuple, Dict, Callable
 
 import numpy as np
@@ -90,7 +91,10 @@ class PretrainedTransformersPipeLine(InputPipeline):
             self.loadFunction = loadData
         else:
             self.loadFunction = loadFunction
-        self.tokenizer = AutoTokenizer.from_pretrained(model_name_or_path)
+        if pathlib.Path().resolve().parts[1] == 'cluster':
+            self.tokenizer = AutoTokenizer.from_pretrained(model_name_or_path, proxies={'http': 'proxy.ethz.ch:3128'})
+        else:
+            self.tokenizer = AutoTokenizer.from_pretrained(model_name_or_path)
         self._dataLoaded = False
 
     def loadData(self, ratio='sub'):

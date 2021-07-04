@@ -1,5 +1,6 @@
 import time
 import typing
+import pathlib
 from pathlib import Path
 
 import numpy as np
@@ -106,7 +107,11 @@ class TransformersModel(ModelConstruction):
         _config = AutoConfig.from_pretrained(self._modelName)
         if model_config_dict:
             _config.update(model_config_dict)
-        model = AutoModelForSequenceClassification.from_pretrained(self._modelName, config=_config)
+        if pathlib.Path().resolve().parts[1] == 'cluster':
+            model = AutoModelForSequenceClassification.from_pretrained(self._modelName, config=_config,
+                                                                       proxies={'http': 'proxy.ethz.ch:3128'})
+        else:
+            model = AutoModelForSequenceClassification.from_pretrained(self._modelName, config=_config)
         return model
 
     def trainModel(self, train_val_split_iterator: str = "train_test_split",

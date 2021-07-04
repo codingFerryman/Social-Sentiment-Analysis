@@ -70,7 +70,18 @@ reading the tweeter dataset for the pytorch or the tensorflow framework. It work
 To run the code on ETHz's HPC, please load the module as:
 
 ```bash
-module load gcc/6.3.0 python_gpu/3.8.5 hdf5/1.10.1
+module load gcc/6.3.0 python_gpu/3.8.5 hdf5/1.10.1 eth_proxy
 ```
 
-See [requirements.txt](./requirements.txt).
+See [setup_leonhard.sh](./setup_leonhard.sh), [setup_environment.sh](./setup_environment.sh), and [requirements.txt](./requirements.txt).
+
+## Execute on HPC
+The following command will request 1 GPU core, 8GB RAM, and 1 GPU with 10GB+ VRAM for 23 hours:
+```bash
+bsub -W 23:00 -n 1 -R "rusage[mem=8192,ngpus_excl_p=1]" -R "select[gpu_mtotal0>=10240]" \
+source venv/bin/activate \
+venv/bin/python src/experimentConfigs/experiment.py test_path=$TRAINING_JSON_CONFIG_PATH report_path=$REPORT_JSON_PATH
+```
+(Assume that you are running from project's root directory.)
+
+Please make sure that the proxy http://proxy.ethz.ch:3128 has been set for downloading external models.
