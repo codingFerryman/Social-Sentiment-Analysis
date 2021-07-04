@@ -13,9 +13,16 @@ ${CIL_LOCALREPO}/setup_dataset.sh
 python -m venv "${CIL_LOCALREPO}"/venv
 source "${CIL_LOCALREPO}"/venv/bin/activate
 pip install --upgrade pip setuptools wheel
-pip install torch==1.8.1+cu102 -f https://download.pytorch.org/whl/lts/1.8/torch_lts.html
+
+# If you have CUDA installed on your computer
+#pip install torch==1.8.1+cu102 -f https://download.pytorch.org/whl/lts/1.8/torch_lts.html
+#pip install --upgrade 'spacy[cuda102]'
+
+# If you DON'T have CUDA installed on your computer
+pip install torch==1.8.1+cpu -f https://download.pytorch.org/whl/lts/1.8/torch_lts.html
+pip install --upgrade 'spacy' # If you DON'T have CUDA installed on your computer
+
 pip install 'torchtext<0.10'
-pip install --upgrade 'spacy[cuda102]'
 spacy download en_core_web_sm
 #spacy download en_core_web_trf
 pip install -r "${CIL_LOCALREPO}"/requirements.txt
