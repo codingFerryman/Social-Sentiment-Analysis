@@ -17,26 +17,22 @@ logger = getLogger("PretrainedTransformersPipeLine", debug=True)
 
 
 class TwitterDatasetTorch(Dataset):
-    def __init__(self, text: list, labels: list, tokenizer: PreTrainedTokenizerBase, max_length: int = None,
+    def __init__(self, text: list, labels: list, tokenizer: PreTrainedTokenizerBase,
                  tokenizerConfig: dict = None):
         """ This is a wrapper to pass data of the twitter dataset to pytorch.
         Args:
             text (list): The list of raw text.
             labels (list): The labels from the dataset.
             tokenizer (PreTrainedTokenizerBase): The pretrained tokenizer from transformers
-            max_length (int): The max length of the padding/truncation
             tokenizerConfig (dict): A dictionary with tokenizers configuration
         """
         self.text_list = text
         self.labels = labels
         self.tokenizer = tokenizer
         if tokenizerConfig is None:
-            tokenizerConfig = {"padding": PaddingStrategy.MAX_LENGTH}
-        if max_length is None:
-            tokenizerConfig["max_length"] = 256
-        else:
-            tokenizerConfig["max_length"] = max_length
-            tokenizerConfig["truncation"] = True
+            tokenizerConfig = {"padding": PaddingStrategy.MAX_LENGTH, "max_length": 64, "truncation": True}
+        if "max_length" not in tokenizerConfig.keys():
+            tokenizerConfig["max_length"] = 64
 
         self.tokenizerConfig = tokenizerConfig
 
@@ -58,6 +54,9 @@ class TwitterDatasetTorch(Dataset):
 
     def __len__(self):
         return len(self.labels)
+
+    def getTokenizer(self):
+        return self.tokenizer
 
     @staticmethod
     def cleaning(text):
@@ -83,6 +82,7 @@ class PretrainedTransformersPipeLine(InputPipeline):
         self.allData = []
         self.dataPos = []
         self.dataNeg = []
+        self.test_data = []
 
         if model_name_or_path is None:
             model_name_or_path = 'roberta-base'
@@ -102,6 +102,7 @@ class PretrainedTransformersPipeLine(InputPipeline):
         train_pos, train_neg, test_data = self.loadFunction(self.dataPath, ratio)
         self.dataPos = train_pos
         self.dataNeg = train_neg
+        self.test_data = test_data
         self.allData = train_pos + train_neg
         self._dataLoaded = True
 
@@ -171,16 +172,14 @@ class PretrainedTransformersPipeLine(InputPipeline):
         return min_len, max_len, zero_len_idx
 
     def getEncodedDatasetTorch(self, train_dataX: list, train_datay: list, val_dataX: list, val_datay: list,
-                               max_len: int, tokenizerConfig: dict):
+                               tokenizerConfig: dict):
         """Convert the raw texts to PyTorch Datasets for training"""
 
         encDataTrain = TwitterDatasetTorch(text=train_dataX, labels=train_datay,
                                            tokenizer=self.tokenizer,
-                                           max_length=max_len,
                                            tokenizerConfig=tokenizerConfig)
         encDataVal = TwitterDatasetTorch(text=val_dataX, labels=val_datay,
                                          tokenizer=self.tokenizer,
-                                         max_length=max_len,
                                          tokenizerConfig=tokenizerConfig)
         return encDataTrain, encDataVal
 
@@ -217,6 +216,12 @@ class PretrainedTransformersPipeLine(InputPipeline):
         labels = list(self.getLabels(argMix=list(argMix), posLabel=posLabel, negLabel=negLabel))
         # get max sequence length
         min_len, max_len, zero_len_idx = self.getSequenceMaxLength()
+
+        if tokenizerConfig is None:
+            tokenizerConfig = {"padding": PaddingStrategy.MAX_LENGTH, "max_length": max_len, "truncation": True}
+        if "max_length" not in tokenizerConfig.keys():
+            tokenizerConfig["max_length"] = max_len
+
         # if min length == 0 delete the empty texts
         if min_len == 0:
             logger.debug('Deleting zero length texts and labels because min_len = 0')
@@ -228,7 +233,6 @@ class PretrainedTransformersPipeLine(InputPipeline):
             encDataTrain, encDataVal = self.getEncodedDatasetTorch(train_dataX=self.allData,
                                                                    train_datay=labels,
                                                                    val_dataX=[], val_datay=[],
-                                                                   max_len=max_len,
                                                                    tokenizerConfig=tokenizerConfig)
             return encDataTrain, encDataVal
         else:
@@ -243,7 +247,6 @@ class PretrainedTransformersPipeLine(InputPipeline):
                                                                    train_datay=list(train_datay),
                                                                    val_dataX=val_dataX,
                                                                    val_datay=list(val_datay),
-                                                                   max_len=max_len,
                                                                    tokenizerConfig=tokenizerConfig)
             return encDataTrain, encDataVal
 
