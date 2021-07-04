@@ -13,7 +13,7 @@ from models.Model import ModelConstruction, get_iterator_splitter_from_name
 from preprocessing.pretrainedTransformersPipeline import PretrainedTransformersPipeLine
 from utils import get_project_path, get_transformers_layers_num, loggers
 
-logger = loggers.getLogger("RobertaModel", True)
+logger = loggers.getLogger("TransformersModel", True)
 
 
 def getTransformersTokenizer(
