@@ -10,7 +10,7 @@ chmod +x ${CIL_LOCALREPO}/setup_environment.sh
 
 ${CIL_LOCALREPO}/setup_dataset.sh
 
-python -m venv "${CIL_LOCALREPO}"/venv
+python -m venv --system-site-packages "${CIL_LOCALREPO}"/venv
 source "${CIL_LOCALREPO}"/venv/bin/activate
 pip install --upgrade pip setuptools wheel
 
