@@ -1,0 +1,6 @@
+roberta-base
+bert-base-uncased
+xlnet-base-cased
+vinai/bertweet-base
+distilbert-base-uncased
+siebert/sentiment-roberta-large-english

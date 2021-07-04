@@ -1,11 +1,11 @@
 {
-    "model_name_or_path": "roberta-base",
-    "data_load_ratio": 0.001,
+    "model_name_or_path": "vinai/bertweet-base",
+    "data_load_ratio": 1,
     "model_type": "transformers",
     "tokenizer_type": "transformers",
     "args": {
         "epochs": 3,
-        "batch_size": 32,
+        "batch_size": 625,
         "adafactor": true,
         "warmup_steps": 100,
         "weight_decay": 0.0001,
@@ -41,5 +41,5 @@
         "glue",
         "mrpc"
     ],
-    "description": "Test default Roberta model"
+    "description": "vinai/bertweet-base w/ full dataset"
 }
