@@ -149,11 +149,16 @@ class TransformersModel(ModelConstruction):
 
         for k in kwargs.keys():
             trainer_config[k] = kwargs[k]
+        # Adapt configuration to Huggingface Trainer
         if "epochs" in trainer_config.keys():
             trainer_config["num_train_epochs"] = trainer_config.pop("epochs")
         if "batch_size" in trainer_config.keys():
             trainer_config["per_device_train_batch_size"] = trainer_config.pop("batch_size")
             trainer_config["per_device_eval_batch_size"] = trainer_config["per_device_train_batch_size"]
+        # Enable half precision training by default on the cluster
+        if "fp16" not in trainer_config.keys():
+            if pathlib.Path().resolve().parts[1] == 'cluster':
+                trainer_config["fp16"] = True
 
         callbacks = []
         if "early_stopping_patience" in trainer_config.keys():
