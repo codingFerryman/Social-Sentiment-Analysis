@@ -24,7 +24,7 @@ with open(Path(project_directory, 'src', 'experimentConfigs', './robertaDefault.
 metric = ['glue', 'mrpc']
 model.registerMetric(*metric)
 eval_log = model.trainModel(
-    train_val_split_iterator=config['args'].pop('train_val_split_iterator', "train_test_split"),
+    train_val_split_iterator=config['args'].get('train_val_split_iterator', "train_test_split"),
     model_config=config['model_config'],
     tokenizer_config=config['tokenizer_config'],
     trainer_config=config['args']

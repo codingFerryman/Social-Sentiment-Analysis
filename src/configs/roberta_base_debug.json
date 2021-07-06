@@ -4,7 +4,7 @@
     "model_type": "transformers",
     "tokenizer_type": "transformers",
     "args": {
-        "epochs": 3,
+        "epochs": 1,
         "batch_size": 32,
         "adafactor": true,
         "warmup_steps": 100,
@@ -19,13 +19,13 @@
         "train_val_split_iterator": "train_test_split",
         "fine_tune_layers": {
             "freeze": true,
-            "num_unfrozen_layers": 0,
-            "unfrozen_embeddings": false
+            "num_unfrozen_layers": 1,
+            "unfrozen_embeddings": true
         }
     },
     "tokenizer_config": {
         "add_special_tokens": true,
-        "max_length": 32,
+        "max_length": 50,
         "padding": "max_length",
         "truncation": true,
         "return_token_type_ids": true,
@@ -35,11 +35,15 @@
         "num_labels": 2,
         "problem_type": "single_label_classification",
         "output_attentions": false,
-        "output_hidden_states": false
+        "output_hidden_states": false,
+        "id2label": {
+            "1": 1,
+            "0": -1
+        }
     },
     "metric": [
         "glue",
         "mrpc"
     ],
-    "description": "Test default Roberta model"
+    "description": "RoBERTa Base model for testing"
 }

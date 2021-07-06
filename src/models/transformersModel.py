@@ -71,7 +71,7 @@ class TransformersModel(ModelConstruction):
         self.project_directory = get_project_path()
 
         # Training's logging path
-        self.training_saving_path = Path(self.project_directory, 'trainings', 'logging',
+        self.training_saving_path = Path(self.project_directory, 'trainings',
                                          self._modelName, time.strftime("%Y%m%d-%H%M%S"))
 
     def loadData(self, ratio='sub'):
@@ -168,7 +168,7 @@ class TransformersModel(ModelConstruction):
 
         training_args = TrainingArguments(
             logging_dir=Path(self.training_saving_path, 'logs'),
-            output_dir=Path(self.training_saving_path, 'checkpoints'),
+            output_dir=Path(self.training_saving_path),
             **trainer_config_copy
         )
 
@@ -219,8 +219,14 @@ class TransformersModel(ModelConstruction):
     def getBestModelCheckpoint(self):
         return self.trainer.state.best_model_checkpoint
 
+    def getTokenizer(self):
+        return self.pipeLine.getTokenizer()
+
     def save(self, model_path: str = None):
         if model_path is None:
             model_path = Path(self.training_saving_path, 'model')
         logger.info("Saving TransformersModel")
-        self.trainer.save(model_path)
+        self.trainer.save_state()
+        self.trainer.save_model(model_path)
+        _tokenizer = self.getTokenizer()
+        _tokenizer.save_pretrained(Path(self.training_saving_path, 'tokenizer'))

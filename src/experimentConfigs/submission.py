@@ -10,9 +10,11 @@ from utils import get_project_path
 
 
 class TransformersPredict:
-    def __init__(self, model_path, model_name, text_path, cuda_device=-1):
+    def __init__(self, load_path, text_path, cuda_device=-1):
+        model_path = Path(load_path, 'model')
+        tokenizer_path = Path(load_path, 'tokenizer')
         model = AutoModelForSequenceClassification.from_pretrained(model_path)
-        tokenizer = AutoTokenizer.from_pretrained(model_name)
+        tokenizer = AutoTokenizer.from_pretrained(tokenizer_path)
         self.pipeline = TextClassificationPipeline(model=model, tokenizer=tokenizer, device=cuda_device,
                                                    binary_output=True)
         self.text_path = text_path
@@ -61,15 +63,14 @@ class TransformersPredict:
 
 if __name__ == '__main__':
     PROJECT_DIRECTORY = get_project_path()
-    test_path = '/home/he/Workspace/cil-project/data/test_data.txt'
+    test_path = Path(PROJECT_DIRECTORY, 'data', 'test_data.txt')
 
-    timestamp = '20210704-234431'
-    model_name = 'siebert/sentiment-roberta-large-english'
-    checkpoint = 'checkpoint-62500'
+    timestamp = '20210706-170133'
+    model_name = 'roberta-base'
 
-    model_path = Path(PROJECT_DIRECTORY, 'trainings', 'logging',
-                      model_name, timestamp, 'checkpoints', checkpoint)
+    load_path = Path(PROJECT_DIRECTORY, 'trainings',
+                     model_name, timestamp)
 
-    predict_pipeline = TransformersPredict(model_path, model_name, test_path, cuda_device=0)
+    predict_pipeline = TransformersPredict(load_path, test_path, cuda_device=0)
     pred = predict_pipeline.predict(batch_size=2500)
-    predict_pipeline.submission_file(Path(model_path, 'submission.csv'))
+    predict_pipeline.submission_file(Path(load_path, 'submission.csv'))

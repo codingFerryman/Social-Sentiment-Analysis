@@ -1,6 +1,6 @@
 {
     "model_name_or_path": "roberta-base",
-    "data_load_ratio": 0.001,
+    "data_load_ratio": 0.0001,
     "model_type": "transformers",
     "tokenizer_type": "transformers",
     "args": {
@@ -9,7 +9,6 @@
         "warmup_steps": {"use_hyperopt": true, "hyperopt_function":"choice", "arguments": {"options": [20]}},
         "weight_decay": 0.0001,
         "train_val_split_iterator" : "train_test_split",
-        "useClassWeights" : false,
         "evaluation_strategy": "epoch",
         "logging_strategy": "steps",
         "logging_steps": 100,
