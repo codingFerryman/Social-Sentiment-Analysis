@@ -250,7 +250,7 @@ def main(args: list):
 
 
 if __name__ == "__main__":
-    # main(sys.argv)
-    os.environ['CUDA_VISIBLE_DEVICES'] = "0"
-    launchExperimentFromJson(fpath="/home/he/Workspace/cil-project/src/configs/roberta_base_debug.json",
-                             reportPath='/home/he/Workspace/cil-project/docs/report_test.json')
+    main(sys.argv)
+    # os.environ['CUDA_VISIBLE_DEVICES'] = "0"
+    # launchExperimentFromJson(fpath="/home/he/Workspace/cil-project/src/configs/roberta_base_debug.json",
+    #                          reportPath='/home/he/Workspace/cil-project/docs/report_test.json')
