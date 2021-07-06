@@ -32,14 +32,11 @@ $ACTIVATE_VENV=Join-Path $CIL_LOCALREPO \venv\Scripts\Activate.ps1
 
 python -m pip install --upgrade pip setuptools wheel
 
-# If you have CUDA installed on your computer
-#pip install torch==1.8.1+cu102 -f https://download.pytorch.org/whl/lts/1.8/torch_lts.html
-#pip install --upgrade 'spacy[cuda102]'
+# CUDA
+#pip install -r "${SCRIPT_DIR}"/requirements.txt
+# CPU
+pip install -r "${SCRIPT_DIR}"/requirements_cpu.txt
 
-# If you DON'T have CUDA installed on your computer
-pip install torch==1.8.1+cpu -f https://download.pytorch.org/whl/lts/1.8/torch_lts.html
-pip install --upgrade 'spacy' # If you DON'T have CUDA installed on your computer
-
-pip install 'torchtext<0.10'
 spacy download en_core_web_sm
-pip install -r $CIL_LOCALREPO\requirements.txt
+#spacy download en_core_web_trf
+#python "${SCRIPT_DIR}"/setup.py install

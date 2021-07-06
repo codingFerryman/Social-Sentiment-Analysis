@@ -10,20 +10,14 @@ chmod +x ${CIL_LOCALREPO}/setup_environment.sh
 
 ${CIL_LOCALREPO}/setup_dataset.sh
 
-python -m venv --system-site-packages "${CIL_LOCALREPO}"/venv
+python -m venv "${CIL_LOCALREPO}"/venv
 source "${CIL_LOCALREPO}"/venv/bin/activate
 pip install --upgrade pip setuptools wheel
 
-# If you have CUDA installed on your computer
-#pip install torch==1.8.1+cu102 -f https://download.pytorch.org/whl/lts/1.8/torch_lts.html
-#pip install --upgrade 'spacy[cuda102]'
-
-# If you DON'T have CUDA installed on your computer
-pip install torch==1.8.1+cpu -f https://download.pytorch.org/whl/lts/1.8/torch_lts.html
-pip install --upgrade 'spacy' # If you DON'T have CUDA installed on your computer
-
-pip install 'torchtext<0.10'
-spacy download en_core_web_sm
-#spacy download en_core_web_trf
+# CUDA
 pip install -r "${CIL_LOCALREPO}"/requirements.txt
+# CPU
+#pip install -r "${SCRIPT_DIR}"/requirements_cpu.txt
+
+spacy download en_core_web_sm
 #python "${SCRIPT_DIR}"/setup.py install

@@ -40,6 +40,9 @@ class TwitterDatasetTorch(Dataset):
     def __getitem__(self, idx):
         tweet = self.text_list[idx]
         tweet = self.cleaning(tweet)
+        if self.tokenizer.pad_token is None:
+            self.tokenizer.pad_token = self.tokenizer.eos_token
+            self.tokenizer.pad_token_id = self.tokenizer.eos_token_id
         inputs = self.tokenizer.encode_plus(
             text=tweet,
             **self.tokenizerConfig
