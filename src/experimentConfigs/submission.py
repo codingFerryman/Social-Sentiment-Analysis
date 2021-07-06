@@ -32,7 +32,7 @@ class TransformersPredict:
         self.pred = _results
         return _results
 
-    def submission_file(self, save_path='./submission'):
+    def submission_file(self, save_path='./submission.csv'):
         pred_labels = [r['label'] for r in self.pred]
         id_zero_len = self.data['zero_len_ids']
         pred_id = self.data['ids'] + id_zero_len
