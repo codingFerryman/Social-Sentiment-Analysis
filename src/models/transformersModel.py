@@ -130,7 +130,7 @@ class TransformersModel(ModelConstruction):
 
         # Fine tune on last N layers
         if trainer_config:
-            frozen_config = trainer_config.pop('fine_tune_layers')
+            frozen_config = trainer_config['fine_tune_layers']
             self.model = self.createModel(model_config)
             if frozen_config['freeze']:
                 frozen_layers = self.get_frozen_layers(self.model,
@@ -140,35 +140,36 @@ class TransformersModel(ModelConstruction):
                     for frozen_name in frozen_layers:
                         if frozen_name in name:
                             param.requires_grad = False
+            trainer_config_copy = {**{k:v for k,v in trainer_config.copy().items() if k != 'fine_tune_layers'}, **kwargs}
         else:
             self.model = self.createModel()
-            trainer_config = {
+            trainer_config_copy = {
                 "epochs": 1,
-                "batch_size": 128
+                "batch_size": 128,
+                **kwargs,
             }
 
-        for k in kwargs.keys():
-            trainer_config[k] = kwargs[k]
+        trainer_config_copy.pop("train_val_split_iterator")
         # Adapt configuration to Huggingface Trainer
-        if "epochs" in trainer_config.keys():
-            trainer_config["num_train_epochs"] = trainer_config.pop("epochs")
+        if "epochs" in trainer_config_copy.keys():
+            trainer_config_copy["num_train_epochs"] = trainer_config_copy.pop("epochs")
         if "batch_size" in trainer_config.keys():
-            trainer_config["per_device_train_batch_size"] = trainer_config.pop("batch_size")
-            trainer_config["per_device_eval_batch_size"] = trainer_config["per_device_train_batch_size"]
+            trainer_config_copy["per_device_train_batch_size"] = trainer_config_copy.pop("batch_size")
+            trainer_config_copy["per_device_eval_batch_size"] = trainer_config_copy["per_device_train_batch_size"]
         # Enable half precision training by default on the cluster
-        if "fp16" not in trainer_config.keys():
+        if "fp16" not in trainer_config_copy.keys():
             if pathlib.Path().resolve().parts[1] == 'cluster':
-                trainer_config["fp16"] = True
-
+                trainer_config_copy["fp16"] = True
+        
         callbacks = []
-        if "early_stopping_patience" in trainer_config.keys():
-            early_stopping_patience = trainer_config.pop("early_stopping_patience")
+        if "early_stopping_patience" in trainer_config_copy.keys():
+            early_stopping_patience = trainer_config_copy.get("early_stopping_patience")
             callbacks.append(EarlyStoppingCallback(early_stopping_patience=early_stopping_patience))
 
         training_args = TrainingArguments(
             logging_dir=Path(self.training_saving_path, 'logs'),
             output_dir=Path(self.training_saving_path, 'checkpoints'),
-            **trainer_config
+            **trainer_config_copy
         )
 
         self.trainer = Trainer(
