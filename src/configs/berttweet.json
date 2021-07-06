@@ -4,7 +4,7 @@
     "model_type": "transformers",
     "tokenizer_type": "transformers",
     "args": {
-        "epochs": 3,
+        "epochs": 10,
         "batch_size": 384,
         "adafactor": true,
         "warmup_steps": 100,
@@ -16,6 +16,7 @@
         "overwrite_output_dir": true,
         "load_best_model_at_end": true,
         "metric_for_best_model": "accuracy",
+        "early_stopping_patience": 3,
         "train_val_split_iterator": "train_test_split",
         "fine_tune_layers": {
             "freeze": true,
