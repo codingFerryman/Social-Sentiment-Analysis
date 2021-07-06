@@ -4,6 +4,10 @@ if [[ ! -z $1 ]]; then
 else
     REPORT_FILE="../../docs/report.json"
 fi
+# if [[ ! "$REPORT_FILE" == *json ]] then
+#     echo "Please specify a json file for final report"
+#     exit 0
+# fi
 DIFF=`git diff $REPORT_FILE`
 echo $DIFF # output diff
 if [[ ! -z $DIFF ]]; then
