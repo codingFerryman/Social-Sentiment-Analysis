@@ -163,8 +163,10 @@ class TransformersModel(ModelConstruction):
         
         callbacks = []
         if "early_stopping_patience" in trainer_config_copy.keys():
-            early_stopping_patience = trainer_config_copy.get("early_stopping_patience")
-            callbacks.append(EarlyStoppingCallback(early_stopping_patience=early_stopping_patience))
+            early_stopping_patience = trainer_config_copy.pop("early_stopping_patience")
+            early_stopping_threshold = trainer_config_copy.pop("early_stopping_threshold", 0)
+            callbacks.append(EarlyStoppingCallback(early_stopping_patience=early_stopping_patience,
+                                                   early_stopping_threshold=early_stopping_threshold))
 
         training_args = TrainingArguments(
             logging_dir=Path(self.training_saving_path, 'logs'),
