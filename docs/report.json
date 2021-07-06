@@ -2,18 +2,16 @@
     "num_experiments": 4,
     "experiments": [
         {
-            "results": [
-                100,
-                100
-            ],
+            "results": {
+                "accuracy": 0.100
+            },
             "output_dir": "./results/roberta",
             "description": "dummy roberta test for debugging"
         },
         {
-            "results": [
-                50,
-                50
-            ],
+            "results": {
+                "accuracy": 0.050
+            },
             "output_dir": "./results/roberta",
             "description": "dummy roberta test for debugging 2"
         },
