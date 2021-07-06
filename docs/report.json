@@ -1,23 +1,9 @@
 {
-    "num_experiments": 4,
+    "num_experiments": 3,
     "experiments": [
         {
-            "results": {
-                "accuracy": 1.00
-            },
-            "output_dir": "./results/roberta",
-            "description": "dummy roberta test for debugging"
-        },
-        {
-            "results": {
-                "accuracy": 0.50
-            },
-            "output_dir": "./results/roberta",
-            "description": "dummy roberta test for debugging 2"
-        },
-        {
-            "model_name_or_path": "roberta-base",
-            "data_load_ratio": 0.001,
+            "model_name_or_path": "vinai/bertweet-base",
+            "data_load_ratio": 1,
             "model_type": "transformers",
             "tokenizer_type": "transformers",
             "args": {
@@ -32,12 +18,12 @@
                 "load_best_model_at_end": true,
                 "metric_for_best_model": "accuracy",
                 "num_train_epochs": 3,
-                "per_device_train_batch_size": 32,
-                "per_device_eval_batch_size": 32
+                "per_device_train_batch_size": 384,
+                "per_device_eval_batch_size": 384
             },
             "tokenizer_config": {
                 "add_special_tokens": true,
-                "max_length": 32,
+                "max_length": 50,
                 "padding": "max_length",
                 "truncation": true,
                 "return_token_type_ids": true,
@@ -53,36 +39,41 @@
                 "glue",
                 "mrpc"
             ],
-            "description": "Roberta model for testing framework",
+            "description": "vinai/bertweet-base w/ full dataset",
             "results": {
-                "accuracy": 0.584
+                "accuracy": 0.888752
             },
-            "output_dir": "/home/sniper/projects_local/CIL/Computational-Intelligence-Lab/trainings/logging/roberta-base/20210706-125038/checkpoints/checkpoint-189",
-            "time_stamp": "2021-07-06 12:59:36.004492"
+            "output_dir": "/cluster/home/heliuhe/cil-project/trainings/logging/vinai/bertweet-base/20210704-164012/checkpoints/checkpoint-15627",
+            "time_stamp": "2021-07-04 21:59:18.156379"
         },
         {
-            "model_name_or_path": "roberta-base",
-            "data_load_ratio": 0.001,
+            "model_name_or_path": "siebert/sentiment-roberta-large-english",
+            "data_load_ratio": 1,
             "model_type": "transformers",
             "tokenizer_type": "transformers",
             "args": {
+                "epochs": 5,
+                "batch_size": 128,
                 "adafactor": true,
                 "warmup_steps": 100,
                 "weight_decay": 0.0001,
-                "learning_rate": 1e-05,
+                "learning_rate": 1e-5,
                 "evaluation_strategy": "epoch",
                 "logging_strategy": "steps",
                 "logging_steps": 100,
                 "overwrite_output_dir": true,
                 "load_best_model_at_end": true,
                 "metric_for_best_model": "accuracy",
-                "num_train_epochs": 3,
-                "per_device_train_batch_size": 32,
-                "per_device_eval_batch_size": 32
+                "train_val_split_iterator": "train_test_split",
+                "fine_tune_layers": {
+                    "freeze": true,
+                    "num_unfrozen_layers": 1,
+                    "unfrozen_embeddings": false
+                }
             },
             "tokenizer_config": {
                 "add_special_tokens": true,
-                "max_length": 32,
+                "max_length": 50,
                 "padding": "max_length",
                 "truncation": true,
                 "return_token_type_ids": true,
@@ -98,12 +89,62 @@
                 "glue",
                 "mrpc"
             ],
-            "description": "Test default Roberta model",
+            "description": "siebert/sentiment-roberta-large-english",
             "results": {
-                "accuracy": 0.644
+                "accuracy": 0.857706
             },
-            "output_dir": "/home/sniper/projects_local/CIL/Computational-Intelligence-Lab/trainings/logging/roberta-base/20210706-132352/checkpoints/checkpoint-126",
-            "time_stamp": "2021-07-06 13:32:59.303694"
+            "output_dir": "/cluster/home/heliuhe/cil-project/trainings/logging/siebert/sentiment-roberta-large-english/20210704-234431/checkpoints/checkpoint-62500",
+            "time_stamp": "2021-07-05 06:57:18.845612"
+        },
+        {
+            "model_name_or_path": "vinai/bertweet-base",
+            "data_load_ratio": 1,
+            "model_type": "transformers",
+            "tokenizer_type": "transformers",
+            "args": {
+                "adafactor": true,
+                "warmup_steps": 100,
+                "weight_decay": 0.0001,
+                "learning_rate": 1e-05,
+                "evaluation_strategy": "epoch",
+                "logging_strategy": "steps",
+                "logging_steps": 100,
+                "overwrite_output_dir": true,
+                "load_best_model_at_end": true,
+                "metric_for_best_model": "accuracy",
+                "num_train_epochs": 3,
+                "per_device_train_batch_size": 384,
+                "per_device_eval_batch_size": 384,
+                "fp16": true
+            },
+            "tokenizer_config": {
+                "add_special_tokens": true,
+                "max_length": 50,
+                "padding": "max_length",
+                "truncation": true,
+                "return_token_type_ids": true,
+                "return_attention_mask": true
+            },
+            "model_config": {
+                "num_labels": 2,
+                "problem_type": "single_label_classification",
+                "output_attentions": false,
+                "output_hidden_states": false,
+                "id2label": {
+                    "1": 1,
+                    "0": -1
+                }
+            },
+            "metric": [
+                "glue",
+                "mrpc"
+            ],
+            "description": "vinai/bertweet-base w/ full dataset",
+            "results": {
+                "accuracy": 0.891444
+            },
+            "output_dir": "/cluster/home/heliuhe/cil-project/trainings/logging/vinai/bertweet-base/20210705-131541/checkpoints/checkpoint-15627",
+            "time_stamp": "2021-07-05 15:34:46.276563"
         }
     ]
 }
