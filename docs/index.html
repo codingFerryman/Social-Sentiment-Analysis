@@ -71,7 +71,7 @@
         /** This function creates the barchart present in the experiments' page
          * @param data: The array of the experiment results in a json report file.
          */
-        xs = sum( d.results.values() ) / len( d.results.keys() );
+        xs = ( d.results.values() ).reduce() / len( d.results.keys() );
 
         // xs = Array.from(data, (d) => average(d.results));
         xsMax = Math.max(0,
