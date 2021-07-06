@@ -1,4 +1,4 @@
-name: GitHub Actions Demo
+name: Upload report to github.io
 on:
   repository_dispatch:
   push:
