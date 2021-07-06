@@ -107,11 +107,12 @@ def launchExperimentFromDict(d: dict, reportPath: str = None):
             tokenizer_config=d['tokenizer_config'],
             trainer_config=d['args'],
         )
+        model.save()
         best_model_metric = model.getBestMetric()
-        model_saved_path = model.getBestModelCheckpoint()
+        model_saved_path = model.training_saving_path
         report(info={**d,
                      "results": {d['args']['metric_for_best_model']: best_model_metric},
-                     "output_dir": model_saved_path,
+                     "output_dir": str(model_saved_path),
                      "time_stamp": str(dt.datetime.now())},
                reportPath=reportPath)
     else:
@@ -229,7 +230,7 @@ def main(args: list):
 
 
 if __name__ == "__main__":
-    main(sys.argv)
-    # os.environ['CUDA_VISIBLE_DEVICES'] = "0"
-    # launchExperimentFromJson(fpath="./robertaDefault.json", reportPath='./reportExample.json')
-    # launchExperimentFromJson(fpath="./berttweetDefault.json", reportPath='./reportExample.json')
+    # main(sys.argv)
+    os.environ['CUDA_VISIBLE_DEVICES'] = "0"
+    launchExperimentFromJson(fpath="/home/he/Workspace/cil-project/src/configs/roberta_base_debug.json",
+                             reportPath='/home/he/Workspace/cil-project/docs/report_test.json')
