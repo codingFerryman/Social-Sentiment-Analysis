@@ -3,14 +3,14 @@
     "experiments": [
         {
             "results": {
-                "accuracy": 0.100
+                "accuracy": 1.00
             },
             "output_dir": "./results/roberta",
             "description": "dummy roberta test for debugging"
         },
         {
             "results": {
-                "accuracy": 0.050
+                "accuracy": 0.50
             },
             "output_dir": "./results/roberta",
             "description": "dummy roberta test for debugging 2"
