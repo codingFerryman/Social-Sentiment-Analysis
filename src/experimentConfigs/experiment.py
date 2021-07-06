@@ -102,7 +102,7 @@ def launchExperimentFromDict(d: dict, reportPath: str = None):
     hyperoptActive = d.get('use_hyperopt', False)
     if not hyperoptActive:
         _ = model.trainModel(
-            train_val_split_iterator=d['args'].pop('train_val_split_iterator', "train_test_split"),
+            train_val_split_iterator=d['args'].get('train_val_split_iterator', "train_test_split"),
             model_config=d['model_config'],
             tokenizer_config=d['tokenizer_config'],
             trainer_config=d['args'],
@@ -122,31 +122,51 @@ def launchExperimentFromDict(d: dict, reportPath: str = None):
         # see robertaHyperopt.json for more details.
         space = {argName: getHyperoptValue(argName, argValue)
                  for argName, argValue in d['args'].items()}
+        
+        all_evals = []
 
-        def getEvalsError(args):
+        def getEvals(args):
             # find which arguments use hyperopt
             # and stop them from being a dictionary
             actualArgs = {}
+
             for argName, argVal in args.items():
                 if type(d['args'][argName]) is dict:
-                    if d['args'][argName].get("use_hyperopt", False):
+                    if d['args'][argName].get("use_hyperopt", False) and type(argVal) is dict:
                         actualArgs[argName] = argVal[argName]
                     else:
                         actualArgs[argName] = argVal
                 else:
                     actualArgs[argName] = argVal
+            
             # test the model
             # and get evaluations
-            evals = model.trainModel(**actualArgs)
-            res = 100 - np.sum(evals) / np.size(evals)
-            return res
+            _ = model.trainModel(
+                train_val_split_iterator=actualArgs.get('train_val_split_iterator', "train_test_split"),
+                model_config=d['model_config'],
+                tokenizer_config=d['tokenizer_config'],
+                trainer_config=actualArgs)
+            best_model_metric = model.getBestMetric()
+            model_saved_path = model.getBestModelCheckpoint()
+            all_evals.append({actualArgs['metric_for_best_model']: best_model_metric})
+            return best_model_metric
 
-        bestHyperparametersDict = hyperopt.fmin(getEvalsError, space, hyperopt.tpe.suggest,
+        def getEvalsError(args):
+            evals = getEvals(args)
+            print(f"New evals = {evals}")    
+            # res = 100 - np.sum(evals) / np.size(evals)
+            return evals
+
+        bestHyperparametersDictFromHyperOpt = hyperopt.fmin(getEvalsError, space, hyperopt.tpe.suggest,
                                                 max_evals=d['hyperopt_max_evals'])
+        bestHyperparametersDict = d['args'].copy()
+        for k,v in bestHyperparametersDictFromHyperOpt.items():
+            bestHyperparametersDict[k] = v
         report(info={**bestHyperparametersDict,
-                     "results": evals,
+                     "all_evals": all_evals,
+                     "results": float((np.max([v[d['args']['metric_for_best_model']] for v in all_evals]))),
                      "output_dir": f'./results/{model._modelName}',  # for server make this absolute server
-                     "time_stamp": dt.datetime.now()},
+                     "time_stamp": str(dt.datetime.now())},
                reportPath=reportPath)
 
 
