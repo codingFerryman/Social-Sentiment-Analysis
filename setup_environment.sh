@@ -10,10 +10,15 @@ PIP_CACHE_DIR=$SCRATCH/.cache/.pip
 export PIP_CACHE_DIR
 
 # Create virtual environment
-python -m venv "$HOME"/cil-venv
+if [ ! -d ~/cil-venv/ ]
+then
+  python -m venv ~/cil-venv
+else
+  echo "venv already exists"
+fi
 
 # If you want you can also add it to your ~/.bashrc
-source "$HOME"/cil-venv/bin/activate
+source ~/cil-venv/bin/activate
 
 pip install --upgrade pip setuptools wheel
 
