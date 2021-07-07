@@ -2,6 +2,7 @@ import time
 import typing
 import pathlib
 from pathlib import Path
+import getpass
 
 import numpy as np
 import transformers
@@ -75,6 +76,9 @@ class TransformersModel(ModelConstruction):
         # Training's logging path
         self.training_saving_path = Path(self.project_directory, 'trainings',
                                          self._modelName, time.strftime("%Y%m%d-%H%M%S"))
+        if pathlib.Path().resolve().parts[1] == 'cluster':
+            self.training_saving_path_cluster = Path('/cluster/scratch', getpass.getuser(),
+                                                     self.training_saving_path)
 
     def loadData(self, ratio='sub'):
         self.pipeLine.loadData(ratio)
@@ -162,7 +166,7 @@ class TransformersModel(ModelConstruction):
         if "fp16" not in trainer_config_copy.keys():
             if pathlib.Path().resolve().parts[1] == 'cluster':
                 trainer_config_copy["fp16"] = True
-        
+
         callbacks = []
         if "early_stopping_patience" in trainer_config_copy.keys():
             early_stopping_patience = trainer_config_copy.pop("early_stopping_patience")
@@ -170,8 +174,12 @@ class TransformersModel(ModelConstruction):
             callbacks.append(EarlyStoppingCallback(early_stopping_patience=early_stopping_patience,
                                                    early_stopping_threshold=early_stopping_threshold))
 
+        if pathlib.Path().resolve().parts[1] == 'cluster':
+            checkpoints_dir = self.training_saving_path_cluster
+        else:
+            checkpoints_dir = self.training_saving_path
         training_args = TrainingArguments(
-            output_dir=Path(self.training_saving_path),
+            output_dir=checkpoints_dir,
             **trainer_config_copy
         )
 
