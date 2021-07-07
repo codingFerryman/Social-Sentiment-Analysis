@@ -5,8 +5,8 @@
     "tokenizer_type": "transformers",
     "fast_tokenizer": false,
     "args": {
-        "epochs": 10,
-        "batch_size": 32,
+        "epochs": 20,
+        "batch_size": 256,
         "adafactor": false,
         "warmup_steps": 100,
         "weight_decay": 0.0001,
