@@ -11,7 +11,7 @@ DATA_DIRECTORY = get_data_path()
 logger = getLogger("InputPipeline", debug=True)
 
 
-def loadData(dataDirectory: str = None, ratio: Union[str, float, int] = None) -> Tuple[list, list, list]:
+def loadData(dataDirectory: str = None, ratio: Union[str, float, int] = "full") -> Tuple[list, list, list]:
     """
     Load datasets
     Args:
@@ -23,16 +23,15 @@ def loadData(dataDirectory: str = None, ratio: Union[str, float, int] = None) ->
     """
     if dataDirectory is None:
         dataDirectory = DATA_DIRECTORY
-    if ratio is None:
-        ratio = "sub"
+
     with open(PurePath(dataDirectory, 'train_pos.txt'), 'r', encoding='utf-8') as fp:
-        train_pos_sub = fp.readlines()
+        train_pos_sub = list(set(fp.readlines()))
     with open(PurePath(dataDirectory, 'train_neg.txt'), 'r', encoding='utf-8') as fp:
-        train_neg_sub = fp.readlines()
+        train_neg_sub = list(set(fp.readlines()))
     with open(PurePath(dataDirectory, 'train_pos_full.txt'), 'r', encoding='utf-8') as fp:
-        train_pos_full = fp.readlines()
+        train_pos_full = list(set(fp.readlines()))
     with open(PurePath(dataDirectory, 'train_neg_full.txt'), 'r', encoding='utf-8') as fp:
-        train_neg_full = fp.readlines()
+        train_neg_full = list(set(fp.readlines()))
     with open(PurePath(dataDirectory, 'test_data.txt'), 'r', encoding='utf-8') as fp:
         test_full = fp.readlines()
 
@@ -42,9 +41,10 @@ def loadData(dataDirectory: str = None, ratio: Union[str, float, int] = None) ->
     if type(ratio) is float:
         if ratio <= 0 or ratio > 1:
             raise AttributeError('The input should be \'full\', \'sub\', or a (float) number between 0 and 1')
-        num_samples = int(ratio * len(train_pos_full))
-        pos = random.sample(train_pos_full, num_samples)
-        neg = random.sample(train_neg_full, num_samples)
+        pos_num_samples = int(ratio * len(train_pos_full))
+        neg_num_samples = int(ratio * len(train_neg_full))
+        pos = random.sample(train_pos_full, pos_num_samples)
+        neg = random.sample(train_neg_full, neg_num_samples)
     else:
         if ratio == 'full':
             pos = train_pos_full

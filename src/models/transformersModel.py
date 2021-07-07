@@ -1,3 +1,4 @@
+import os
 import time
 import typing
 import pathlib
@@ -21,7 +22,8 @@ logger = loggers.getLogger("TransformersModel", True)
 
 def getTransformersTokenizer(
         transformersModelName: str = None,
-        loadFunction: typing.Callable[[str], typing.Tuple[list, list, list]] = None
+        loadFunction: typing.Callable[[str], typing.Tuple[list, list, list]] = None,
+        **kwargs
 ) -> PretrainedTransformersPipeLine:
     """
     This function returns the transformers tokenizer respective with the transformers model name.
@@ -43,20 +45,21 @@ def getTransformersTokenizer(
         transformersModelName = 'bert-base-uncased'
 
     if loadFunction is None:
-        return PretrainedTransformersPipeLine(model_name_or_path=transformersModelName)
+        return PretrainedTransformersPipeLine(model_name_or_path=transformersModelName,
+                                              fast_tokenizer=kwargs.get('fast_tokenizer'))
     else:
-        return PretrainedTransformersPipeLine(loadFunction=loadFunction,
-                                              model_name_or_path=transformersModelName)
+        return PretrainedTransformersPipeLine(model_name_or_path=transformersModelName,
+                                              loadFunction=loadFunction,
+                                              fast_tokenizer=kwargs.get('fast_tokenizer'))
 
 class TransformersModel(ModelConstruction):
-    def __init__(self, modelName_or_pipeLine=None, loadFunction=None):
-        self.configuration = transformers.RobertaConfig()
+    def __init__(self, modelName_or_pipeLine=None, loadFunction=None, fast_tokenizer=None):
         if modelName_or_pipeLine is None:
             # Set the default model to roberta-base
             modelName_or_pipeLine = "roberta-base"
         if type(modelName_or_pipeLine) is str:
             # If the value passed is a model's name
-            self.pipeLine = getTransformersTokenizer(modelName_or_pipeLine, loadFunction)
+            self.pipeLine = getTransformersTokenizer(modelName_or_pipeLine, loadFunction, fast_tokenizer=fast_tokenizer)
             self._modelName = modelName_or_pipeLine
             self._dataLoaded = False
         else:
@@ -73,8 +76,12 @@ class TransformersModel(ModelConstruction):
         self.project_directory = get_project_path()
 
         # Training's logging path
-        self.training_saving_path = Path(self.project_directory, 'trainings',
-                                         self._modelName, time.strftime("%Y%m%d-%H%M%S"))
+        saving_relative_path = Path('trainings', self._modelName, time.strftime("%Y%m%d-%H%M%S"))
+
+        self.training_saving_path = Path(self.project_directory, saving_relative_path)
+
+        if pathlib.Path().resolve().parts[1] == 'cluster':
+            self.training_saving_path_cluster = Path(os.getenv("SCRATCH"), 'cil-project', saving_relative_path)
 
     def loadData(self, ratio='sub'):
         self.pipeLine.loadData(ratio)
@@ -110,8 +117,13 @@ class TransformersModel(ModelConstruction):
         if model_config_dict:
             _config.update(model_config_dict)
         if pathlib.Path().resolve().parts[1] == 'cluster':
+            if os.getenv("TRANSFORMERS_CACHE") is None:
+                cache_dir = os.path.join(os.getenv("SCRATCH"), '.cache/huggingface/')
+            else:
+                cache_dir = os.getenv("TRANSFORMERS_CACHE")
             model = AutoModelForSequenceClassification.from_pretrained(self._modelName, config=_config,
-                                                                       proxies={'http': 'proxy.ethz.ch:3128'})
+                                                                       proxies={'http': 'proxy.ethz.ch:3128'},
+                                                                       cache_dir=cache_dir)
         else:
             model = AutoModelForSequenceClassification.from_pretrained(self._modelName, config=_config)
         return model
@@ -127,6 +139,7 @@ class TransformersModel(ModelConstruction):
         stratify = trainer_config.get('stratify', True) # if no stratify is specified, then assume it is true
         assert(not(stratify and "cross_validate_accuracy" == train_val_split_iterator)), f"stratify should be = false for {train_val_split_iterator}"
         splitter = get_iterator_splitter_from_name(train_val_split_iterator)
+
         encodedDatasetArgs = {'splitter': splitter,
                               'tokenizerConfig': tokenizer_config}
         if 'test_size' in trainer_config.keys():
@@ -183,15 +196,24 @@ class TransformersModel(ModelConstruction):
             
             callbacks = []
             if "early_stopping_patience" in trainer_config_copy.keys():
-                early_stopping_patience = trainer_config_copy.get("early_stopping_patience")
-                callbacks.append(EarlyStoppingCallback(early_stopping_patience=early_stopping_patience))
+                early_stopping_patience = trainer_config_copy.pop("early_stopping_patience")
+                early_stopping_threshold = trainer_config_copy.pop("early_stopping_threshold", 0)
+                callbacks.append(EarlyStoppingCallback(early_stopping_patience=early_stopping_patience,
+                                                   early_stopping_threshold=early_stopping_threshold))
+
+            if pathlib.Path().resolve().parts[1] == 'cluster':
+                training_logging_dir = self.training_saving_path_cluster
+            else:
+                training_logging_dir = self.training_saving_path
+
 
             training_args = TrainingArguments(
                 logging_dir=Path(self.training_saving_path, 'logs'),
                 output_dir=Path(self.training_saving_path),
                 **trainer_config_copy
             )
-            
+            logger.debug(f"The program is running from: {str(pathlib.Path().resolve())}")
+            logger.debug(f"The checkpoints will be saved in {training_logging_dir}")
             self.trainer = Trainer(
                 model=self.model,
                 args=training_args,
@@ -222,6 +244,7 @@ class TransformersModel(ModelConstruction):
         logger.info("{}{}".format(t.state.best_metric, np.max(allMetrics)))
         return trainer_state_log_history[bestMetricIndex], t, float(np.average(allMetrics))
         
+
     def registerMetric(self, *metric):
         """Register a metric for evaluation"""
         if type(metric) is str:

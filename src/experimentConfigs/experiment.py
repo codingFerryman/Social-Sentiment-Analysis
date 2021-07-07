@@ -6,6 +6,7 @@ import json
 import os
 import sys
 from typing import Tuple
+import pathlib
 
 import hyperopt
 import hyperopt.pyll
@@ -99,7 +100,8 @@ def launchExperimentFromDict(d: dict, reportPath: str = None):
     if d['model_type'] == ModelType.transformers.value:
         # TODO: transformers model is used, but a general model is needed here
         model_name_or_path = d['model_name_or_path']
-        model = TransformersModel(modelName_or_pipeLine=model_name_or_path)
+        model = TransformersModel(modelName_or_pipeLine=model_name_or_path,
+                                  fast_tokenizer=d.get('fast_tokenizer'))
 
     if type(d['metric']) is str:
         d['metric'] = [d['metric']]
@@ -252,6 +254,10 @@ def main(args: list):
     Args:
         args (list): a dictionary containing the program arguments (sys.argv)
     """
+    # Set the cache directory to /cluster/scratch if running on the cluster
+    if pathlib.Path().resolve().parts[1] == 'cluster':
+        os.environ["TRANSFORMERS_CACHE"] = os.path.join(os.getenv("SCRATCH"), '.cache/huggingface/')
+
     argv = {a.split('=')[0]: a.split('=')[1] for a in args[1:]}
     testPath = argv.get('test_path', None)
     reportPath = argv.get('report_path', './report.json')

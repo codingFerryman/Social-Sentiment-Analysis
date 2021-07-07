@@ -1,3 +1,4 @@
+import os
 import re
 import random
 import pathlib
@@ -73,7 +74,8 @@ class PretrainedTransformersPipeLine(InputPipeline):
     Most tokenizers are pretrained to other datasets such as wikipedia.
     """
 
-    def __init__(self, model_name_or_path: str = None, dataPath: str = None, loadFunction: callable = None):
+    def __init__(self, model_name_or_path: str = None, dataPath: str = None, loadFunction: callable = None,
+                 fast_tokenizer: bool = None):
         """
         Args:
             model_name_or_path (str): The name of a checkpoint of huggingface transformers model.
@@ -94,10 +96,19 @@ class PretrainedTransformersPipeLine(InputPipeline):
             self.loadFunction = loadData
         else:
             self.loadFunction = loadFunction
+        if fast_tokenizer is None:
+            fast_tokenizer = False
+
         if pathlib.Path().resolve().parts[1] == 'cluster':
-            self.tokenizer = AutoTokenizer.from_pretrained(model_name_or_path, proxies={'http': 'proxy.ethz.ch:3128'})
+            if os.getenv("TRANSFORMERS_CACHE") is None:
+                cache_dir = os.path.join(os.getenv("SCRATCH"), '.cache/huggingface/')
+            else:
+                cache_dir = os.getenv("TRANSFORMERS_CACHE")
+            self.tokenizer = AutoTokenizer.from_pretrained(model_name_or_path, use_fast=fast_tokenizer,
+                                                           proxies={'http': 'proxy.ethz.ch:3128'},
+                                                           cache_dir=cache_dir)
         else:
-            self.tokenizer = AutoTokenizer.from_pretrained(model_name_or_path)
+            self.tokenizer = AutoTokenizer.from_pretrained(model_name_or_path, use_fast=fast_tokenizer)
         self._dataLoaded = False
 
     def loadData(self, ratio='sub'):

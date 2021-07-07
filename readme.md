@@ -78,9 +78,9 @@ See [setup_leonhard.sh](./setup_leonhard.sh), [setup_environment.sh](./setup_env
 ## Execute on HPC
 The following command will request 1 GPU core, 8GB RAM, and 1 GPU with 10GB+ VRAM for 23 hours:
 ```bash
-bsub -W 23:00 -n 1 -R "rusage[mem=8192,ngpus_excl_p=1]" -R "select[gpu_mtotal0>=10240]" \
-source venv/bin/activate \
-venv/bin/python src/experimentConfigs/experiment.py test_path=$TRAINING_JSON_CONFIG_PATH report_path=$REPORT_JSON_PATH
+bsub -W 23:00 -n 1 -R "rusage[mem=8192,ngpus_excl_p=1]" -R "select[gpu_model0==GeForceRTX2080Ti]" \
+source ~/cil-venv/bin/activate \
+~/cil-venv/bin/python src/experimentConfigs/experiment.py test_path=$TRAINING_JSON_CONFIG_PATH report_path=$REPORT_JSON_PATH
 ```
 (Assume that you are running from project's root directory.)
 
