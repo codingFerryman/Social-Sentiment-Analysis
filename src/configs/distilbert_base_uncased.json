@@ -48,5 +48,5 @@
         "glue",
         "mrpc"
     ],
-    "description": "RoBERTa Base model for testing"
+    "description": "distilbert/base-uncased with hyperopt"
 }
