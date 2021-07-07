@@ -3,7 +3,6 @@ import time
 import typing
 import pathlib
 from pathlib import Path
-import getpass
 
 import numpy as np
 import transformers
@@ -80,8 +79,7 @@ class TransformersModel(ModelConstruction):
         self.training_saving_path = Path(self.project_directory, saving_relative_path)
 
         if pathlib.Path().resolve().parts[1] == 'cluster':
-            self.training_saving_path_cluster = Path('/cluster/scratch', getpass.getuser(),
-                                                     self.training_saving_path)
+            self.training_saving_path_cluster = Path(os.getenv("SCRATCH"), 'cil-project', saving_relative_path)
 
     def loadData(self, ratio='sub'):
         self.pipeLine.loadData(ratio)
@@ -187,12 +185,8 @@ class TransformersModel(ModelConstruction):
         else:
             training_logging_dir = self.training_saving_path
 
-        if pathlib.Path().resolve().parts[1] == 'cluster':
-            checkpoints_dir = self.training_saving_path_cluster
-        else:
-            checkpoints_dir = self.training_saving_path
         training_args = TrainingArguments(
-            output_dir=checkpoints_dir,
+            output_dir=training_logging_dir,
             **trainer_config_copy
         )
 
