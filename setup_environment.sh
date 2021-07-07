@@ -6,7 +6,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
 module load gcc/6.3.0 python_gpu/3.8.5 hdf5/1.10.1 eth_proxy
 
 # Set the cache directory to /cluster/scratch
-PIP_CACHE_DIR=/cluster/scratch/$(whoami)/.cache/.pip
+PIP_CACHE_DIR=$SCRATCH/.cache/.pip
 export PIP_CACHE_DIR
 
 # Create virtual environment

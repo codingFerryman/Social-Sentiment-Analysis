@@ -1,3 +1,4 @@
+import os
 import time
 import typing
 import pathlib
@@ -74,8 +75,10 @@ class TransformersModel(ModelConstruction):
         self.project_directory = get_project_path()
 
         # Training's logging path
-        self.training_saving_path = Path(self.project_directory, 'trainings',
-                                         self._modelName, time.strftime("%Y%m%d-%H%M%S"))
+        saving_relative_path = Path('trainings', self._modelName, time.strftime("%Y%m%d-%H%M%S"))
+
+        self.training_saving_path = Path(self.project_directory, saving_relative_path)
+
         if pathlib.Path().resolve().parts[1] == 'cluster':
             self.training_saving_path_cluster = Path('/cluster/scratch', getpass.getuser(),
                                                      self.training_saving_path)
@@ -114,6 +117,8 @@ class TransformersModel(ModelConstruction):
         if model_config_dict:
             _config.update(model_config_dict)
         if pathlib.Path().resolve().parts[1] == 'cluster':
+            if os.getenv("TRANSFORMERS_CACHE") is None:
+                os.environ["TRANSFORMERS_CACHE"] = os.path.join(os.getenv("SCRATCH"), '/.cache/huggingface/')
             model = AutoModelForSequenceClassification.from_pretrained(self._modelName, config=_config,
                                                                        proxies={'http': 'proxy.ethz.ch:3128'})
         else:
@@ -173,6 +178,11 @@ class TransformersModel(ModelConstruction):
             early_stopping_threshold = trainer_config_copy.pop("early_stopping_threshold", 0)
             callbacks.append(EarlyStoppingCallback(early_stopping_patience=early_stopping_patience,
                                                    early_stopping_threshold=early_stopping_threshold))
+
+        if pathlib.Path().resolve().parts[1] == 'cluster':
+            training_logging_dir = self.training_saving_path_cluster
+        else:
+            training_logging_dir = self.training_saving_path
 
         if pathlib.Path().resolve().parts[1] == 'cluster':
             checkpoints_dir = self.training_saving_path_cluster

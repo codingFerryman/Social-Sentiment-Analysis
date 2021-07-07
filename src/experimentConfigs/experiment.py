@@ -6,7 +6,6 @@ import json
 import os
 import sys
 from typing import Tuple
-import getpass
 import pathlib
 
 import hyperopt
@@ -245,7 +244,7 @@ def main(args: list):
     """
     # Set the cache directory to /cluster/scratch if running on the cluster
     if pathlib.Path().resolve().parts[1] == 'cluster':
-        os.environ["TRANSFORMERS_CACHE"] = os.path.join('/cluster/scratch/', getpass.getuser(), '/.cache/huggingface/')
+        os.environ["TRANSFORMERS_CACHE"] = os.path.join(os.getenv("SCRATCH"), '/.cache/huggingface/')
 
     argv = {a.split('=')[0]: a.split('=')[1] for a in args[1:]}
     testPath = argv.get('test_path', None)
