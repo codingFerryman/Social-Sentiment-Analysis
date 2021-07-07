@@ -17,6 +17,8 @@
         "load_best_model_at_end": true,
         "metric_for_best_model": "accuracy",
         "train_val_split_iterator": "train_test_split",
+        "stratify": true,
+        "test_size": 0.2,
         "fine_tune_layers": {
             "freeze": true,
             "num_unfrozen_layers": 0,
