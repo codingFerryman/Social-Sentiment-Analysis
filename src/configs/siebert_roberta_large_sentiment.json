@@ -32,8 +32,7 @@
         "padding": "max_length",
         "truncation": true,
         "return_token_type_ids": true,
-        "return_attention_mask": true,
-        "use_fast": false
+        "return_attention_mask": true
     },
     "model_config": {
         "num_labels": 2,
