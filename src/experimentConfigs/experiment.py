@@ -29,6 +29,18 @@ class ModelType(enum.Enum):
 class TokenizerType(enum.Enum):
     transformers = "transformers"
 
+class ReportJSONEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, np.integer):
+            return int(obj)
+        elif isinstance(obj, np.floating):
+            return float(obj)
+        elif isinstance(obj, np.ndarray):
+            return obj.tolist()
+        else:
+            return super(MyEncoder, self).default(obj)
+
+
 
 def report(info: dict, reportPath: str):
     """ This function adds a report of an experiment to a json report file.
@@ -48,7 +60,7 @@ def report(info: dict, reportPath: str):
     experiments.append(info)
     alreadyReported['experiments'] = experiments
     with open(reportPath, 'w') as fw:
-        fw.write(json.dumps(alreadyReported, indent=4))
+        fw.write(json.dumps(alreadyReported, indent=4, cls=ReportJSONEncoder))
 
 
 def processTransformersLog(log_history: list) -> Tuple[dict, dict]:
@@ -250,7 +262,7 @@ def main(args: list):
 
 
 if __name__ == "__main__":
-    # main(sys.argv)
-    os.environ['CUDA_VISIBLE_DEVICES'] = "0"
-    launchExperimentFromJson(fpath="/home/he/Workspace/cil-project/src/configs/roberta_base_debug.json",
-                             reportPath='/home/he/Workspace/cil-project/docs/report_test.json')
+    main(sys.argv)
+    # os.environ['CUDA_VISIBLE_DEVICES'] = "0"
+    # launchExperimentFromJson(fpath="/home/he/Workspace/cil-project/src/configs/roberta_base_debug.json",
+    #                          reportPath='/home/he/Workspace/cil-project/docs/report_test.json')

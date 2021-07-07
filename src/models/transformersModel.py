@@ -10,9 +10,11 @@ from transformers import AutoModelForSequenceClassification, AutoConfig
 from transformers import EarlyStoppingCallback
 from transformers import TrainingArguments, Trainer
 
+
 from models.Model import ModelConstruction, get_iterator_splitter_from_name
 from preprocessing.pretrainedTransformersPipeline import PretrainedTransformersPipeLine
 from utils import get_project_path, get_transformers_layers_num, loggers
+from utils.diskArray import DiskArray
 
 logger = loggers.getLogger("TransformersModel", True)
 
@@ -122,68 +124,104 @@ class TransformersModel(ModelConstruction):
         logger.debug(f"The split iterator is: {train_val_split_iterator}")
         logger.debug(f"The kwards: {kwargs}")
         logger.info(f"Starting testing of {self._modelName}")
+        stratify = trainer_config.get('stratify', True) # if no stratify is specified, then assume it is true
+        assert(not(stratify and "cross_validate_accuracy" == train_val_split_iterator)), f"stratify should be = false for {train_val_split_iterator}"
         splitter = get_iterator_splitter_from_name(train_val_split_iterator)
+        encodedDatasetArgs = {'splitter': splitter,
+                              'tokenizerConfig': tokenizer_config}
+        if 'test_size' in trainer_config.keys():
+            encodedDatasetArgs['test_size'] = trainer_config['test_size']
+        if 'stratify' in trainer_config.keys():
+            encodedDatasetArgs['stratify'] = stratify
 
-        train_dataset, val_dataset = self.pipeLine.getEncodedDataset(splitter=splitter,
-                                                                     tokenizerConfig=tokenizer_config,
-                                                                     test_size=0.2)
+        trainer_state_log_history = DiskArray()
+        trainers = DiskArray()
+        allMetrics = []
+        # get the dataset to work on
+        for train_dataset, val_dataset in self.pipeLine.getEncodedDataset(**encodedDatasetArgs):
+            logger.info("New train/val dataset pair for training")
+            # Fine tune on last N layers
+            if trainer_config:
+                frozen_config = trainer_config['fine_tune_layers']
+                self.model = self.createModel(model_config)
+                if frozen_config['freeze']:
+                    frozen_layers = self.get_frozen_layers(self.model,
+                                                        frozen_config['num_unfrozen_layers'],
+                                                        frozen_config['unfrozen_embeddings'])
+                    for name, param in self.model.named_parameters():
+                        for frozen_name in frozen_layers:
+                            if frozen_name in name:
+                                param.requires_grad = False
+                trainer_config_copy = {**trainer_config.copy(), **kwargs}
+                logger.info("Copying trainer_config")
+            else:
+                self.model = self.createModel()
+                trainer_config_copy = {
+                    "epochs": 1,
+                    "batch_size": 128,
+                    **kwargs,
+                }
+                logger.info("No trainer_config provided assuming minimum trainer_config_copy")
 
-        # Fine tune on last N layers
-        if trainer_config:
-            frozen_config = trainer_config['fine_tune_layers']
-            self.model = self.createModel(model_config)
-            if frozen_config['freeze']:
-                frozen_layers = self.get_frozen_layers(self.model,
-                                                       frozen_config['num_unfrozen_layers'],
-                                                       frozen_config['unfrozen_embeddings'])
-                for name, param in self.model.named_parameters():
-                    for frozen_name in frozen_layers:
-                        if frozen_name in name:
-                            param.requires_grad = False
-            trainer_config_copy = {**{k:v for k,v in trainer_config.copy().items() if k != 'fine_tune_layers'}, **kwargs}
-        else:
-            self.model = self.createModel()
-            trainer_config_copy = {
-                "epochs": 1,
-                "batch_size": 128,
-                **kwargs,
-            }
+            # remove elements that are not required by transformers.Trainer
+            for key in ["fine_tune_layers", "train_val_split_iterator", "stratify", "test_size"]:
+                if key in trainer_config_copy.keys():
+                    trainer_config_copy.pop(key)
+            # Adapt configuration to Huggingface Trainer
+            if "epochs" in trainer_config_copy.keys():
+                logger.info("renaming epochs -> num_train_epochs")
+                trainer_config_copy["num_train_epochs"] = trainer_config_copy.pop("epochs")
+            if "batch_size" in trainer_config.keys():
+                logger.info("renaming batch_size -> per_device_train_batch_size, batch_size --> per_device_eval_batch_size")
+                trainer_config_copy["per_device_train_batch_size"] = trainer_config_copy.pop("batch_size")
+                trainer_config_copy["per_device_eval_batch_size"] = trainer_config_copy["per_device_train_batch_size"]
+            # Enable half precision training by default on the cluster
+            if "fp16" not in trainer_config_copy.keys():
+                if pathlib.Path().resolve().parts[1] == 'cluster':
+                    logger.info("fp16 override to true for this cluster")
+                    trainer_config_copy["fp16"] = True
+            
+            callbacks = []
+            if "early_stopping_patience" in trainer_config_copy.keys():
+                early_stopping_patience = trainer_config_copy.get("early_stopping_patience")
+                callbacks.append(EarlyStoppingCallback(early_stopping_patience=early_stopping_patience))
 
-        trainer_config_copy.pop("train_val_split_iterator")
-        # Adapt configuration to Huggingface Trainer
-        if "epochs" in trainer_config_copy.keys():
-            trainer_config_copy["num_train_epochs"] = trainer_config_copy.pop("epochs")
-        if "batch_size" in trainer_config.keys():
-            trainer_config_copy["per_device_train_batch_size"] = trainer_config_copy.pop("batch_size")
-            trainer_config_copy["per_device_eval_batch_size"] = trainer_config_copy["per_device_train_batch_size"]
-        # Enable half precision training by default on the cluster
-        if "fp16" not in trainer_config_copy.keys():
-            if pathlib.Path().resolve().parts[1] == 'cluster':
-                trainer_config_copy["fp16"] = True
+            training_args = TrainingArguments(
+                logging_dir=Path(self.training_saving_path, 'logs'),
+                output_dir=Path(self.training_saving_path),
+                **trainer_config_copy
+            )
+            
+            self.trainer = Trainer(
+                model=self.model,
+                args=training_args,
+                train_dataset=train_dataset,
+                eval_dataset=val_dataset,
+                compute_metrics=self.compute_metrics,
+                callbacks=callbacks,
+            )
+            self.trainer.train()
+            trainers.append([self.trainer.state, self.trainer.model])
+            trainer_state_log_history.append(self.trainer.state.log_history)
+            allMetrics.append(self.trainer.state.best_metric)
+
+        # get best trainer strategy
+        logHistory, self.trainer, self.bestMetric = self.getBestTrainerStrategy(allMetrics, trainers, trainer_state_log_history, train_dataset , val_dataset)
+
+        return logHistory
+
+    def getBestTrainerStrategy(self, allMetrics: list, trainerList: DiskArray, trainer_state_log_history: DiskArray, train_dataset , eval_dataset):
+        logger.info(f"get best trainer strategy for len(allMetrics) = {len(allMetrics)}")
+        bestMetricIndex = int(np.argmax(allMetrics))
+        state, model = trainerList[bestMetricIndex]
+        t = Trainer(model=model,
+                    compute_metrics=self.compute_metrics, 
+                    train_dataset=train_dataset, 
+                    eval_dataset=eval_dataset)
+        t.state = state
+        logger.info("{}{}".format(t.state.best_metric, np.max(allMetrics)))
+        return trainer_state_log_history[bestMetricIndex], t, float(np.average(allMetrics))
         
-        callbacks = []
-        if "early_stopping_patience" in trainer_config_copy.keys():
-            early_stopping_patience = trainer_config_copy.get("early_stopping_patience")
-            callbacks.append(EarlyStoppingCallback(early_stopping_patience=early_stopping_patience))
-
-        training_args = TrainingArguments(
-            logging_dir=Path(self.training_saving_path, 'logs'),
-            output_dir=Path(self.training_saving_path),
-            **trainer_config_copy
-        )
-
-        self.trainer = Trainer(
-            model=self.model,
-            args=training_args,
-            train_dataset=train_dataset,
-            eval_dataset=val_dataset,
-            compute_metrics=self.compute_metrics,
-            callbacks=callbacks,
-        )
-        self.trainer.train()
-
-        return self.trainer.state.log_history
-
     def registerMetric(self, *metric):
         """Register a metric for evaluation"""
         if type(metric) is str:
