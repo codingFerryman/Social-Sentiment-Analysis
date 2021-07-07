@@ -171,7 +171,6 @@ class TransformersModel(ModelConstruction):
                                                    early_stopping_threshold=early_stopping_threshold))
 
         training_args = TrainingArguments(
-            logging_dir=Path(self.training_saving_path, 'logs'),
             output_dir=Path(self.training_saving_path),
             **trainer_config_copy
         )
