@@ -87,7 +87,8 @@ def launchExperimentFromDict(d: dict, reportPath: str = None):
     if d['model_type'] == ModelType.transformers.value:
         # TODO: transformers model is used, but a general model is needed here
         model_name_or_path = d['model_name_or_path']
-        model = TransformersModel(modelName_or_pipeLine=model_name_or_path)
+        model = TransformersModel(modelName_or_pipeLine=model_name_or_path,
+                                  fast_tokenizer=d.get('fast_tokenizer'))
 
     if type(d['metric']) is str:
         d['metric'] = [d['metric']]

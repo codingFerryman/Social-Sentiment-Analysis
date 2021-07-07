@@ -19,7 +19,8 @@ logger = loggers.getLogger("TransformersModel", True)
 
 def getTransformersTokenizer(
         transformersModelName: str = None,
-        loadFunction: typing.Callable[[str], typing.Tuple[list, list, list]] = None
+        loadFunction: typing.Callable[[str], typing.Tuple[list, list, list]] = None,
+        **kwargs
 ) -> PretrainedTransformersPipeLine:
     """
     This function returns the transformers tokenizer respective with the transformers model name.
@@ -41,20 +42,21 @@ def getTransformersTokenizer(
         transformersModelName = 'bert-base-uncased'
 
     if loadFunction is None:
-        return PretrainedTransformersPipeLine(model_name_or_path=transformersModelName)
+        return PretrainedTransformersPipeLine(model_name_or_path=transformersModelName,
+                                              fast_tokenizer=kwargs.get('fast_tokenizer'))
     else:
-        return PretrainedTransformersPipeLine(loadFunction=loadFunction,
-                                              model_name_or_path=transformersModelName)
+        return PretrainedTransformersPipeLine(model_name_or_path=transformersModelName,
+                                              loadFunction=loadFunction,
+                                              fast_tokenizer=kwargs.get('fast_tokenizer'))
 
 class TransformersModel(ModelConstruction):
-    def __init__(self, modelName_or_pipeLine=None, loadFunction=None):
-        self.configuration = transformers.RobertaConfig()
+    def __init__(self, modelName_or_pipeLine=None, loadFunction=None, fast_tokenizer=None):
         if modelName_or_pipeLine is None:
             # Set the default model to roberta-base
             modelName_or_pipeLine = "roberta-base"
         if type(modelName_or_pipeLine) is str:
             # If the value passed is a model's name
-            self.pipeLine = getTransformersTokenizer(modelName_or_pipeLine, loadFunction)
+            self.pipeLine = getTransformersTokenizer(modelName_or_pipeLine, loadFunction, fast_tokenizer=fast_tokenizer)
             self._modelName = modelName_or_pipeLine
             self._dataLoaded = False
         else:
