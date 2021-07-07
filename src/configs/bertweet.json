@@ -6,7 +6,7 @@
     "fast_tokenizer": false,
     "args": {
         "epochs": 10,
-        "batch_size": 384,
+        "batch_size": 256,
         "adafactor": false,
         "warmup_steps": 100,
         "weight_decay": 0.0001,

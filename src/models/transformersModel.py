@@ -1,3 +1,4 @@
+import os
 import time
 import typing
 import pathlib
@@ -73,8 +74,12 @@ class TransformersModel(ModelConstruction):
         self.project_directory = get_project_path()
 
         # Training's logging path
-        self.training_saving_path = Path(self.project_directory, 'trainings',
-                                         self._modelName, time.strftime("%Y%m%d-%H%M%S"))
+        saving_relative_path = Path('trainings', self._modelName, time.strftime("%Y%m%d-%H%M%S"))
+
+        self.training_saving_path = Path(self.project_directory, saving_relative_path)
+
+        if pathlib.Path().resolve().parts[1] == 'cluster':
+            self.training_saving_path_cluster = Path(os.getenv("SCRATCH"), 'cil-project', saving_relative_path)
 
     def loadData(self, ratio='sub'):
         self.pipeLine.loadData(ratio)
@@ -110,8 +115,13 @@ class TransformersModel(ModelConstruction):
         if model_config_dict:
             _config.update(model_config_dict)
         if pathlib.Path().resolve().parts[1] == 'cluster':
+            if os.getenv("TRANSFORMERS_CACHE") is None:
+                cache_dir = os.path.join(os.getenv("SCRATCH"), '.cache/huggingface/')
+            else:
+                cache_dir = os.getenv("TRANSFORMERS_CACHE")
             model = AutoModelForSequenceClassification.from_pretrained(self._modelName, config=_config,
-                                                                       proxies={'http': 'proxy.ethz.ch:3128'})
+                                                                       proxies={'http': 'proxy.ethz.ch:3128'},
+                                                                       cache_dir=cache_dir)
         else:
             model = AutoModelForSequenceClassification.from_pretrained(self._modelName, config=_config)
         return model
@@ -162,7 +172,7 @@ class TransformersModel(ModelConstruction):
         if "fp16" not in trainer_config_copy.keys():
             if pathlib.Path().resolve().parts[1] == 'cluster':
                 trainer_config_copy["fp16"] = True
-        
+
         callbacks = []
         if "early_stopping_patience" in trainer_config_copy.keys():
             early_stopping_patience = trainer_config_copy.pop("early_stopping_patience")
@@ -170,12 +180,17 @@ class TransformersModel(ModelConstruction):
             callbacks.append(EarlyStoppingCallback(early_stopping_patience=early_stopping_patience,
                                                    early_stopping_threshold=early_stopping_threshold))
 
+        if pathlib.Path().resolve().parts[1] == 'cluster':
+            training_logging_dir = self.training_saving_path_cluster
+        else:
+            training_logging_dir = self.training_saving_path
+
         training_args = TrainingArguments(
-            logging_dir=Path(self.training_saving_path, 'logs'),
-            output_dir=Path(self.training_saving_path),
+            output_dir=training_logging_dir,
             **trainer_config_copy
         )
-
+        logger.debug(f"The program is running from: {str(pathlib.Path().resolve())}")
+        logger.debug(f"The checkpoints will be saved in {training_logging_dir}")
         self.trainer = Trainer(
             model=self.model,
             args=training_args,

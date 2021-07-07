@@ -6,6 +6,7 @@ import json
 import os
 import sys
 from typing import Tuple
+import pathlib
 
 import hyperopt
 import hyperopt.pyll
@@ -241,6 +242,10 @@ def main(args: list):
     Args:
         args (list): a dictionary containing the program arguments (sys.argv)
     """
+    # Set the cache directory to /cluster/scratch if running on the cluster
+    if pathlib.Path().resolve().parts[1] == 'cluster':
+        os.environ["TRANSFORMERS_CACHE"] = os.path.join(os.getenv("SCRATCH"), '.cache/huggingface/')
+
     argv = {a.split('=')[0]: a.split('=')[1] for a in args[1:]}
     testPath = argv.get('test_path', None)
     reportPath = argv.get('report_path', './report.json')

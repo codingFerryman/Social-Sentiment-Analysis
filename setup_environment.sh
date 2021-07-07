@@ -5,6 +5,11 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
 # If you want you can also add it to your ~/.bashrc
 module load gcc/6.3.0 python_gpu/3.8.5 hdf5/1.10.1 eth_proxy
 
+# Set the cache directory to /cluster/scratch
+PIP_CACHE_DIR=$SCRATCH/.cache/.pip
+export PIP_CACHE_DIR
+
+# Create virtual environment
 python -m venv "${SCRIPT_DIR}"/venv
 
 # If you want you can also add it to your ~/.bashrc
