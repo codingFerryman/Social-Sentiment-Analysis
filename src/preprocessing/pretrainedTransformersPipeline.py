@@ -241,21 +241,29 @@ class PretrainedTransformersPipeLine(InputPipeline):
                                                                    train_datay=labels,
                                                                    val_dataX=[], val_datay=[],
                                                                    tokenizerConfig=tokenizerConfig)
-            return encDataTrain, encDataVal
+            yield encDataTrain, encDataVal
         else:
             if stratify:
                 stratify_label = labels
+                for train_dataX, val_dataX, train_datay, val_datay in splitter(self.allData, labels,
+                                                                          stratify=stratify_label,
+                                                                          **splitterConfig):
+                    encDataTrain, encDataVal = self.getEncodedDatasetTorch(train_dataX=train_dataX,
+                                                                       train_datay=list(train_datay),
+                                                                       val_dataX=val_dataX,
+                                                                       val_datay=list(val_datay),
+                                                                       tokenizerConfig=tokenizerConfig)
+                    yield encDataTrain, encDataVal
             else:
                 stratify_label = None
-            train_dataX, val_dataX, train_datay, val_datay = splitter(self.allData, labels,
-                                                                      stratify=stratify_label,
-                                                                      **splitterConfig)
-            encDataTrain, encDataVal = self.getEncodedDatasetTorch(train_dataX=train_dataX,
-                                                                   train_datay=list(train_datay),
-                                                                   val_dataX=val_dataX,
-                                                                   val_datay=list(val_datay),
-                                                                   tokenizerConfig=tokenizerConfig)
-            return encDataTrain, encDataVal
+                for train_dataX, val_dataX, train_datay, val_datay in splitter(X=self.allData, y=labels,
+                                                                          **splitterConfig):
+                    encDataTrain, encDataVal = self.getEncodedDatasetTorch(train_dataX=train_dataX,
+                                                                       train_datay=list(train_datay),
+                                                                       val_dataX=val_dataX,
+                                                                       val_datay=list(val_datay),
+                                                                       tokenizerConfig=tokenizerConfig)
+                    yield encDataTrain, encDataVal
 
     def trainTokenizer(self):
         assert self.allData != [], "no data to train"
