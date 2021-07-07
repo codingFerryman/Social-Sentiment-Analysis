@@ -118,9 +118,12 @@ class TransformersModel(ModelConstruction):
             _config.update(model_config_dict)
         if pathlib.Path().resolve().parts[1] == 'cluster':
             if os.getenv("TRANSFORMERS_CACHE") is None:
-                os.environ["TRANSFORMERS_CACHE"] = os.path.join(os.getenv("SCRATCH"), '/.cache/huggingface/')
+                cache_dir = os.path.join(os.getenv("SCRATCH"), '.cache/huggingface/')
+            else:
+                cache_dir = os.getenv("TRANSFORMERS_CACHE")
             model = AutoModelForSequenceClassification.from_pretrained(self._modelName, config=_config,
-                                                                       proxies={'http': 'proxy.ethz.ch:3128'})
+                                                                       proxies={'http': 'proxy.ethz.ch:3128'},
+                                                                       cache_dir=cache_dir)
         else:
             model = AutoModelForSequenceClassification.from_pretrained(self._modelName, config=_config)
         return model

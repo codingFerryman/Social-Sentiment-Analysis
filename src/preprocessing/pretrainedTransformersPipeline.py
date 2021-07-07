@@ -101,9 +101,12 @@ class PretrainedTransformersPipeLine(InputPipeline):
 
         if pathlib.Path().resolve().parts[1] == 'cluster':
             if os.getenv("TRANSFORMERS_CACHE") is None:
-                os.environ["TRANSFORMERS_CACHE"] = os.path.join(os.getenv("SCRATCH"), '/.cache/huggingface/')
+                cache_dir = os.path.join(os.getenv("SCRATCH"), '.cache/huggingface/')
+            else:
+                cache_dir = os.getenv("TRANSFORMERS_CACHE")
             self.tokenizer = AutoTokenizer.from_pretrained(model_name_or_path, use_fast=fast_tokenizer,
-                                                           proxies={'http': 'proxy.ethz.ch:3128'})
+                                                           proxies={'http': 'proxy.ethz.ch:3128'},
+                                                           cache_dir=cache_dir)
         else:
             self.tokenizer = AutoTokenizer.from_pretrained(model_name_or_path, use_fast=fast_tokenizer)
         self._dataLoaded = False
