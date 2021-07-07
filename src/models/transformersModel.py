@@ -189,7 +189,8 @@ class TransformersModel(ModelConstruction):
             output_dir=training_logging_dir,
             **trainer_config_copy
         )
-
+        logger.debug(f"The program is running from: {str(pathlib.Path().resolve())}")
+        logger.debug(f"The checkpoints will be saved in {training_logging_dir}")
         self.trainer = Trainer(
             model=self.model,
             args=training_args,
