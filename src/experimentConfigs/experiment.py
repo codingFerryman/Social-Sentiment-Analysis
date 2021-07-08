@@ -268,6 +268,7 @@ def main(args: list):
 
 
 if __name__ == "__main__":
+    os.environ["WANDB_DISABLED"] = "true" # for cluster we need to disable this
     main(sys.argv)
     # os.environ['CUDA_VISIBLE_DEVICES'] = "0"
     # launchExperimentFromJson(fpath="/home/he/Workspace/cil-project/src/configs/roberta_base_debug.json",
