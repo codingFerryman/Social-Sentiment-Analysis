@@ -28,7 +28,7 @@
     },
     "tokenizer_config": {
         "add_special_tokens": true,
-        "max_length": 50,
+        "max_length": 64,
         "padding": "max_length",
         "truncation": true,
         "return_token_type_ids": true,
