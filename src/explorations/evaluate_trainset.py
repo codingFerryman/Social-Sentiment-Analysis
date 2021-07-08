@@ -1,12 +1,17 @@
+import os
 import random
+import sys
 from pathlib import Path
 
 import pandas as pd
+
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 from utils import get_data_path
 from experimentConfigs.submission import TransformersPredict
 
 data_path = get_data_path()
+
 
 class TransformersPredictEval(TransformersPredict):
     def __init__(self, load_path, pos_path=None, neg_path=None, cuda_device=0, is_test=False):
