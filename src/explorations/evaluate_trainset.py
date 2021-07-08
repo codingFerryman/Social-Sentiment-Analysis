@@ -59,5 +59,5 @@ if __name__ == '__main__':
     # model_path = "/home/he/Workspace/cil-project/trainings/vinai/bertweet-base/20210707-195141"
     model_path = "/cluster/home/heliuhe/cil-project/trainings/vinai/bertweet-base/20210707-195141"
     tpe = TransformersPredictEval(load_path=model_path)
-    tpe.predict(batch_size=2000)
+    tpe.predict(batch_size=256)
     tpe.evaluation_file()
