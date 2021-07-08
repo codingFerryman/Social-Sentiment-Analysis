@@ -3,6 +3,7 @@ from pathlib import Path
 
 import pandas as pd
 from tqdm import trange
+from tqdm.auto import tqdm
 from transformers import TextClassificationPipeline, AutoModelForSequenceClassification, AutoTokenizer
 
 from preprocessing.pretrainedTransformersPipeline import TwitterDatasetTorch
@@ -10,21 +11,23 @@ from utils import get_project_path
 
 
 class TransformersPredict:
-    def __init__(self, load_path, text_path, cuda_device=-1):
+    def __init__(self, load_path, text_path, cuda_device=-1, is_test=True):
+        self.is_test = is_test
+
         model_path = Path(load_path, 'model')
         tokenizer_path = Path(load_path, 'tokenizer')
         model = AutoModelForSequenceClassification.from_pretrained(model_path)
         tokenizer = AutoTokenizer.from_pretrained(tokenizer_path)
         self.pipeline = TextClassificationPipeline(model=model, tokenizer=tokenizer, device=cuda_device,
                                                    binary_output=True)
+        with open(text_path, 'r') as fp:
+            lines = fp.readlines()
+        self.data = self.pre_process_test(lines)
+
         self.text_path = text_path
-        self.data = None
         self.pred = None
 
     def predict(self, batch_size=128):
-        with open(self.text_path, 'r') as fp:
-            lines = fp.readlines()
-        self.data = self.pre_process_test(lines)
         _results = []
         tr = trange(0, len(self.data['text']), batch_size)
         for i in tr:
@@ -41,22 +44,31 @@ class TransformersPredict:
         pred_df = pd.DataFrame(pred_dict)
         pred_df.to_csv(save_path, index=False)
 
-    @staticmethod
-    def pre_process_test(data: list):
+    def pre_process_test(self, lines: list):
         # Cleaning test set
-        data = [s.split(',', 1)[-1] for s in data]
-        data = list(map(TwitterDatasetTorch.cleaning, data))
-        text = list(filter(lambda x: x != "", data))
+        if self.is_test:
+            data = [s.split(',', 1)[-1] for s in lines]
+            ids = [s.split(',', 1)[0] for s in lines]
+        else:
+            data = []
+            ids = []
+            for s in tqdm(lines):
+                _tmp = s.split('\u0001')
+                data.append(_tmp[-1])
+                ids.append(_tmp[0])
+        text_id = []
+        text = []
         zero_len_idx = []
-        for idx, t in enumerate(data):
-            t_len = len(t)
-            if t_len == 0:
+        for idx, sent in tqdm(zip(ids, data)):
+            sent_proc = TwitterDatasetTorch.cleaning(sent)
+            if len(sent_proc) != 0:
+                text_id.append(idx)
+                text.append(sent_proc)
+            else:
                 zero_len_idx.append(idx)
-        # The ids of the items in text
-        test_id = list(set(range(1, len(data) + 1)) - set(zero_len_idx))
         return {
             'text': text,
-            'ids': test_id,
+            'ids': text_id,
             'zero_len_ids': zero_len_idx
         }
 
