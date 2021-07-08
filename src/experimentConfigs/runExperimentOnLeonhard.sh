@@ -2,18 +2,26 @@
 # Please connect to ETHZ internal network before using this script
 declare USERNAME=$1
 declare TEST_PATH=$2
-
+HARDWARE_REQUIREMENTS='-n 8 -R "rusage[mem=9000,scratch=10000,ngpus_excl_p=1]" -R "select[gpu_mtotal0>=10000]"'
 # Prepare folder
-ssh $USERNAME@login.leonhard.ethz.ch 'rm -r ~/cil-project; mkdir ~/cil-project'
+# ssh $USERNAME@login.leonhard.ethz.ch 'rm -r ~/cil-project; mkdir ~/cil-project'
 
 # Copy the project
-scp -r ../../src $USERNAME@login.leonhard.ethz.ch:cil-project
+# scp -r ../../src $USERNAME@login.leonhard.ethz.ch:cil-project
 
 # Download the data and run the experiment
-ssh $USERNAME@login.leonhard.ethz.ch 'cd cil-project
-wget http://www.da.inf.ethz.ch/files/twitter-datasets.zip
-unzip twitter-datasets.zip
-rm twitter-datasets.zip
-mv twitter-datasets data
+COMMANDS='cd Computational-Intelligence-Lab
+git pull
+bash setup_dataset.sh
 cd src/experimentConfigs
-bsub < runExperimentAndUploadReport.sh $TEST_PATH'
+chmod +x runExperimentAndUploadReportCluster.sh
+bsub -W 23:30'
+COMMANDS+=' '
+COMMANDS+=$HARDWARE_REQUIREMENTS
+COMMANDS+=' '
+COMMANDS+='./runExperimentAndUploadReportCluster.sh'
+COMMANDS+=' '
+COMMANDS+=$TEST_PATH
+# echo for inspection
+# echo $COMMANDS
+ssh $USERNAME@login.leonhard.ethz.ch "$COMMANDS"
