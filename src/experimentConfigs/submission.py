@@ -1,4 +1,5 @@
 import random
+import sys
 from pathlib import Path
 
 import pandas as pd
@@ -6,7 +7,7 @@ from tqdm import trange
 from tqdm.auto import tqdm
 from transformers import TextClassificationPipeline, AutoModelForSequenceClassification, AutoTokenizer
 
-from utils import get_project_path
+from utils import get_data_path
 from utils.cleaningText import cleaning_default
 
 
@@ -25,6 +26,7 @@ class TransformersPredict:
         self.data = self.pre_process_test(lines)
 
         self.text_path = text_path
+        self.load_path = load_path
         self.pred = None
 
     def predict(self, batch_size=128):
@@ -35,7 +37,9 @@ class TransformersPredict:
         self.pred = _results
         return _results
 
-    def submission_file(self, save_path='./submission.csv'):
+    def submission_file(self, save_path=None):
+        if save_path is None:
+            save_path = Path(self.load_path, 'submission.csv')
         pred_labels = [r['label'] for r in self.pred]
         id_zero_len = self.data['zero_len_ids']
         pred_id = self.data['ids'] + id_zero_len
@@ -73,16 +77,28 @@ class TransformersPredict:
         }
 
 
+def main(args: list):
+    argv = {a.split('=')[0]: a.split('=')[1] for a in args[1:]}
+    load_path = argv.get('load_path', None)
+    text_path = argv.get('text_path', None)
+    batch_size = argv.get('batch_size', 2000)
+    if load_path is None:
+        print("No load_path specified")
+        exit(0)
+
+    if text_path is None:
+        data_path = get_data_path()
+        _text_path = Path(data_path, 'test_data.txt')
+        if _text_path.is_file():
+            text_path = _text_path
+        else:
+            print("No text_path specified")
+            exit(0)
+
+    trans_predict = TransformersPredict(load_path=load_path, text_path=text_path)
+    trans_predict.predict(batch_size=batch_size)
+    trans_predict.submission_file()
+
+
 if __name__ == '__main__':
-    PROJECT_DIRECTORY = get_project_path()
-    test_path = Path(PROJECT_DIRECTORY, 'data', 'test_data.txt')
-
-    timestamp = '20210706-170133'
-    model_name = 'roberta-base'
-
-    load_path = Path(PROJECT_DIRECTORY, 'trainings',
-                     model_name, timestamp)
-
-    predict_pipeline = TransformersPredict(load_path, test_path, cuda_device=0)
-    pred = predict_pipeline.predict(batch_size=2500)
-    predict_pipeline.submission_file(Path(load_path, 'submission.csv'))
+    main(sys.argv)

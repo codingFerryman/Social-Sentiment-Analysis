@@ -35,11 +35,10 @@ class TransformersPredictEval(TransformersPredict):
             with open(text_path, 'w') as ft:
                 ft.writelines(data2write)
         super(TransformersPredictEval, self).__init__(load_path, text_path, cuda_device, is_test)
-        self.model_loading_path = load_path
 
     def evaluation_file(self, save_path=None):
         if save_path is None:
-            save_path = Path(self.model_loading_path, 'prediction_on_train.csv')
+            save_path = Path(self.load_path, 'prediction_on_train.csv')
         pred_labels = [r['label'] for r in self.pred]
         pred_score = [r['score'] for r in self.pred]
         id_zero_len = self.data['zero_len_ids']
@@ -72,9 +71,9 @@ def main(args: list):
         if _text_path.is_file():
             text_path = _text_path
 
-    tpe = TransformersPredictEval(load_path=load_path, text_path=text_path)
-    tpe.predict(batch_size=batch_size)
-    tpe.evaluation_file()
+    trans_predict = TransformersPredictEval(load_path=load_path, text_path=text_path)
+    trans_predict.predict(batch_size=batch_size)
+    trans_predict.evaluation_file()
 
 
 if __name__ == '__main__':
