@@ -4,9 +4,9 @@ import datetime as dt
 import enum
 import json
 import os
+import pathlib
 import sys
 from typing import Tuple
-import pathlib
 
 import hyperopt
 import hyperopt.pyll
@@ -20,6 +20,11 @@ from models.transformersModel import TransformersModel
 
 PROJECT_DIRECTORY = get_project_path()
 
+
+# hf_logging.set_verbosity_debug()
+# hf_logging.enable_explicit_format()
+
+
 # Here are the possible model
 # types denoted
 class ModelType(enum.Enum):
@@ -29,6 +34,7 @@ class ModelType(enum.Enum):
 
 class TokenizerType(enum.Enum):
     transformers = "transformers"
+
 
 class ReportJSONEncoder(json.JSONEncoder):
     def default(self, obj):
@@ -40,7 +46,6 @@ class ReportJSONEncoder(json.JSONEncoder):
             return obj.tolist()
         else:
             return super(MyEncoder, self).default(obj)
-
 
 
 def report(info: dict, reportPath: str):
@@ -137,7 +142,7 @@ def launchExperimentFromDict(d: dict, reportPath: str = None):
         # see robertaHyperopt.json for more details.
         space = {argName: getHyperoptValue(argName, argValue)
                  for argName, argValue in d['args'].items()}
-        
+
         all_evals = []
 
         def getEvals(args):
@@ -153,7 +158,7 @@ def launchExperimentFromDict(d: dict, reportPath: str = None):
                         actualArgs[argName] = argVal
                 else:
                     actualArgs[argName] = argVal
-            
+
             # test the model
             # and get evaluations
             _ = model.trainModel(
@@ -168,14 +173,14 @@ def launchExperimentFromDict(d: dict, reportPath: str = None):
 
         def getEvalsError(args):
             evals = getEvals(args)
-            print(f"New evals = {evals}")    
+            print(f"New evals = {evals}")
             # res = 100 - np.sum(evals) / np.size(evals)
             return evals
 
         bestHyperparametersDictFromHyperOpt = hyperopt.fmin(getEvalsError, space, hyperopt.tpe.suggest,
-                                                max_evals=d['hyperopt_max_evals'])
+                                                            max_evals=d['hyperopt_max_evals'])
         bestHyperparametersDict = d['args'].copy()
-        for k,v in bestHyperparametersDictFromHyperOpt.items():
+        for k, v in bestHyperparametersDictFromHyperOpt.items():
             bestHyperparametersDict[k] = v
         report(info={**bestHyperparametersDict,
                      "all_evals": all_evals,
@@ -268,8 +273,8 @@ def main(args: list):
 
 
 if __name__ == "__main__":
-    os.environ["WANDB_DISABLED"] = "true" # for cluster we need to disable this
+    os.environ["WANDB_DISABLED"] = "true"  # for cluster we need to disable this
     main(sys.argv)
     # os.environ['CUDA_VISIBLE_DEVICES'] = "0"
-    # launchExperimentFromJson(fpath="/home/he/Workspace/cil-project/src/configs/roberta_base_debug.json",
+    # launchExperimentFromJson(fpath="/home/he/Workspace/cil-project/src/configs/gpt2.json",
     #                          reportPath='/home/he/Workspace/cil-project/docs/report_test.json')

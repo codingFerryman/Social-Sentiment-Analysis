@@ -13,12 +13,10 @@
         "weight_decay": 0.0001,
         "learning_rate": 1e-5,
         "evaluation_strategy": "epoch",
-        "logging_strategy": "steps",
-        "logging_steps": 100,
+        "logging_strategy": "epoch",
         "overwrite_output_dir": true,
         "load_best_model_at_end": true,
         "metric_for_best_model": "accuracy",
-        "greater_is_better": true,
         "early_stopping_patience": 3,
         "early_stopping_threshold": 0.0001,
         "train_val_split_iterator": "train_test_split",
@@ -26,7 +24,8 @@
             "freeze": false,
             "num_unfrozen_layers": 1,
             "unfrozen_embeddings": true
-        }
+        },
+        "report_to": null
     },
     "tokenizer_config": {
         "add_special_tokens": true,
