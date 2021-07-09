@@ -106,7 +106,8 @@ def launchExperimentFromDict(d: dict, reportPath: str = None):
         # TODO: transformers model is used, but a general model is needed here
         model_name_or_path = d['model_name_or_path']
         model = TransformersModel(modelName_or_pipeLine=model_name_or_path,
-                                  fast_tokenizer=d.get('fast_tokenizer'))
+                                  fast_tokenizer=d.get('fast_tokenizer'),
+                                  text_pre_cleaning=d.get('text_pre_cleaning', 'default'))
 
     if type(d['metric']) is str:
         d['metric'] = [d['metric']]
@@ -276,5 +277,5 @@ if __name__ == "__main__":
     os.environ["WANDB_DISABLED"] = "true"  # for cluster we need to disable this
     main(sys.argv)
     # os.environ['CUDA_VISIBLE_DEVICES'] = "0"
-    # launchExperimentFromJson(fpath="/home/he/Workspace/cil-project/src/configs/gpt2.json",
+    # launchExperimentFromJson(fpath="/home/he/Workspace/cil-project/src/configs/gpt2_debug.json",
     #                          reportPath='/home/he/Workspace/cil-project/docs/report_test.json')

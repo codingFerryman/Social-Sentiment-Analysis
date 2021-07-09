@@ -6,8 +6,8 @@ from tqdm import trange
 from tqdm.auto import tqdm
 from transformers import TextClassificationPipeline, AutoModelForSequenceClassification, AutoTokenizer
 
-from preprocessing.pretrainedTransformersPipeline import TwitterDatasetTorch
 from utils import get_project_path
+from utils.cleaningText import cleaning_default
 
 
 class TransformersPredict:
@@ -60,7 +60,7 @@ class TransformersPredict:
         text = []
         zero_len_idx = []
         for idx, sent in tqdm(zip(ids, data)):
-            sent_proc = TwitterDatasetTorch.cleaning(sent)
+            sent_proc = cleaning_default(sent)
             if len(sent_proc) != 0:
                 text_id.append(idx)
                 text.append(sent_proc)

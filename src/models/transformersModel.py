@@ -14,6 +14,7 @@ from transformers import TrainingArguments, Trainer
 from models.Model import ModelConstruction, get_iterator_splitter_from_name
 from preprocessing.pretrainedTransformersPipeline import PretrainedTransformersPipeLine
 from utils import get_project_path, get_transformers_layers_num, loggers
+from utils.cleaningText import cleaningMap
 from utils.diskArray import DiskArray
 
 logger = loggers.getLogger("TransformersModel", True)
@@ -51,8 +52,10 @@ def getTransformersTokenizer(
                                               loadFunction=loadFunction,
                                               fast_tokenizer=kwargs.get('fast_tokenizer'))
 
+
 class TransformersModel(ModelConstruction):
-    def __init__(self, modelName_or_pipeLine=None, loadFunction=None, fast_tokenizer=None):
+    def __init__(self, modelName_or_pipeLine=None, loadFunction=None, fast_tokenizer=None,
+                 text_pre_cleaning='default'):
         if modelName_or_pipeLine is None:
             # Set the default model to roberta-base
             modelName_or_pipeLine = "roberta-base"
@@ -67,6 +70,7 @@ class TransformersModel(ModelConstruction):
             self._modelName = modelName_or_pipeLine.tokenizer.name_or_path
             self._dataLoaded = self.pipeLine.is_data_loaded()
 
+        self.text_pre_cleaning_function = cleaningMap()[text_pre_cleaning]
         # Initialise some variables
         self._registeredMetrics = []
         self.metric = ('accuracy',)
@@ -144,8 +148,10 @@ class TransformersModel(ModelConstruction):
         assert(not(stratify and "cross_validate_accuracy" == train_val_split_iterator)), f"stratify should be = false for {train_val_split_iterator}"
         splitter = get_iterator_splitter_from_name(train_val_split_iterator)
 
+        # The callable function to pre-cleaning the texts
         encodedDatasetArgs = {'splitter': splitter,
-                              'tokenizerConfig': tokenizer_config}
+                              'tokenizerConfig': tokenizer_config,
+                              'cleaning_function': self.text_pre_cleaning_function}
         if 'test_size' in trainer_config.keys():
             encodedDatasetArgs['test_size'] = trainer_config['test_size']
         if 'stratify' in trainer_config.keys():
