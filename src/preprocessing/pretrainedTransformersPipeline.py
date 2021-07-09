@@ -1,7 +1,7 @@
 import os
-import re
-import random
 import pathlib
+import random
+import re
 from typing import Tuple, Dict, Callable
 
 import numpy as np
@@ -41,13 +41,9 @@ class TwitterDatasetTorch(Dataset):
     def __getitem__(self, idx):
         tweet = self.text_list[idx]
         tweet = self.cleaning(tweet)
-        if self.tokenizer.pad_token is None:
-            self.tokenizer.pad_token = self.tokenizer.eos_token
-            self.tokenizer.pad_token_id = self.tokenizer.eos_token_id
-        inputs = self.tokenizer.encode_plus(
-            text=tweet,
-            **self.tokenizerConfig
-        )
+
+        # If there is no padding token in the model, use the same as eos_token instead
+        inputs = self.tokenizer.encode_plus(text=tweet, **self.tokenizerConfig)
         _ids = torch.tensor(inputs['input_ids'], dtype=torch.int)
         _mask = torch.tensor(inputs['attention_mask'], dtype=torch.uint8)
         _label = torch.tensor(self.labels[idx], dtype=torch.long)
@@ -109,6 +105,8 @@ class PretrainedTransformersPipeLine(InputPipeline):
                                                            cache_dir=cache_dir)
         else:
             self.tokenizer = AutoTokenizer.from_pretrained(model_name_or_path, use_fast=fast_tokenizer)
+        if self.tokenizer.pad_token is None:
+            self.tokenizer.pad_token = self.tokenizer.eos_token
         self._dataLoaded = False
 
     def loadData(self, ratio='sub'):

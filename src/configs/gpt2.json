@@ -1,12 +1,12 @@
 {
-    "model_name_or_path": "roberta-base",
-    "data_load_ratio": 0.0001,
+    "model_name_or_path": "gpt2",
+    "data_load_ratio": 0.01,
     "model_type": "transformers",
     "tokenizer_type": "transformers",
     "fast_tokenizer": false,
     "args": {
-        "epochs": 5,
-        "batch_size": 32,
+        "epochs": 1,
+        "batch_size": 128,
         "adafactor": false,
         "warmup_steps": 100,
         "weight_decay": 0.0001,
@@ -21,11 +21,10 @@
         "early_stopping_threshold": 0.0001,
         "train_val_split_iterator": "train_test_split",
         "fine_tune_layers": {
-            "freeze": true,
+            "freeze": false,
             "num_unfrozen_layers": 1,
             "unfrozen_embeddings": true
-        },
-        "report_to": null
+        }
     },
     "tokenizer_config": {
         "add_special_tokens": true,
@@ -49,5 +48,5 @@
         "glue",
         "mrpc"
     ],
-    "description": "RoBERTa Base model for testing"
+    "description": "roberta-base w/ full dataset"
 }

@@ -1,7 +1,7 @@
 import os
+import pathlib
 import time
 import typing
-import pathlib
 from pathlib import Path
 
 import numpy as np
@@ -10,7 +10,6 @@ from datasets import load_metric
 from transformers import AutoModelForSequenceClassification, AutoConfig
 from transformers import EarlyStoppingCallback
 from transformers import TrainingArguments, Trainer
-
 
 from models.Model import ModelConstruction, get_iterator_splitter_from_name
 from preprocessing.pretrainedTransformersPipeline import PretrainedTransformersPipeLine
@@ -116,6 +115,8 @@ class TransformersModel(ModelConstruction):
         _config = AutoConfig.from_pretrained(self._modelName)
         if model_config_dict:
             _config.update(model_config_dict)
+        if _config.pad_token_id is None:
+            _config.pad_token_id = _config.eos_token_id
         if pathlib.Path().resolve().parts[1] == 'cluster':
             if os.getenv("TRANSFORMERS_CACHE") is None:
                 cache_dir = os.path.join(os.getenv("SCRATCH"), '.cache/huggingface/')
@@ -126,6 +127,10 @@ class TransformersModel(ModelConstruction):
                                                                        cache_dir=cache_dir)
         else:
             model = AutoModelForSequenceClassification.from_pretrained(self._modelName, config=_config)
+
+        # If there is no padding token id in the model, use eos_token_id instead
+        # if model.config.pad_token_id is None:
+        #     model.config.pad_token_id = model.config.eos_token_id
         return model
 
     def trainModel(self, train_val_split_iterator: str = "train_test_split",
