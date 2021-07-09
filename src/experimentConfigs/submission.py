@@ -3,6 +3,7 @@ import sys
 from pathlib import Path
 
 import pandas as pd
+import torch
 from tqdm import trange
 from tqdm.auto import tqdm
 from transformers import TextClassificationPipeline, AutoModelForSequenceClassification, AutoTokenizer
@@ -12,8 +13,14 @@ from utils.cleaningText import cleaning_default
 
 
 class TransformersPredict:
-    def __init__(self, load_path, text_path, cuda_device=-1, is_test=True):
+    def __init__(self, load_path, text_path, cuda_device=None, is_test=True):
         self.is_test = is_test
+
+        if cuda_device is None:
+            if torch.cuda.is_available():
+                cuda_device = -1
+            else:
+                cuda_device = 0
 
         model_path = Path(load_path, 'model')
         tokenizer_path = Path(load_path, 'tokenizer')
@@ -82,6 +89,8 @@ def main(args: list):
     load_path = argv.get('load_path', None)
     text_path = argv.get('text_path', None)
     batch_size = argv.get('batch_size', 2000)
+    cuda_device = argv.get('cuda', None)
+
     if load_path is None:
         print("No load_path specified")
         exit(0)
@@ -95,7 +104,7 @@ def main(args: list):
             print("No text_path specified")
             exit(0)
 
-    trans_predict = TransformersPredict(load_path=load_path, text_path=text_path)
+    trans_predict = TransformersPredict(load_path=load_path, text_path=text_path, cuda_device=cuda_device)
     trans_predict.predict(batch_size=batch_size)
     trans_predict.submission_file()
 

@@ -13,7 +13,7 @@ from experimentConfigs.submission import TransformersPredict
 data_path = get_data_path()
 
 class TransformersPredictEval(TransformersPredict):
-    def __init__(self, load_path, text_path=None, pos_path=None, neg_path=None, cuda_device=0, is_test=False):
+    def __init__(self, load_path, text_path=None, pos_path=None, neg_path=None, cuda_device=None, is_test=False):
         if text_path is None:
             if pos_path is None:
                 pos_path = Path(data_path, 'train_pos_full.txt')
@@ -62,6 +62,7 @@ def main(args: list):
     load_path = argv.get('load_path', None)
     text_path = argv.get('text_path', None)
     batch_size = argv.get('batch_size', 256)
+    cuda_device = argv.get('cuda', None)
     if load_path is None:
         print("No load_path specified")
         exit(0)
@@ -71,7 +72,7 @@ def main(args: list):
         if _text_path.is_file():
             text_path = _text_path
 
-    trans_predict = TransformersPredictEval(load_path=load_path, text_path=text_path)
+    trans_predict = TransformersPredictEval(load_path=load_path, text_path=text_path, cuda_device=cuda_device)
     trans_predict.predict(batch_size=batch_size)
     trans_predict.evaluation_file()
 
