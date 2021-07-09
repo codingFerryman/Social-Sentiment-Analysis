@@ -116,7 +116,9 @@ class TransformersModel(ModelConstruction):
         if model_config_dict:
             _config.update(model_config_dict)
         if _config.pad_token_id is None:
+            logger.info('Set the pad_token_id to eos_token_id as there is no padding token in the config')
             _config.pad_token_id = _config.eos_token_id
+
         if pathlib.Path().resolve().parts[1] == 'cluster':
             if os.getenv("TRANSFORMERS_CACHE") is None:
                 cache_dir = os.path.join(os.getenv("SCRATCH"), '.cache/huggingface/')
@@ -128,9 +130,6 @@ class TransformersModel(ModelConstruction):
         else:
             model = AutoModelForSequenceClassification.from_pretrained(self._modelName, config=_config)
 
-        # If there is no padding token id in the model, use eos_token_id instead
-        # if model.config.pad_token_id is None:
-        #     model.config.pad_token_id = model.config.eos_token_id
         return model
 
     def trainModel(self, train_val_split_iterator: str = "train_test_split",
@@ -204,21 +203,23 @@ class TransformersModel(ModelConstruction):
                 early_stopping_patience = trainer_config_copy.pop("early_stopping_patience")
                 early_stopping_threshold = trainer_config_copy.pop("early_stopping_threshold", 0)
                 callbacks.append(EarlyStoppingCallback(early_stopping_patience=early_stopping_patience,
-                                                   early_stopping_threshold=early_stopping_threshold))
+                                                       early_stopping_threshold=early_stopping_threshold))
 
             if pathlib.Path().resolve().parts[1] == 'cluster':
                 training_logging_dir = self.training_saving_path_cluster
             else:
                 training_logging_dir = self.training_saving_path
 
-
             training_args = TrainingArguments(
-                logging_dir=Path(self.training_saving_path, 'logs'),
-                output_dir=Path(self.training_saving_path),
+                # Please do NOT add logging_dir here (that is for TensorBoard)
+                # Please save checkpoints to scratch when training on the cluster
+                output_dir=training_logging_dir,
                 **trainer_config_copy
             )
             logger.debug(f"The program is running from: {str(pathlib.Path().resolve())}")
             logger.debug(f"The checkpoints will be saved in {training_logging_dir}")
+            assert Path(training_args.output_dir) == Path(training_logging_dir), \
+                "The logging directory for checkpoints is not correct"
             self.trainer = Trainer(
                 model=self.model,
                 args=training_args,

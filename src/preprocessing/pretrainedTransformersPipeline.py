@@ -106,7 +106,9 @@ class PretrainedTransformersPipeLine(InputPipeline):
         else:
             self.tokenizer = AutoTokenizer.from_pretrained(model_name_or_path, use_fast=fast_tokenizer)
         if self.tokenizer.pad_token is None:
+            logger.info('Set the pad_token to eos_token as there is no padding token in the config')
             self.tokenizer.pad_token = self.tokenizer.eos_token
+            print('\033[93m', 'The pad token is already set to eos token. The error message above can be ignored.')
         self._dataLoaded = False
 
     def loadData(self, ratio='sub'):
