@@ -1,5 +1,5 @@
 {
-    "num_experiments": 4,
+    "num_experiments": 6,
     "experiments": [
         {
             "model_name_or_path": "vinai/bertweet-base",
@@ -202,6 +202,120 @@
             },
             "output_dir": "/cluster/home/iathanasi/Computational-Intelligence-Lab/trainings/distilbert-base-uncased/20210708-023219",
             "time_stamp": "2021-07-08 13:09:51.966569"
+        },
+        {
+            "model_name_or_path": "roberta-base",
+            "data_load_ratio": 1,
+            "model_type": "transformers",
+            "tokenizer_type": "transformers",
+            "fast_tokenizer": false,
+            "args": {
+                "epochs": 10,
+                "batch_size": 128,
+                "adafactor": false,
+                "warmup_steps": 100,
+                "weight_decay": 0.0001,
+                "learning_rate": 1e-05,
+                "evaluation_strategy": "epoch",
+                "logging_strategy": "steps",
+                "logging_steps": 100,
+                "overwrite_output_dir": true,
+                "load_best_model_at_end": true,
+                "metric_for_best_model": "accuracy",
+                "early_stopping_patience": 3,
+                "early_stopping_threshold": 0.0001,
+                "train_val_split_iterator": "train_test_split",
+                "fine_tune_layers": {
+                    "freeze": false,
+                    "num_unfrozen_layers": 1,
+                    "unfrozen_embeddings": true
+                }
+            },
+            "tokenizer_config": {
+                "add_special_tokens": true,
+                "max_length": 64,
+                "padding": "max_length",
+                "truncation": true,
+                "return_token_type_ids": true,
+                "return_attention_mask": true
+            },
+            "model_config": {
+                "num_labels": 2,
+                "problem_type": "single_label_classification",
+                "output_attentions": false,
+                "output_hidden_states": false,
+                "id2label": {
+                    "1": 1,
+                    "0": -1
+                }
+            },
+            "metric": [
+                "glue",
+                "mrpc"
+            ],
+            "description": "roberta-base w/ full dataset",
+            "results": {
+                "accuracy": 0.8984093259410769
+            },
+            "output_dir": "/cluster/home/heliuhe/cil-project/trainings/roberta-base/20210709-102233",
+            "time_stamp": "2021-07-09 18:22:51.592077"
+        },
+        {
+            "model_name_or_path": "vinai/bertweet-base",
+            "data_load_ratio": 1,
+            "model_type": "transformers",
+            "tokenizer_type": "transformers",
+            "fast_tokenizer": false,
+            "args": {
+                "epochs": 10,
+                "batch_size": 256,
+                "adafactor": false,
+                "warmup_steps": 100,
+                "weight_decay": 0.0001,
+                "learning_rate": 1e-05,
+                "evaluation_strategy": "epoch",
+                "logging_strategy": "steps",
+                "logging_steps": 100,
+                "overwrite_output_dir": true,
+                "load_best_model_at_end": true,
+                "metric_for_best_model": "accuracy",
+                "early_stopping_patience": 3,
+                "early_stopping_threshold": 0.0001,
+                "train_val_split_iterator": "train_test_split",
+                "fine_tune_layers": {
+                    "freeze": true,
+                    "num_unfrozen_layers": 1,
+                    "unfrozen_embeddings": true
+                }
+            },
+            "tokenizer_config": {
+                "add_special_tokens": true,
+                "max_length": 64,
+                "padding": "max_length",
+                "truncation": true,
+                "return_token_type_ids": true,
+                "return_attention_mask": true
+            },
+            "model_config": {
+                "num_labels": 2,
+                "problem_type": "single_label_classification",
+                "output_attentions": false,
+                "output_hidden_states": false,
+                "id2label": {
+                    "1": 1,
+                    "0": -1
+                }
+            },
+            "metric": [
+                "glue",
+                "mrpc"
+            ],
+            "description": "vinai/bertweet-base w/ full dataset",
+            "results": {
+                "accuracy": 0.8934341752683569
+            },
+            "output_dir": "/cluster/home/heliuhe/cil-project/trainings/vinai/bertweet-base/20210709-101103",
+            "time_stamp": "2021-07-09 18:40:35.764386"
         }
     ]
 }
