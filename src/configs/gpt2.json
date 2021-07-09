@@ -1,12 +1,12 @@
 {
     "description": "OpenAI GPT2 w/ full dataset",
     "model_name_or_path": "gpt2",
-    "data_load_ratio": 0.01,
+    "data_load_ratio": 1,
     "model_type": "transformers",
     "tokenizer_type": "transformers",
     "fast_tokenizer": false,
     "args": {
-        "epochs": 30,
+        "epochs": 16,
         "batch_size": 64,
         "adafactor": false,
         "warmup_steps": 100,
@@ -18,6 +18,7 @@
         "overwrite_output_dir": true,
         "load_best_model_at_end": true,
         "metric_for_best_model": "accuracy",
+        "greater_is_better": true,
         "early_stopping_patience": 3,
         "early_stopping_threshold": 0.0001,
         "train_val_split_iterator": "train_test_split",
@@ -46,7 +47,6 @@
         }
     },
     "metric": [
-        "glue",
-        "mrpc"
+        "accuracy"
     ]
 }
