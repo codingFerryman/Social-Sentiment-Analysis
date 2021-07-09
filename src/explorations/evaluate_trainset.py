@@ -13,29 +13,33 @@ from experimentConfigs.submission import TransformersPredict
 data_path = get_data_path()
 
 class TransformersPredictEval(TransformersPredict):
-    def __init__(self, load_path, pos_path=None, neg_path=None, cuda_device=0, is_test=False):
-        if pos_path is None:
-            pos_path = Path(data_path, 'train_pos_full.txt')
-        if neg_path is None:
-            neg_path = Path(data_path, 'train_neg_full.txt')
-        tmp = []
-        with open(pos_path, 'r') as fp:
-            pos_text = list(set(fp.readlines()))
-            pos_data = list(zip([1]*len(pos_text), pos_text))
-        with open(neg_path, 'r') as fn:
-            neg_text = list(set(fn.readlines()))
-            neg_data = list(zip([-1]*len(neg_text), neg_text))
-        tmp.extend(pos_data)
-        tmp.extend(neg_data)
-        random.shuffle(tmp)
-        self.data_indexed = [(i,)+d for i, d in enumerate(tmp)]
-        data2write = ['\u0001'.join(str(d) for d in doc) for doc in self.data_indexed]
-        text_path = Path(data_path, 'full_data.txt')
-        with open(text_path, 'w') as ft:
-            ft.writelines(data2write)
+    def __init__(self, load_path, text_path=None, pos_path=None, neg_path=None, cuda_device=0, is_test=False):
+        if text_path is None:
+            if pos_path is None:
+                pos_path = Path(data_path, 'train_pos_full.txt')
+            if neg_path is None:
+                neg_path = Path(data_path, 'train_neg_full.txt')
+            tmp = []
+            with open(pos_path, 'r') as fp:
+                pos_text = list(set(fp.readlines()))
+                pos_data = list(zip([1] * len(pos_text), pos_text))
+            with open(neg_path, 'r') as fn:
+                neg_text = list(set(fn.readlines()))
+                neg_data = list(zip([-1] * len(neg_text), neg_text))
+            tmp.extend(pos_data)
+            tmp.extend(neg_data)
+            random.shuffle(tmp)
+            self.data_indexed = [(i,) + d for i, d in enumerate(tmp)]
+            data2write = ['\u0001'.join(str(d) for d in doc) for doc in self.data_indexed]
+            text_path = Path(data_path, 'full_data.txt')
+            with open(text_path, 'w') as ft:
+                ft.writelines(data2write)
         super(TransformersPredictEval, self).__init__(load_path, text_path, cuda_device, is_test)
+        self.model_loading_path = load_path
 
-    def evaluation_file(self, save_path='./evaluation_on_train.csv'):
+    def evaluation_file(self, save_path=None):
+        if save_path is None:
+            save_path = Path(self.model_loading_path, 'prediction_on_train.csv')
         pred_labels = [r['label'] for r in self.pred]
         pred_score = [r['score'] for r in self.pred]
         id_zero_len = self.data['zero_len_ids']
@@ -57,12 +61,18 @@ class TransformersPredictEval(TransformersPredict):
 def main(args: list):
     argv = {a.split('=')[0]: a.split('=')[1] for a in args[1:]}
     load_path = argv.get('load_path', None)
+    text_path = argv.get('text_path', None)
     batch_size = argv.get('batch_size', 256)
     if load_path is None:
         print("No load_path specified")
         exit(0)
 
-    tpe = TransformersPredictEval(load_path=load_path)
+    if text_path is None:
+        _text_path = Path(data_path, 'full_data.txt')
+        if _text_path.is_file():
+            text_path = _text_path
+
+    tpe = TransformersPredictEval(load_path=load_path, text_path=text_path)
     tpe.predict(batch_size=batch_size)
     tpe.evaluation_file()
 
