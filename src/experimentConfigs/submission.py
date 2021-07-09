@@ -24,6 +24,8 @@ class TransformersPredict:
                 cuda_device = -1
             else:
                 cuda_device = 0
+        else:
+            cuda_device = int(cuda_device)
 
         model_path = Path(load_path, 'model')
         tokenizer_path = Path(load_path, 'tokenizer')
@@ -44,6 +46,7 @@ class TransformersPredict:
         self.pred = None
 
     def predict(self, batch_size=128):
+        batch_size = int(batch_size)
         _results = []
         tr = trange(0, len(self.data['text']), batch_size)
         for i in tr:
