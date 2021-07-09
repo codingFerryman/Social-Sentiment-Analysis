@@ -12,7 +12,6 @@ from experimentConfigs.submission import TransformersPredict
 
 data_path = get_data_path()
 
-
 class TransformersPredictEval(TransformersPredict):
     def __init__(self, load_path, pos_path=None, neg_path=None, cuda_device=0, is_test=False):
         if pos_path is None:
@@ -55,9 +54,18 @@ class TransformersPredictEval(TransformersPredict):
         pred_df.to_csv(save_path, index=False)
 
 
-if __name__ == '__main__':
-    # model_path = "/home/he/Workspace/cil-project/trainings/vinai/bertweet-base/20210707-195141"
-    model_path = "/cluster/home/heliuhe/cil-project/trainings/vinai/bertweet-base/20210707-195141"
-    tpe = TransformersPredictEval(load_path=model_path)
-    tpe.predict(batch_size=256)
+def main(args: list):
+    argv = {a.split('=')[0]: a.split('=')[1] for a in args[1:]}
+    load_path = argv.get('load_path', None)
+    batch_size = argv.get('batch_size', 256)
+    if load_path is None:
+        print("No load_path specified")
+        exit(0)
+
+    tpe = TransformersPredictEval(load_path=load_path)
+    tpe.predict(batch_size=batch_size)
     tpe.evaluation_file()
+
+
+if __name__ == '__main__':
+    main(sys.argv)
