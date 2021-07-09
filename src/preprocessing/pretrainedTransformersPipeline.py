@@ -42,10 +42,15 @@ class TwitterDatasetTorch(Dataset):
         tweet = self.text_list[idx]
         tweet = self.cleaning(tweet)
 
-        # If there is no padding token in the model, use the same as eos_token instead
-        inputs = self.tokenizer.encode_plus(text=tweet, **self.tokenizerConfig)
-        _ids = torch.tensor(inputs['input_ids'], dtype=torch.int)
-        _mask = torch.tensor(inputs['attention_mask'], dtype=torch.uint8)
+        # Solve the problem if empty text exists
+        if len(tweet) > 0:
+            inputs = self.tokenizer.encode_plus(text=tweet, **self.tokenizerConfig)
+            _ids = torch.tensor(inputs['input_ids'], dtype=torch.int)
+            _mask = torch.tensor(inputs['attention_mask'], dtype=torch.uint8)
+        else:
+            # Set all the input_ids to padding token id
+            _ids = torch.tensor([self.tokenizer.pad_token_id] * self.tokenizerConfig["max_length"], dtype=torch.int)
+            _mask = torch.tensor([0] * self.tokenizerConfig["max_length"], dtype=torch.uint8)
         _label = torch.tensor(self.labels[idx], dtype=torch.long)
         return {
             'input_ids': _ids,
