@@ -1,3 +1,4 @@
+import os
 import random
 import sys
 from pathlib import Path
@@ -8,7 +9,9 @@ from tqdm import trange
 from tqdm.auto import tqdm
 from transformers import TextClassificationPipeline, AutoModelForSequenceClassification, AutoTokenizer
 
-from utils import get_data_path
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+
+from utils.utils import get_data_path
 from utils.cleaningText import cleaning_default
 
 
@@ -25,7 +28,11 @@ class TransformersPredict:
         model_path = Path(load_path, 'model')
         tokenizer_path = Path(load_path, 'tokenizer')
         model = AutoModelForSequenceClassification.from_pretrained(model_path)
-        tokenizer = AutoTokenizer.from_pretrained(tokenizer_path)
+        try:
+            tokenizer = AutoTokenizer.from_pretrained(tokenizer_path, use_fast=False)
+        except Exception:
+            tokenizer = AutoTokenizer.from_pretrained(tokenizer_path)
+
         self.pipeline = TextClassificationPipeline(model=model, tokenizer=tokenizer, device=cuda_device,
                                                    binary_output=True)
         with open(text_path, 'r') as fp:
