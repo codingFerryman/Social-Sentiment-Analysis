@@ -39,7 +39,7 @@
                 "glue",
                 "mrpc"
             ],
-            "description": "vinai/bertweet-base w/ full dataset",
+            "description": "vinai/bertweet-base. Dataset: full; Epochs: 3; tokenizer_len: 50",
             "results": {
                 "accuracy": 0.888752
             },
@@ -89,7 +89,7 @@
                 "glue",
                 "mrpc"
             ],
-            "description": "siebert/sentiment-roberta-large-english",
+            "description": "siebert/sentiment-roberta-large-english. Dataset: full; Epochs: 5; tokenizer_len: 50; unfrozen 1 layer; frozen embeddings",
             "results": {
                 "accuracy": 0.857706
             },
@@ -139,7 +139,7 @@
                 "glue",
                 "mrpc"
             ],
-            "description": "vinai/bertweet-base w/ full dataset",
+            "description": "vinai/bertweet-base. Dataset: full; Epochs: 3; tokenizer_len: 50; FP16",
             "results": {
                 "accuracy": 0.891444
             },
@@ -196,7 +196,7 @@
                 "glue",
                 "mrpc"
             ],
-            "description": "distilbert/base-uncased with hyperopt",
+            "description": "distilbert/base-uncased with hyperopt. Dataset: full; Epochs: 20; tokenizer_len: 50",
             "results": {
                 "accuracy": 0.8869597847859751
             },
@@ -253,7 +253,7 @@
                 "glue",
                 "mrpc"
             ],
-            "description": "roberta-base w/ full dataset",
+            "description": "roberta-base. Dataset: full; Epochs: 10; tokenizer_len: 64",
             "results": {
                 "accuracy": 0.8984093259410769
             },
@@ -310,7 +310,7 @@
                 "glue",
                 "mrpc"
             ],
-            "description": "vinai/bertweet-base w/ full dataset",
+            "description": "vinai/bertweet-base. Dataset: full; Epochs: 10; tokenizer_len: 64; unfrozen 1 layer; unfrozen embeddings",
             "results": {
                 "accuracy": 0.8934341752683569
             },
@@ -318,7 +318,7 @@
             "time_stamp": "2021-07-09 18:40:35.764386"
         },
         {
-            "description": "OpenAI GPT2 w/ full dataset",
+            "description": "GPT2. Dataset: full; Epochs: 5; tokenizer_len: 64",
             "model_name_or_path": "gpt2",
             "data_load_ratio": 1,
             "model_type": "transformers",
@@ -375,7 +375,7 @@
             "time_stamp": "2021-07-10 07:48:12.271636"
         },
         {
-            "description": "distilGPT2 w/ full dataset",
+            "description": "distilGPT2. Dataset: full; Epochs: 16; tokenizer_len: 64",
             "model_name_or_path": "distilgpt2",
             "data_load_ratio": 1,
             "model_type": "transformers",
@@ -432,7 +432,7 @@
             "time_stamp": "2021-07-10 10:01:31.012450"
         },
         {
-            "description": "xlnet-base w/ full dataset",
+            "description": "xlnet-base. Dataset: full; Epochs: 10; tokenizer_len: 64",
             "model_name_or_path": "xlnet-base-cased",
             "data_load_ratio": 1,
             "model_type": "transformers",
