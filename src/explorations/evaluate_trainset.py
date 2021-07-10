@@ -7,13 +7,17 @@ import pandas as pd
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
-from utils import get_data_path
+from utils import get_data_path, loggers
 from experimentConfigs.submission import TransformersPredict
+
+logger = loggers.getLogger("EvaluateTrainDataset", True)
 
 data_path = get_data_path()
 
+
 class TransformersPredictEval(TransformersPredict):
-    def __init__(self, load_path, text_path=None, pos_path=None, neg_path=None, cuda_device=None, is_test=False):
+    def __init__(self, load_path, fast_tokenizer, text_path=None, pos_path=None, neg_path=None, cuda_device=None,
+                 is_test=False):
         if text_path is None:
             if pos_path is None:
                 pos_path = Path(data_path, 'train_pos_full.txt')
@@ -34,7 +38,7 @@ class TransformersPredictEval(TransformersPredict):
             text_path = Path(data_path, 'full_data.txt')
             with open(text_path, 'w') as ft:
                 ft.writelines(data2write)
-        super(TransformersPredictEval, self).__init__(load_path, text_path, cuda_device, is_test)
+        super(TransformersPredictEval, self).__init__(load_path, text_path, fast_tokenizer, cuda_device, is_test)
 
     def evaluation_file(self, save_path=None):
         if save_path is None:
@@ -63,6 +67,8 @@ def main(args: list):
     text_path = argv.get('text_path', None)
     batch_size = argv.get('batch_size', 256)
     cuda_device = argv.get('cuda', None)
+    fast_tokenizer = bool(argv.get('fast_tokenizer', True))
+
     if load_path is None:
         print("No load_path specified")
         exit(0)
@@ -72,7 +78,8 @@ def main(args: list):
         if _text_path.is_file():
             text_path = _text_path
 
-    trans_predict = TransformersPredictEval(load_path=load_path, text_path=text_path, cuda_device=cuda_device)
+    trans_predict = TransformersPredictEval(load_path=load_path, text_path=text_path, cuda_device=cuda_device,
+                                            fast_tokenizer=fast_tokenizer)
     trans_predict.predict(batch_size=batch_size)
     trans_predict.evaluation_file()
 

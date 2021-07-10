@@ -11,12 +11,15 @@ from transformers import TextClassificationPipeline, AutoModelForSequenceClassif
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
+from utils import loggers
 from utils.utils import get_data_path
 from utils.cleaningText import cleaning_default
 
+logger = loggers.getLogger("PredictForSubmission", True)
+
 
 class TransformersPredict:
-    def __init__(self, load_path, text_path, cuda_device=None, is_test=True):
+    def __init__(self, load_path, text_path, fast_tokenizer, cuda_device=None, is_test=True, ):
         self.is_test = is_test
 
         if cuda_device is None:
@@ -31,9 +34,9 @@ class TransformersPredict:
         tokenizer_path = Path(load_path, 'tokenizer')
         model = AutoModelForSequenceClassification.from_pretrained(model_path)
         try:
-            tokenizer = AutoTokenizer.from_pretrained(tokenizer_path, use_fast=False)
-        except Exception:
-            tokenizer = AutoTokenizer.from_pretrained(tokenizer_path)
+            tokenizer = AutoTokenizer.from_pretrained(tokenizer_path, use_fast=fast_tokenizer)
+        except Exception as e:
+            raise (e, "Please try to disable fast tokenizer by \'fast_tokenizer=False\'and try again")
 
         self.pipeline = TextClassificationPipeline(model=model, tokenizer=tokenizer, device=cuda_device,
                                                    binary_output=True)
@@ -100,6 +103,7 @@ def main(args: list):
     text_path = argv.get('text_path', None)
     batch_size = argv.get('batch_size', 2000)
     cuda_device = argv.get('cuda', None)
+    fast_tokenizer = bool(argv.get('fast_tokenizer', False))
 
     if load_path is None:
         print("No load_path specified")
@@ -114,7 +118,8 @@ def main(args: list):
             print("No text_path specified")
             exit(0)
 
-    trans_predict = TransformersPredict(load_path=load_path, text_path=text_path, cuda_device=cuda_device)
+    trans_predict = TransformersPredict(load_path=load_path, text_path=text_path, cuda_device=cuda_device,
+                                        fast_tokenizer=fast_tokenizer)
     trans_predict.predict(batch_size=batch_size)
     trans_predict.submission_file()
 
