@@ -32,7 +32,7 @@ class TransformersPredict:
 
         model_path = Path(load_path, 'model')
         tokenizer_path = Path(load_path, 'tokenizer')
-        logger.info(f"Loading data from {load_path}")
+        logger.info(f"Loading model from {load_path}")
         model = AutoModelForSequenceClassification.from_pretrained(model_path)
         try:
             tokenizer = AutoTokenizer.from_pretrained(tokenizer_path, use_fast=fast_tokenizer)
