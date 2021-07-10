@@ -91,6 +91,7 @@ def main(args: list):
             logger.error('full_or_sub should be full or sub')
             exit(0)
         if _text_path.is_file():
+            logger.info("Using the data file which already exists.")
             text_path = _text_path
 
     trans_predict = TransformersPredictEval(load_path=load_path, text_path=text_path, cuda_device=cuda_device,
