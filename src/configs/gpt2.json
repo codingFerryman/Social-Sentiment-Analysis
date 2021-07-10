@@ -7,7 +7,7 @@
     "fast_tokenizer": false,
     "text_pre_cleaning": "strip",
     "args": {
-        "epochs": 5,
+        "epochs": 10,
         "batch_size": 64,
         "adafactor": false,
         "warmup_steps": 100,
