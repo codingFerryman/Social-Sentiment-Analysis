@@ -16,13 +16,21 @@ data_path = get_data_path()
 
 
 class TransformersPredictEval(TransformersPredict):
-    def __init__(self, load_path, fast_tokenizer, text_path=None, pos_path=None, neg_path=None, cuda_device=None,
+    def __init__(self, load_path, fast_tokenizer, full_or_sub: str, text_path=None, pos_path=None, neg_path=None,
+                 cuda_device=None,
                  is_test=False):
+        if full_or_sub == 'sub':
+            full_or_sub_file_suffix = ''
+        elif full_or_sub == 'full':
+            full_or_sub_file_suffix = '_full'
+        else:
+            logger.error('full_or_sub should be full or sub')
+            exit(0)
         if text_path is None:
             if pos_path is None:
-                pos_path = Path(data_path, 'train_pos_full.txt')
+                pos_path = Path(data_path, 'train_pos' + full_or_sub_file_suffix + '.txt')
             if neg_path is None:
-                neg_path = Path(data_path, 'train_neg_full.txt')
+                neg_path = Path(data_path, 'train_neg' + full_or_sub_file_suffix + '.txt')
             tmp = []
             with open(pos_path, 'r') as fp:
                 pos_text = list(set(fp.readlines()))
@@ -35,7 +43,7 @@ class TransformersPredictEval(TransformersPredict):
             random.shuffle(tmp)
             self.data_indexed = [(i,) + d for i, d in enumerate(tmp)]
             data2write = ['\u0001'.join(str(d) for d in doc) for doc in self.data_indexed]
-            text_path = Path(data_path, 'full_data.txt')
+            text_path = Path(data_path, full_or_sub + '_data.txt')
             with open(text_path, 'w') as ft:
                 ft.writelines(data2write)
         super(TransformersPredictEval, self).__init__(load_path, text_path, fast_tokenizer, cuda_device, is_test)
@@ -68,18 +76,25 @@ def main(args: list):
     batch_size = argv.get('batch_size', 256)
     cuda_device = argv.get('cuda', None)
     fast_tokenizer = bool(argv.get('fast_tokenizer', True))
+    full_or_sub = argv.get('full_or_sub', 'sub')
 
     if load_path is None:
         print("No load_path specified")
         exit(0)
 
     if text_path is None:
-        _text_path = Path(data_path, 'full_data.txt')
+        if full_or_sub == 'full':
+            _text_path = Path(data_path, 'full_data.txt')
+        elif full_or_sub == 'sub':
+            _text_path = Path(data_path, 'sub_data.txt')
+        else:
+            logger.error('full_or_sub should be full or sub')
+            exit(0)
         if _text_path.is_file():
             text_path = _text_path
 
     trans_predict = TransformersPredictEval(load_path=load_path, text_path=text_path, cuda_device=cuda_device,
-                                            fast_tokenizer=fast_tokenizer)
+                                            fast_tokenizer=fast_tokenizer, full_or_sub=full_or_sub)
     trans_predict.predict(batch_size=batch_size)
     trans_predict.evaluation_file()
 
