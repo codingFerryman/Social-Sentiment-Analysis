@@ -304,7 +304,7 @@ class TransformersModel(ModelConstruction):
         if model_path is None:
             model_path = Path(self.training_saving_path, 'model')
         logger.info("Saving TransformersModel")
-        self.trainer.save_state()
         self.trainer.save_model(model_path)
+        self.trainer.save_state()
         _tokenizer = self.getTokenizer()
         _tokenizer.save_pretrained(Path(self.training_saving_path, 'tokenizer'))
