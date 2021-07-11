@@ -24,6 +24,12 @@
             pointer-events: none;
             font-size: 0.8rem;
         }
+        button {
+            position: absolute;
+            left: 40%;
+            width: 120pt;
+            height: 20pt;
+        }
         /* .text {
             color: #eee
         } */
@@ -31,15 +37,16 @@
     </style>
     <script src="d3.v4.min.js"></script>
 <body style="background-color:#D7E7E5;">
+<button onclick="changeMode()"> change barplots </button>
 <svg width="100%" height="1000"></svg>
 <script>
     const barWidth = 600;
     const REPORT_PATH = "report.json";
+    var currentMode = "80%"; /* "80%" */ 
     var svg = d3.select("svg"),
         margin = 200,
         width = barWidth - margin,
         height = svg.attr("height") - margin
-        percentWidth = (width - 23 * 2) /100;
     svg.append("text")
         .attr("transform", "translate(100,0)")
         .attr("x", 50)
@@ -67,26 +74,9 @@
             return arr.reduce((total, num) => total+num) / arr.length;
         }
     }
-
-    function createChart(data) {
-        /** This function creates the barchart present in the experiments' page
-         * @param data: The dictionary of the experiment results in a json report file.
-         */
-        console.log(data);
-        xs = data.map(d => {
-            console.log(d.results);
-            return average(Object.values(d.results)) * 100;
-        });
-
-        // xs = Array.from(data, (d) => average(d.results));
-        xsMax = Math.max(0,
-                         xs.reduce((max, number) => Math.max(number, max)));
-        // data is a json array
-        yDomain = Array.from(data, (x, i) => i * 20);
-        xDomain = Array.from({length: 11}, (x, i) => i * 10);
-        yScale.domain([0, 100]);
-        xScale.domain(xDomain);
-
+    function createChartAbsolute(data, xs, xsMax, xDomain, yDomain, xScale, yScale) {
+        let percentWidth = (width - 23 * 2) /100;
+        g.selectAll("*").remove();
         g.append("g")
             // .attr("transform", "translate(0," + height + ")")
             .call(d3.axisTop(xScale).tickFormat(function(d){
@@ -180,8 +170,145 @@
                     .duration('50')
                     .style("opacity", 0);
             });
-    };
+    }
+    function createChart80Percent(data, xs, xsMax, xDomain, yDomain, xScale, yScale) {
+        let percentWidth = (width - 23 * 2) /100;
+        xs.sort((a, b) => b - a);
+        xs = xs.map((el) => el - 80);
+        g.selectAll("*").remove();
+        g.append("g")
+            // .attr("transform", "translate(0," + height + ")")
+            .call(d3.axisTop(xScale).tickFormat(function(d){
+                    return d + '%';})
+                .ticks(11))
+            .append("text")
+            .attr("transform", "rotate(-0)")
+            .attr("y", 26)
+            .attr("x", width+100)
+            .attr("dy", "-5.1em")
+            .attr("text-anchor", "end")
+            .attr("stroke", "black")
+            .text("Experiment");
 
+        g.append("g")
+            .call(d3.axisLeft(yScale))
+            .append("text")
+            .attr("y", -20)
+            .attr("x", 10 )
+            .attr("text-anchor", "end")
+            .attr("stroke", "black")
+            .text("Av Accuracy");
+        
+        var bar = g.selectAll(".bar")
+            .data(data)
+            .enter()
+
+        bar.append("text")
+            .attr("class", "below")
+            .attr("x", width)
+            .attr("y", function(d,i) {return i * 20-10})
+            .attr("dy", "1.2em")
+            .attr("text-anchor", "left")
+            .text(function(d){ return d.description; })
+            .style("fill", "#000000");
+        
+        var div = d3.select("body").append("div")
+            .attr("class", "indicator")
+            .style("opacity", 0);
+        
+        bar.append("rect")
+            .attr("class", "bar")
+            .attr("y", function(d,i) { return yDomain[i]; })
+            .attr("x", function(d,i) { return 23; })
+            .attr("height", 10)
+            .attr("width", function(d,i) { return 5*xs[i]*percentWidth; })
+            .on('mouseover', function (d, i) {
+                d3.select(this).transition()
+                    .duration('50')
+                    .attr('opacity', '.85');
+                div.transition()
+                   .duration(50)
+                   .style("opacity", 1);
+                let num = (xs[i] + 80) + '%';
+                div.html(num)
+                   .style("left", (d3.event.pageX + 10) + "px")
+                   .style("top", (d3.event.pageY - 15) + "px");
+            })
+            .on('mouseout', function (d, i) {
+                d3.select(this).transition()
+                    .duration('50')
+                    .attr('opacity', '1');
+                div.transition()
+                    .duration('50')
+                    .style("opacity", 0);
+            });
+        bar.append("rect")
+            .attr("class", "bar")
+            .attr("y", function(d,i) { return yDomain[i]; })
+            .attr("x", function(d,i) { return 5*xs[i]*percentWidth+23; })
+            .attr("height", 10)
+            .attr("width", function(d,i) { return (100 - 5*xs[i])*percentWidth; })
+            .style("fill", "#ffffff")
+            .on('mouseover', function (d, i) {
+                d3.select(this).transition()
+                    .duration('50')
+                    .attr('opacity', '.85');
+                div.transition()
+                   .duration(50)
+                   .style("opacity", 1);
+                let num = (xs[i] + 80) + '%';
+                div.html(num)
+                   .style("left", (d3.event.pageX + 10) + "px")
+                   .style("top", (d3.event.pageY - 15) + "px");
+            })
+            .on('mouseout', function (d, i) {
+                d3.select(this).transition()
+                    .duration('50')
+                    .attr('opacity', '1');
+                div.transition()
+                    .duration('50')
+                    .style("opacity", 0);
+            });
+    }
+    function createChart(data) {
+        /** This function creates the barchart present in the experiments' page
+         * @param data: The dictionary of the experiment results in a json report file.
+         */
+        console.log(data);
+        xs = data.map(d => {
+            console.log(d.results);
+            return average(Object.values(d.results)) * 100;
+        });
+
+        xsMax = Math.max(0,
+                         xs.reduce((max, number) => Math.max(number, max)));
+        // data is a json array
+        yDomain = Array.from(data, (x, i) => i * 20);
+        yScale.domain([0, 100]);
+
+
+        if (currentMode == "absolute") {
+            xDomain = Array.from({length: 11}, (x, i) => i * 10);
+            xScale.domain(xDomain); 
+            createChartAbsolute(data, xs, xsMax, xDomain, yDomain, xScale, yScale);
+        }
+        else {
+            xDomain = Array.from({length: 11}, (x, i) => i*2+80);
+            xScale.domain(xDomain);
+            createChart80Percent(data, xs, xsMax, xDomain, yDomain, xScale, yScale)
+        }
+
+    };
+    function changeMode() {
+        currentMode = (currentMode == "absolute")?"80%":"absolute";
+        console.log(currentMode);
+        let request = new XMLHttpRequest();
+        request.open("GET", REPORT_PATH, true);
+        request.onload = function(e) {
+            let jsonData = JSON.parse(request.responseText);
+            createChart(jsonData["experiments"]);
+        }
+    }
     var request = new XMLHttpRequest();
     request.open("GET", REPORT_PATH, true);
     request.onload = function(e) {
