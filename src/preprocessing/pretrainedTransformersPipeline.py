@@ -55,7 +55,8 @@ class TwitterDatasetTorch(Dataset):
         else:
             # Set all the input_ids to padding token id
             _ids = torch.tensor([self.tokenizer.pad_token_id] * self.tokenizerConfig["max_length"], dtype=torch.int)
-            _mask = torch.tensor([0] * self.tokenizerConfig["max_length"], dtype=torch.uint8)
+            # TODO
+            _mask = torch.tensor([1] + [0] * (self.tokenizerConfig["max_length"] - 1), dtype=torch.uint8)
         _label = torch.tensor(self.labels[idx], dtype=torch.long)
         return {
             'input_ids': _ids,
