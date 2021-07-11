@@ -16,7 +16,7 @@ data_path = get_data_path()
 
 
 class TransformersPredictEval(TransformersPredict):
-    def __init__(self, load_path, fast_tokenizer, full_or_sub: str, text_path=None, pos_path=None, neg_path=None,
+    def __init__(self, load_path, fast_tokenizer, full_or_sub: str = None, text_path=None, pos_path=None, neg_path=None,
                  cuda_device=None, is_test=False):
         # Generate the data file by combine and shuffle pos and neg data if no text_path
         if text_path is None:
@@ -59,8 +59,8 @@ class TransformersPredictEval(TransformersPredict):
         if save_path is None:
             save_path = Path(self.load_path, 'prediction_on_train.csv')
         # The golden data read from the file
-        data_indexed = pd.read_csv(self.text_path, sep='\u0001', names=['golden', 'text'])
-        data_indexed['text'] = data_indexed['text'].str.strip()
+        data_indexed = pd.read_csv(self.text_path, sep='\u0001', names=['index', 'Golden', 'Text'])
+        data_indexed['Text'] = data_indexed['Text'].str.strip()
 
         # The prediction labels, scores, and the index of zero length sentences
         pred_labels = [r['label'] for r in self.pred]
@@ -76,10 +76,12 @@ class TransformersPredictEval(TransformersPredict):
                         'pred': pred_est,
                         'score': pred_est_score}
         pred_df = pd.DataFrame.from_dict(pred_df_dict)
-        pred_df.set_index('index', inplace=True)
 
         # Join the prediction DataFrame and the golden DataFrame
-        results = data_indexed.join(pred_df, how='outer')
+        results = pd.merge(data_indexed, pred_df, how='outer').rename(columns={'index': 'Id',
+                                                                               'pred': 'Prediction',
+                                                                               'score': 'Score'})
+        results = results[['Id', 'Golden', 'Prediction', 'Score', 'Text']]
         # ... and write it to a csv file
         results.to_csv(save_path, index=False)
 

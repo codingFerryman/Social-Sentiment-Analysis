@@ -83,7 +83,7 @@ class TransformersPredict:
             for s in tqdm(lines):
                 _tmp = s.split('\u0001')
                 data.append(_tmp[-1])
-                ids.append(_tmp[0])
+                ids.append(int(_tmp[0]))
         text_id = []
         text = []
         zero_len_idx = []
