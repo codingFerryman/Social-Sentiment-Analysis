@@ -79,7 +79,7 @@ class TransformersPredictEval(TransformersPredict):
         pred_df.set_index('index', inplace=True)
 
         # Join the prediction DataFrame and the golden DataFrame
-        results = data_indexed.join(pred_df)
+        results = data_indexed.join(pred_df, how='outer')
         # ... and write it to a csv file
         results.to_csv(save_path, index=False)
 
