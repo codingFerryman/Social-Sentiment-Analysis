@@ -37,7 +37,8 @@ class TransformersPredict:
         try:
             tokenizer = AutoTokenizer.from_pretrained(tokenizer_path, use_fast=fast_tokenizer)
         except Exception as e:
-            raise (e, "Please try to disable fast tokenizer by \'fast_tokenizer=false\'and try again")
+            # TODO: More reasonable exception (However OSError doesn't work)
+            raise (e, "Please switch the value of fast tokenizer and try again")
 
         self.pipeline = TextClassificationPipeline(model=model, tokenizer=tokenizer, device=cuda_device,
                                                    binary_output=True)
