@@ -1,4 +1,5 @@
 {
+    "description": "vinai/bertweet-base. Dataset: full; Epochs: 10; tokenizer_len: 64",
     "model_name_or_path": "vinai/bertweet-base",
     "data_load_ratio": 1,
     "model_type": "transformers",
@@ -12,8 +13,7 @@
         "weight_decay": 0.0001,
         "learning_rate": 1e-5,
         "evaluation_strategy": "epoch",
-        "logging_strategy": "steps",
-        "logging_steps": 100,
+        "logging_strategy": "epoch",
         "overwrite_output_dir": true,
         "load_best_model_at_end": true,
         "metric_for_best_model": "accuracy",
@@ -21,14 +21,15 @@
         "early_stopping_threshold": 0.0001,
         "train_val_split_iterator": "train_test_split",
         "fine_tune_layers": {
-            "freeze": true,
+            "freeze": false,
             "num_unfrozen_layers": 1,
             "unfrozen_embeddings": true
-        }
+        },
+        "report_to": null
     },
     "tokenizer_config": {
         "add_special_tokens": true,
-        "max_length": 50,
+        "max_length": 64,
         "padding": "max_length",
         "truncation": true,
         "return_token_type_ids": true,
@@ -47,6 +48,5 @@
     "metric": [
         "glue",
         "mrpc"
-    ],
-    "description": "vinai/bertweet-base w/ full dataset"
+    ]
 }

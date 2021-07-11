@@ -4,9 +4,9 @@ import datetime as dt
 import enum
 import json
 import os
+import pathlib
 import sys
 from typing import Tuple
-import pathlib
 
 import hyperopt
 import hyperopt.pyll
@@ -20,6 +20,11 @@ from models.transformersModel import TransformersModel
 
 PROJECT_DIRECTORY = get_project_path()
 
+
+# hf_logging.set_verbosity_debug()
+# hf_logging.enable_explicit_format()
+
+
 # Here are the possible model
 # types denoted
 class ModelType(enum.Enum):
@@ -29,6 +34,7 @@ class ModelType(enum.Enum):
 
 class TokenizerType(enum.Enum):
     transformers = "transformers"
+
 
 class ReportJSONEncoder(json.JSONEncoder):
     def default(self, obj):
@@ -40,7 +46,6 @@ class ReportJSONEncoder(json.JSONEncoder):
             return obj.tolist()
         else:
             return super(MyEncoder, self).default(obj)
-
 
 
 def report(info: dict, reportPath: str):
@@ -100,8 +105,11 @@ def launchExperimentFromDict(d: dict, reportPath: str = None):
     if d['model_type'] == ModelType.transformers.value:
         # TODO: transformers model is used, but a general model is needed here
         model_name_or_path = d['model_name_or_path']
+        tokenizer_name_or_path = d.get('tokenizer_name_or_path', model_name_or_path)
         model = TransformersModel(modelName_or_pipeLine=model_name_or_path,
-                                  fast_tokenizer=d.get('fast_tokenizer'))
+                                  tokenizer_name_or_path=tokenizer_name_or_path,
+                                  fast_tokenizer=d.get('fast_tokenizer'),
+                                  text_pre_cleaning=d.get('text_pre_cleaning', 'default'))
 
     if type(d['metric']) is str:
         d['metric'] = [d['metric']]
@@ -137,7 +145,7 @@ def launchExperimentFromDict(d: dict, reportPath: str = None):
         # see robertaHyperopt.json for more details.
         space = {argName: getHyperoptValue(argName, argValue)
                  for argName, argValue in d['args'].items()}
-        
+
         all_evals = []
 
         def getEvals(args):
@@ -153,7 +161,7 @@ def launchExperimentFromDict(d: dict, reportPath: str = None):
                         actualArgs[argName] = argVal
                 else:
                     actualArgs[argName] = argVal
-            
+
             # test the model
             # and get evaluations
             _ = model.trainModel(
@@ -168,14 +176,14 @@ def launchExperimentFromDict(d: dict, reportPath: str = None):
 
         def getEvalsError(args):
             evals = getEvals(args)
-            print(f"New evals = {evals}")    
+            print(f"New evals = {evals}")
             # res = 100 - np.sum(evals) / np.size(evals)
             return evals
 
         bestHyperparametersDictFromHyperOpt = hyperopt.fmin(getEvalsError, space, hyperopt.tpe.suggest,
-                                                max_evals=d['hyperopt_max_evals'])
+                                                            max_evals=d['hyperopt_max_evals'])
         bestHyperparametersDict = d['args'].copy()
-        for k,v in bestHyperparametersDictFromHyperOpt.items():
+        for k, v in bestHyperparametersDictFromHyperOpt.items():
             bestHyperparametersDict[k] = v
         report(info={**bestHyperparametersDict,
                      "all_evals": all_evals,
@@ -245,7 +253,7 @@ def launchExperimentFromJson(fpath: str, reportPath: str):
 
 def main(args: list):
     """ The main function of the program. It launches an experiment from a json file specified and reports
-    to a file specified, else it reports to ./report.json.
+    to a file specified, else it reports to docs/report.json.
     use args:
     - test_path=<your test path> for setting the path of the test json file
     - report_path=<your report destination path> for setting the path for the report to be written or appended. 
@@ -268,8 +276,6 @@ def main(args: list):
 
 
 if __name__ == "__main__":
-    os.environ["WANDB_DISABLED"] = "true" # for cluster we need to disable this
+    if pathlib.Path().resolve().parts[1] == 'cluster':
+        os.environ["WANDB_DISABLED"] = "true"  # for cluster we need to disable this
     main(sys.argv)
-    # os.environ['CUDA_VISIBLE_DEVICES'] = "0"
-    # launchExperimentFromJson(fpath="/home/he/Workspace/cil-project/src/configs/roberta_base_debug.json",
-    #                          reportPath='/home/he/Workspace/cil-project/docs/report_test.json')

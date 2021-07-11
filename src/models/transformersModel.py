@@ -1,7 +1,7 @@
 import os
+import pathlib
 import time
 import typing
-import pathlib
 from pathlib import Path
 
 import numpy as np
@@ -11,10 +11,10 @@ from transformers import AutoModelForSequenceClassification, AutoConfig
 from transformers import EarlyStoppingCallback
 from transformers import TrainingArguments, Trainer
 
-
 from models.Model import ModelConstruction, get_iterator_splitter_from_name
 from preprocessing.pretrainedTransformersPipeline import PretrainedTransformersPipeLine
 from utils import get_project_path, get_transformers_layers_num, loggers
+from utils.cleaningText import cleaningMap
 from utils.diskArray import DiskArray
 
 logger = loggers.getLogger("TransformersModel", True)
@@ -52,14 +52,21 @@ def getTransformersTokenizer(
                                               loadFunction=loadFunction,
                                               fast_tokenizer=kwargs.get('fast_tokenizer'))
 
+
 class TransformersModel(ModelConstruction):
-    def __init__(self, modelName_or_pipeLine=None, loadFunction=None, fast_tokenizer=None):
+    def __init__(self, modelName_or_pipeLine=None, tokenizer_name_or_path=None,
+                 loadFunction=None, fast_tokenizer=None,
+                 text_pre_cleaning='default'):
         if modelName_or_pipeLine is None:
             # Set the default model to roberta-base
             modelName_or_pipeLine = "roberta-base"
+        if tokenizer_name_or_path is None:
+            tokenizer_name_or_path = modelName_or_pipeLine
+
         if type(modelName_or_pipeLine) is str:
             # If the value passed is a model's name
-            self.pipeLine = getTransformersTokenizer(modelName_or_pipeLine, loadFunction, fast_tokenizer=fast_tokenizer)
+            self.pipeLine = getTransformersTokenizer(tokenizer_name_or_path, loadFunction,
+                                                     fast_tokenizer=fast_tokenizer)
             self._modelName = modelName_or_pipeLine
             self._dataLoaded = False
         else:
@@ -68,6 +75,7 @@ class TransformersModel(ModelConstruction):
             self._modelName = modelName_or_pipeLine.tokenizer.name_or_path
             self._dataLoaded = self.pipeLine.is_data_loaded()
 
+        self.text_pre_cleaning_function = cleaningMap()[text_pre_cleaning]
         # Initialise some variables
         self._registeredMetrics = []
         self.metric = ('accuracy',)
@@ -116,6 +124,10 @@ class TransformersModel(ModelConstruction):
         _config = AutoConfig.from_pretrained(self._modelName)
         if model_config_dict:
             _config.update(model_config_dict)
+        if _config.pad_token_id is None:
+            logger.info('Set the pad_token_id to eos_token_id as there is no padding token in the config')
+            _config.pad_token_id = _config.eos_token_id
+
         if pathlib.Path().resolve().parts[1] == 'cluster':
             if os.getenv("TRANSFORMERS_CACHE") is None:
                 cache_dir = os.path.join(os.getenv("SCRATCH"), '.cache/huggingface/')
@@ -126,6 +138,7 @@ class TransformersModel(ModelConstruction):
                                                                        cache_dir=cache_dir)
         else:
             model = AutoModelForSequenceClassification.from_pretrained(self._modelName, config=_config)
+
         return model
 
     def trainModel(self, train_val_split_iterator: str = "train_test_split",
@@ -140,8 +153,10 @@ class TransformersModel(ModelConstruction):
         assert(not(stratify and "cross_validate_accuracy" == train_val_split_iterator)), f"stratify should be = false for {train_val_split_iterator}"
         splitter = get_iterator_splitter_from_name(train_val_split_iterator)
 
+        # The callable function to pre-cleaning the texts
         encodedDatasetArgs = {'splitter': splitter,
-                              'tokenizerConfig': tokenizer_config}
+                              'tokenizerConfig': tokenizer_config,
+                              'cleaning_function': self.text_pre_cleaning_function}
         if 'test_size' in trainer_config.keys():
             encodedDatasetArgs['test_size'] = trainer_config['test_size']
         if 'stratify' in trainer_config.keys():
@@ -199,21 +214,23 @@ class TransformersModel(ModelConstruction):
                 early_stopping_patience = trainer_config_copy.pop("early_stopping_patience")
                 early_stopping_threshold = trainer_config_copy.pop("early_stopping_threshold", 0)
                 callbacks.append(EarlyStoppingCallback(early_stopping_patience=early_stopping_patience,
-                                                   early_stopping_threshold=early_stopping_threshold))
+                                                       early_stopping_threshold=early_stopping_threshold))
 
             if pathlib.Path().resolve().parts[1] == 'cluster':
                 training_logging_dir = self.training_saving_path_cluster
             else:
                 training_logging_dir = self.training_saving_path
 
-
             training_args = TrainingArguments(
-                logging_dir=Path(self.training_saving_path, 'logs'),
-                output_dir=Path(self.training_saving_path),
+                # Please do NOT add logging_dir here (that is for TensorBoard)
+                # Please save checkpoints to scratch when training on the cluster
+                output_dir=training_logging_dir,
                 **trainer_config_copy
             )
             logger.debug(f"The program is running from: {str(pathlib.Path().resolve())}")
             logger.debug(f"The checkpoints will be saved in {training_logging_dir}")
+            assert Path(training_args.output_dir) == Path(training_logging_dir), \
+                "The logging directory for checkpoints is not correct"
             self.trainer = Trainer(
                 model=self.model,
                 args=training_args,
@@ -287,7 +304,7 @@ class TransformersModel(ModelConstruction):
         if model_path is None:
             model_path = Path(self.training_saving_path, 'model')
         logger.info("Saving TransformersModel")
-        self.trainer.save_state()
         self.trainer.save_model(model_path)
+        self.trainer.save_state()
         _tokenizer = self.getTokenizer()
         _tokenizer.save_pretrained(Path(self.training_saving_path, 'tokenizer'))

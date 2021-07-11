@@ -1,7 +1,6 @@
 import os
-import re
-import random
 import pathlib
+import random
 from typing import Tuple, Dict, Callable
 
 import numpy as np
@@ -12,6 +11,7 @@ from transformers.file_utils import PaddingStrategy
 from transformers.tokenization_utils_base import PreTrainedTokenizerBase
 
 from preprocessing.InputPipeline import InputPipeline
+from utils.cleaningText import cleaning_default
 from utils.inputFunctions import loadData
 from utils.loggers import getLogger
 
@@ -20,7 +20,8 @@ logger = getLogger("PretrainedTransformersPipeLine", debug=True)
 
 class TwitterDatasetTorch(Dataset):
     def __init__(self, text: list, labels: list, tokenizer: PreTrainedTokenizerBase,
-                 tokenizerConfig: dict = None):
+                 tokenizerConfig: dict = None,
+                 cleaning_function: callable = None):
         """ This is a wrapper to pass data of the twitter dataset to pytorch.
         Args:
             text (list): The list of raw text.
@@ -35,21 +36,26 @@ class TwitterDatasetTorch(Dataset):
             tokenizerConfig = {"padding": PaddingStrategy.MAX_LENGTH, "max_length": 64, "truncation": True}
         if "max_length" not in tokenizerConfig.keys():
             tokenizerConfig["max_length"] = 64
+        if cleaning_function is None:
+            self.cleaning_function = cleaning_default
+        else:
+            self.cleaning_function = cleaning_function
 
         self.tokenizerConfig = tokenizerConfig
 
     def __getitem__(self, idx):
         tweet = self.text_list[idx]
-        tweet = self.cleaning(tweet)
-        if self.tokenizer.pad_token is None:
-            self.tokenizer.pad_token = self.tokenizer.eos_token
-            self.tokenizer.pad_token_id = self.tokenizer.eos_token_id
-        inputs = self.tokenizer.encode_plus(
-            text=tweet,
-            **self.tokenizerConfig
-        )
-        _ids = torch.tensor(inputs['input_ids'], dtype=torch.int)
-        _mask = torch.tensor(inputs['attention_mask'], dtype=torch.uint8)
+        tweet = self.cleaning_function(tweet)
+
+        # Solve the problem if empty text exists
+        if len(tweet) > 0:
+            inputs = self.tokenizer.encode_plus(text=tweet, **self.tokenizerConfig)
+            _ids = torch.tensor(inputs['input_ids'], dtype=torch.int)
+            _mask = torch.tensor(inputs['attention_mask'], dtype=torch.uint8)
+        else:
+            # Set all the input_ids to padding token id
+            _ids = torch.tensor([self.tokenizer.pad_token_id] * self.tokenizerConfig["max_length"], dtype=torch.int)
+            _mask = torch.tensor([0] * self.tokenizerConfig["max_length"], dtype=torch.uint8)
         _label = torch.tensor(self.labels[idx], dtype=torch.long)
         return {
             'input_ids': _ids,
@@ -62,10 +68,6 @@ class TwitterDatasetTorch(Dataset):
 
     def getTokenizer(self):
         return self.tokenizer
-
-    @staticmethod
-    def cleaning(text):
-        return re.sub(r'(<.*?>)|(\r\n|\r|\n)|(\'|\")', '', text.lstrip())
 
 
 class PretrainedTransformersPipeLine(InputPipeline):
@@ -109,6 +111,10 @@ class PretrainedTransformersPipeLine(InputPipeline):
                                                            cache_dir=cache_dir)
         else:
             self.tokenizer = AutoTokenizer.from_pretrained(model_name_or_path, use_fast=fast_tokenizer)
+        if self.tokenizer.pad_token is None:
+            logger.info('Set the pad_token to eos_token as there is no padding token in the config')
+            self.tokenizer.pad_token = self.tokenizer.eos_token
+            logger.info('The pad token is already set to eos token. The error message above can be ignored.')
         self._dataLoaded = False
 
     def loadData(self, ratio='sub'):
@@ -190,15 +196,17 @@ class PretrainedTransformersPipeLine(InputPipeline):
         return min_len, max_len, zero_len_idx
 
     def getEncodedDatasetTorch(self, train_dataX: list, train_datay: list, val_dataX: list, val_datay: list,
-                               tokenizerConfig: dict):
+                               tokenizerConfig: dict, cleaning_function: callable):
         """Convert the raw texts to PyTorch Datasets for training"""
 
         encDataTrain = TwitterDatasetTorch(text=train_dataX, labels=train_datay,
                                            tokenizer=self.tokenizer,
-                                           tokenizerConfig=tokenizerConfig)
+                                           tokenizerConfig=tokenizerConfig,
+                                           cleaning_function=cleaning_function)
         encDataVal = TwitterDatasetTorch(text=val_dataX, labels=val_datay,
                                          tokenizer=self.tokenizer,
-                                         tokenizerConfig=tokenizerConfig)
+                                         tokenizerConfig=tokenizerConfig,
+                                         cleaning_function=cleaning_function)
         return encDataTrain, encDataVal
 
     def getClassWeight(self, posLabel=1, negLabel=0) -> Dict[int, float]:
@@ -213,6 +221,7 @@ class PretrainedTransformersPipeLine(InputPipeline):
         return ret
 
     def getEncodedDataset(self, splitter: Callable = None,
+                          cleaning_function: Callable = None,
                           posLabel=1, negLabel=0, stratify=True,
                           tokenizerConfig: dict = None,
                           **splitterConfig):
@@ -220,6 +229,7 @@ class PretrainedTransformersPipeLine(InputPipeline):
         Split the training dataset to encoded training and validation datasets.
         Args:
             splitter (Callable): the function to split the dataset
+            cleaning_function (Callable): the function to preprocess texts
             posLabel (int): the label of positive texts
             negLabel (int): the label of negative texts
             stratify (bool): if stratify then keep the labels balanced during splitting.
@@ -251,29 +261,32 @@ class PretrainedTransformersPipeLine(InputPipeline):
             encDataTrain, encDataVal = self.getEncodedDatasetTorch(train_dataX=self.allData,
                                                                    train_datay=labels,
                                                                    val_dataX=[], val_datay=[],
-                                                                   tokenizerConfig=tokenizerConfig)
+                                                                   tokenizerConfig=tokenizerConfig,
+                                                                   cleaning_function=cleaning_function)
             yield encDataTrain, encDataVal
         else:
             if stratify:
                 stratify_label = labels
                 for train_dataX, val_dataX, train_datay, val_datay in splitter(self.allData, labels,
-                                                                          stratify=stratify_label,
-                                                                          **splitterConfig):
+                                                                               stratify=stratify_label,
+                                                                               **splitterConfig):
                     encDataTrain, encDataVal = self.getEncodedDatasetTorch(train_dataX=train_dataX,
-                                                                       train_datay=list(train_datay),
-                                                                       val_dataX=val_dataX,
-                                                                       val_datay=list(val_datay),
-                                                                       tokenizerConfig=tokenizerConfig)
+                                                                           train_datay=list(train_datay),
+                                                                           val_dataX=val_dataX,
+                                                                           val_datay=list(val_datay),
+                                                                           tokenizerConfig=tokenizerConfig,
+                                                                           cleaning_function=cleaning_function)
                     yield encDataTrain, encDataVal
             else:
                 stratify_label = None
                 for train_dataX, val_dataX, train_datay, val_datay in splitter(X=self.allData, y=labels,
-                                                                          **splitterConfig):
+                                                                               **splitterConfig):
                     encDataTrain, encDataVal = self.getEncodedDatasetTorch(train_dataX=train_dataX,
-                                                                       train_datay=list(train_datay),
-                                                                       val_dataX=val_dataX,
-                                                                       val_datay=list(val_datay),
-                                                                       tokenizerConfig=tokenizerConfig)
+                                                                           train_datay=list(train_datay),
+                                                                           val_dataX=val_dataX,
+                                                                           val_datay=list(val_datay),
+                                                                           tokenizerConfig=tokenizerConfig,
+                                                                           cleaning_function=cleaning_function)
                     yield encDataTrain, encDataVal
 
     def trainTokenizer(self):

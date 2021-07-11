@@ -1,6 +1,6 @@
 {
-  "description": "siebert/sentiment-roberta-large-english. Dataset: full; Epochs: 5; tokenizer_len: 50; unfrozen 1 layer; frozen embeddings",
-  "model_name_or_path": "siebert/sentiment-roberta-large-english",
+  "description": "xlnet-base. Dataset: full; Epochs: 10; tokenizer_len: 64",
+  "model_name_or_path": "xlnet-base-cased",
   "data_load_ratio": 1,
   "model_type": "transformers",
   "tokenizer_type": "transformers",
@@ -21,7 +21,7 @@
         "early_stopping_threshold": 0.0001,
         "train_val_split_iterator": "train_test_split",
         "fine_tune_layers": {
-            "freeze": true,
+            "freeze": false,
             "num_unfrozen_layers": 1,
             "unfrozen_embeddings": true
         },
