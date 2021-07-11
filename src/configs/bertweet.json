@@ -1,5 +1,5 @@
 {
-    "description": "vinai/bertweet-base w/ full dataset",
+    "description": "vinai/bertweet-base. Dataset: full; Epochs: 10; tokenizer_len: 64",
     "model_name_or_path": "vinai/bertweet-base",
     "data_load_ratio": 1,
     "model_type": "transformers",

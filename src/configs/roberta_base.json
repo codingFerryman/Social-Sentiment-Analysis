@@ -1,5 +1,5 @@
 {
-    "description": "roberta-base w/ full dataset",
+    "description": "roberta-base. Dataset: full; Epochs: 10; tokenizer_len: 64",
     "model_name_or_path": "roberta-base",
     "data_load_ratio": 1,
     "model_type": "transformers",

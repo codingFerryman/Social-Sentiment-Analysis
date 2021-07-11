@@ -54,14 +54,19 @@ def getTransformersTokenizer(
 
 
 class TransformersModel(ModelConstruction):
-    def __init__(self, modelName_or_pipeLine=None, loadFunction=None, fast_tokenizer=None,
+    def __init__(self, modelName_or_pipeLine=None, tokenizer_name_or_path=None,
+                 loadFunction=None, fast_tokenizer=None,
                  text_pre_cleaning='default'):
         if modelName_or_pipeLine is None:
             # Set the default model to roberta-base
             modelName_or_pipeLine = "roberta-base"
+        if tokenizer_name_or_path is None:
+            tokenizer_name_or_path = modelName_or_pipeLine
+
         if type(modelName_or_pipeLine) is str:
             # If the value passed is a model's name
-            self.pipeLine = getTransformersTokenizer(modelName_or_pipeLine, loadFunction, fast_tokenizer=fast_tokenizer)
+            self.pipeLine = getTransformersTokenizer(tokenizer_name_or_path, loadFunction,
+                                                     fast_tokenizer=fast_tokenizer)
             self._modelName = modelName_or_pipeLine
             self._dataLoaded = False
         else:
