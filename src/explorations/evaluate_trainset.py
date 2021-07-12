@@ -54,10 +54,11 @@ class TransformersPredictEval(TransformersPredict):
                 ft.writelines(data2write)
         # Init superclass
         super(TransformersPredictEval, self).__init__(load_path, text_path, fast_tokenizer, cuda_device, is_test)
+        self.full_or_sub = full_or_sub
 
     def evaluation_file(self, save_path=None):
         if save_path is None:
-            save_path = Path(self.load_path, 'prediction_on_train.csv')
+            save_path = Path(self.load_path, 'pred_train_' + self.full_or_sub + '.csv')
         # The golden data read from the file
         data_indexed = pd.read_csv(self.text_path, sep='\u0001', names=['index', 'Golden', 'Text'])
         data_indexed['Text'] = data_indexed['Text'].str.strip()
@@ -105,7 +106,8 @@ def main(args: list):
     load_path = argv.get('load_path', None)
     assert load_path, "No load_path specified"
     batch_size = argv.get('batch_size', 256)
-    cuda_device = argv.get('cuda', None)
+    cuda_device = argv.get('cuda_device', -1)
+    cuda_device = int(cuda_device)
     fast_tokenizer = argv.get('fast_tokenizer', 'true').lower()
     assert fast_tokenizer in ['true', 'false']
     fast_tokenizer = False if 'f' in fast_tokenizer else True
@@ -130,4 +132,10 @@ def main(args: list):
 
 
 if __name__ == '__main__':
+    # tpe = TransformersPredictEval(load_path='/home/he/Workspace/cil-project/trainings/vinai/bertweet-base/20210711-131720',
+    #                               text_path='/home/he/Workspace/cil-project/data/sub_data.txt',
+    #                               cuda_device=1,
+    #                               fast_tokenizer='false')
+    # tpe.predict(batch_size=32)
+    # tpe.evaluation_file('./local_eval_bertweet.csv')
     main(sys.argv)
