@@ -60,7 +60,6 @@
 
     var g = svg.append("g")
                 .attr("transform", "translate(" + 100 + "," + 100 + ")");
-
     function average(arr) {
         /**
          * @param arr: array of numbers
@@ -74,11 +73,11 @@
             return arr.reduce((total, num) => total+num) / arr.length;
         }
     }
+    
     function createChartAbsolute(data, xs, xsMax, xDomain, yDomain, xScale, yScale) {
         let percentWidth = (width - 23 * 2) /100;
-        g.selectAll("*").remove();
         g.append("g")
-            // .attr("transform", "translate(0," + height + ")")
+            .attr("transform", "translate(0," + height + ")")
             .call(d3.axisTop(xScale).tickFormat(function(d){
                     return d + '%';})
                 .ticks(11))
@@ -175,7 +174,6 @@
         let percentWidth = (width - 23 * 2) /100;
         xs.sort((a, b) => b - a);
         xs = xs.map((el) => el - 80);
-        g.selectAll("*").remove();
         g.append("g")
             // .attr("transform", "translate(0," + height + ")")
             .call(d3.axisTop(xScale).tickFormat(function(d){
@@ -275,6 +273,10 @@
          * @param data: The dictionary of the experiment results in a json report file.
          */
         console.log(data);
+        if(currentMode == "80%") {
+            data.sort((a,b) => average(Object.values(a.results)) - average(Object.values(b.results)));
+        }
+
         xs = data.map(d => {
             console.log(d.results);
             return average(Object.values(d.results)) * 100;
@@ -285,7 +287,6 @@
         // data is a json array
         yDomain = Array.from(data, (x, i) => i * 20);
         yScale.domain([0, 100]);
-
 
         if (currentMode == "absolute") {
             xDomain = Array.from({length: 11}, (x, i) => i * 10);
@@ -300,14 +301,23 @@
 
     };
     function changeMode() {
-        currentMode = (currentMode == "absolute")?"80%":"absolute";
-        console.log(currentMode);
+        g.remove();
+        // d3.selectAll("svg > *").remove();
+        // d3.select("g").selectAll("*").remove();
+        g = svg.append("g")
+                .attr("transform", "translate(" + 100 + "," + 100 + ")");
         let request = new XMLHttpRequest();
         request.open("GET", REPORT_PATH, true);
         request.onload = function(e) {
+            currentMode = (currentMode == "absolute")?"80%":"absolute";
+            console.log(currentMode);
             let jsonData = JSON.parse(request.responseText);
             createChart(jsonData["experiments"]);
         }
+        request.onerror = function (e) {
+        console.error(xhr.statusText);
+    };
+    request.send(null);
     }
     var request = new XMLHttpRequest();
     request.open("GET", REPORT_PATH, true);
