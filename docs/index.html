@@ -91,7 +91,7 @@
             .text("Experiment");
 
         g.append("g")
-            .call(d3.axisLeft(yScale))
+            .call(d3.axisLeft(yScale).tickFormat(() => ""))
             .append("text")
             .attr("y", -20)
             .attr("x", 10 )
@@ -188,7 +188,7 @@
             .text("Experiment");
 
         g.append("g")
-            .call(d3.axisLeft(yScale))
+            .call(d3.axisLeft(yScale).tickFormat(() => ""))
             .append("text")
             .attr("y", -20)
             .attr("x", 10 )
