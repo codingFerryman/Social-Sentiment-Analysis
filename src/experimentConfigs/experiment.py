@@ -4,8 +4,8 @@ import datetime as dt
 import enum
 import json
 import os
-import pathlib
 import sys
+from pathlib import Path
 from typing import Tuple
 
 import hyperopt
@@ -134,12 +134,15 @@ def launchExperimentFromDict(d: dict, reportPath: str = None):
         best_model_epoch = model.getBestModelEpoch()
         model_saved_path = model.training_saving_path
         report_description = d.pop('description')
-        report(info={"description": report_description,
+        info_dict = {"description": report_description,
                      "results": {d['args']['metric_for_best_model']: best_model_metric},
                      "output_dir": str(model_saved_path),
                      "time_stamp": str(dt.datetime.now()),
                      "stopped_epoch": best_model_epoch,
-                     **d},
+                     **d}
+        with open(Path(str(model_saved_path), 'report.json'), 'w') as fw:
+            fw.write(json.dumps(info_dict, indent=4, cls=ReportJSONEncoder))
+        report(info=info_dict,
                reportPath=reportPath)
     else:
         # if use_hyperopt = True inside the dictionary
@@ -267,7 +270,7 @@ def main(args: list):
         args (list): a dictionary containing the program arguments (sys.argv)
     """
     # Set the cache directory to /cluster/scratch if running on the cluster
-    if pathlib.Path().resolve().parts[1] == 'cluster':
+    if Path().resolve().parts[1] == 'cluster':
         os.environ["TRANSFORMERS_CACHE"] = os.path.join(os.getenv("SCRATCH"), '.cache/huggingface/')
 
     argv = {a.split('=')[0]: a.split('=')[1] for a in args[1:]}
@@ -280,6 +283,6 @@ def main(args: list):
 
 
 if __name__ == "__main__":
-    if pathlib.Path().resolve().parts[1] == 'cluster':
+    if Path().resolve().parts[1] == 'cluster':
         os.environ["WANDB_DISABLED"] = "true"  # for cluster we need to disable this
     main(sys.argv)
