@@ -172,7 +172,6 @@
     }
     function createChart80Percent(data, xs, xsMax, xDomain, yDomain, xScale, yScale) {
         let percentWidth = (width - 23 * 2) /100;
-        xs.sort((a, b) => b - a);
         xs = xs.map((el) => el - 80);
         g.append("g")
             // .attr("transform", "translate(0," + height + ")")
@@ -274,7 +273,7 @@
          */
         console.log(data);
         if(currentMode == "80%") {
-            data.sort((a,b) => average(Object.values(a.results)) - average(Object.values(b.results)));
+            data.sort((a,b) => average(Object.values(b.results)) - average(Object.values(a.results)));
         }
 
         xs = data.map(d => {
@@ -290,13 +289,13 @@
 
         if (currentMode == "absolute") {
             xDomain = Array.from({length: 11}, (x, i) => i * 10);
-            xScale.domain(xDomain); 
+            xScale.domain(xDomain);
             createChartAbsolute(data, xs, xsMax, xDomain, yDomain, xScale, yScale);
         }
         else {
             xDomain = Array.from({length: 11}, (x, i) => i*2+80);
             xScale.domain(xDomain);
-            createChart80Percent(data, xs, xsMax, xDomain, yDomain, xScale, yScale)
+            createChart80Percent(data, xs, xsMax, xDomain, yDomain, xScale, yScale);
         }
 
     };
