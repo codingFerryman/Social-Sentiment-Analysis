@@ -12,6 +12,7 @@ import hyperopt
 import hyperopt.pyll
 import numpy as np
 from datasets import list_metrics
+from transformers import logging as hf_logging
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from utils.utils import get_project_path
@@ -20,9 +21,8 @@ from models.transformersModel import TransformersModel
 
 PROJECT_DIRECTORY = get_project_path()
 
-
 # hf_logging.set_verbosity_debug()
-# hf_logging.enable_explicit_format()
+hf_logging.enable_explicit_format()
 
 
 # Here are the possible model
@@ -131,11 +131,15 @@ def launchExperimentFromDict(d: dict, reportPath: str = None):
         )
         model.save()
         best_model_metric = model.getBestMetric()
+        best_model_epoch = model.getBestModelEpoch()
         model_saved_path = model.training_saving_path
-        report(info={**d,
+        report_description = d.pop('description')
+        report(info={"description": report_description,
                      "results": {d['args']['metric_for_best_model']: best_model_metric},
                      "output_dir": str(model_saved_path),
-                     "time_stamp": str(dt.datetime.now())},
+                     "time_stamp": str(dt.datetime.now()),
+                     "stopped_epoch": best_model_epoch,
+                     **d},
                reportPath=reportPath)
     else:
         # if use_hyperopt = True inside the dictionary

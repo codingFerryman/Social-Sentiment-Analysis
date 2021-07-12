@@ -1,7 +1,7 @@
 {
     "description": "RoBERTa Base model for testing",
     "model_name_or_path": "roberta-base",
-    "data_load_ratio": 0.0001,
+    "data_load_ratio": 0.00001,
     "model_type": "transformers",
     "tokenizer_type": "transformers",
     "fast_tokenizer": false,
