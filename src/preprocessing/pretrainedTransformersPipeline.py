@@ -11,7 +11,7 @@ from transformers.file_utils import PaddingStrategy
 from transformers.tokenization_utils_base import PreTrainedTokenizerBase
 
 from preprocessing.InputPipeline import InputPipeline
-from utils.cleaningText import cleaning_default
+from preprocessing.cleaningText import cleaning_default
 from utils.inputFunctions import loadData
 from utils.loggers import getLogger
 

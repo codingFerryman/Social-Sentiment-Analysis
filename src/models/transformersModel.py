@@ -12,9 +12,9 @@ from transformers import EarlyStoppingCallback
 from transformers import TrainingArguments, Trainer
 
 from models.Model import ModelConstruction, get_iterator_splitter_from_name
+from preprocessing.cleaningText import cleaningMap
 from preprocessing.pretrainedTransformersPipeline import PretrainedTransformersPipeLine
 from utils import get_project_path, get_transformers_layers_num, loggers
-from utils.cleaningText import cleaningMap
 from utils.diskArray import DiskArray
 
 logger = loggers.getLogger("TransformersModel", True)
@@ -254,13 +254,12 @@ class TransformersModel(ModelConstruction):
         bestMetricIndex = int(np.argmax(allMetrics))
         state, model = trainerList[bestMetricIndex]
         t = Trainer(model=model,
-                    compute_metrics=self.compute_metrics, 
-                    train_dataset=train_dataset, 
+                    compute_metrics=self.compute_metrics,
+                    train_dataset=train_dataset,
                     eval_dataset=eval_dataset)
         t.state = state
         logger.info("{}{}".format(t.state.best_metric, np.max(allMetrics)))
         return trainer_state_log_history[bestMetricIndex], t, float(np.average(allMetrics))
-        
 
     def registerMetric(self, *metric):
         """Register a metric for evaluation"""
@@ -297,6 +296,9 @@ class TransformersModel(ModelConstruction):
     def getBestModelCheckpoint(self):
         return self.trainer.state.best_model_checkpoint
 
+    def getBestModelEpoch(self):
+        return self.trainer.state.epoch
+
     def getTokenizer(self):
         return self.pipeLine.getTokenizer()
 
@@ -304,7 +306,8 @@ class TransformersModel(ModelConstruction):
         if model_path is None:
             model_path = Path(self.training_saving_path, 'model')
         logger.info("Saving TransformersModel")
-        self.trainer.save_model(model_path)
         self.trainer.save_state()
+        self.trainer.state.save_to_json(Path(self.training_saving_path, 'trainer_state.json'))
+        self.trainer.save_model(model_path)
         _tokenizer = self.getTokenizer()
         _tokenizer.save_pretrained(Path(self.training_saving_path, 'tokenizer'))

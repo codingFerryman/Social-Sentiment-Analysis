@@ -5,9 +5,9 @@
   "model_type": "transformers",
   "tokenizer_type": "transformers",
   "fast_tokenizer": false,
-  "text_pre_cleaning": "strip",
+  "text_pre_cleaning": "masks",
   "args": {
-    "epochs": 20,
+    "epochs": 16,
     "batch_size": 64,
     "adafactor": false,
     "warmup_steps": 100,

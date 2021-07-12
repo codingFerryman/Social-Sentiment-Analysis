@@ -13,7 +13,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 from utils import loggers
 from utils.utils import get_data_path
-from utils.cleaningText import cleaning_default
+from preprocessing.cleaningText import cleaning_default
 
 logger = loggers.getLogger("PredictForSubmission", True)
 
