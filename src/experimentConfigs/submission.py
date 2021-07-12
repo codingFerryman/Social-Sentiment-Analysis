@@ -35,7 +35,7 @@ class TestDataset(Dataset):
 
 
 class TransformersPredict:
-    def __init__(self, load_path, text_path, fast_tokenizer=None, device=None, is_test=True, ):
+    def __init__(self, load_path, text_path, fast_tokenizer=False, device=None, is_test=True, ):
         self.is_test = is_test
 
         if device is None:
@@ -52,11 +52,16 @@ class TransformersPredict:
         config_path = Path(load_path, 'report.json')
         with open(config_path, 'r') as fr:
             cfg = json.load(fr)
+
         id2label = cfg['model_config']['id2label']
         self.id2label = {int(k): int(v) for k, v in id2label.items()}
+
         self.tokenizer_config = cfg['tokenizer_config']
-        if fast_tokenizer is None:
-            fast_tokenizer = cfg.get('fast_tokenizer', False)
+        fast_tokenizer_cfg = cfg.get('fast_tokenizer', None)
+        if fast_tokenizer_cfg is not None:
+            logger.info('fast_tokenizer is overwritten by %d in model config', str(fast_tokenizer_cfg))
+            fast_tokenizer = fast_tokenizer_cfg
+
         text_pre_cleaning = cfg.get('text_pre_cleaning', 'default')
         self.text_pre_cleaning_function = cleaningMap()[text_pre_cleaning]
 

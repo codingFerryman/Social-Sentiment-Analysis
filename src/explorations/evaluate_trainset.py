@@ -125,7 +125,7 @@ def main(args: list):
 
     device = argv.get('device', None)
 
-    fast_tokenizer = argv.get('fast_tokenizer', 'true').lower()
+    fast_tokenizer = argv.get('fast_tokenizer', 'false').lower()
     assert fast_tokenizer in ['true', 'false']
     fast_tokenizer = False if 'f' in fast_tokenizer else True
 
