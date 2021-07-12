@@ -59,7 +59,7 @@ class TransformersPredict:
         self.tokenizer_config = cfg['tokenizer_config']
         fast_tokenizer_cfg = cfg.get('fast_tokenizer', None)
         if fast_tokenizer_cfg is not None:
-            logger.info('fast_tokenizer is overwritten by %d in model config', str(fast_tokenizer_cfg))
+            logger.info('fast_tokenizer is overwritten by %s in model config', str(fast_tokenizer_cfg))
             fast_tokenizer = fast_tokenizer_cfg
 
         text_pre_cleaning = cfg.get('text_pre_cleaning', 'default')
