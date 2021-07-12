@@ -78,18 +78,8 @@ class TransformersPredictEval(TransformersPredict):
         pred_df = pd.DataFrame.from_dict(pred_df_dict)
 
         # Join the prediction DataFrame and the golden DataFrame
-        results = pd.merge(data_indexed, pred_df, how='outer').rename(columns={'index': 'Id',
-                                                                               'pred': 'Prediction',
-                                                                               'score': 'Score'})
-        results = results[['Id', 'Golden', 'Prediction', 'Score', 'Text']]
+        results = pred_df.rename(columns={'index': 'Id', 'pred': 'Prediction', 'score': 'Score'})
         # ... and write it to a csv file
-        results = results.astype({
-            'Id': int,
-            'Golden': int,
-            'Prediction': int,
-            'Score': float,
-            'Text': object
-        })
         results.to_csv(save_path, index=False)
 
 
