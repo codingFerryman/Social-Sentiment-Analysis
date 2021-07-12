@@ -2,6 +2,7 @@ import os
 import random
 import sys
 from pathlib import Path
+from typing import Union
 
 import pandas as pd
 
@@ -16,8 +17,13 @@ data_path = get_data_path()
 
 
 class TransformersPredictEval(TransformersPredict):
-    def __init__(self, load_path, fast_tokenizer, full_or_sub: str = None, text_path=None, pos_path=None, neg_path=None,
-                 cuda_device=None, is_test=False):
+    def __init__(self, load_path: Union[str, Path],
+                 fast_tokenizer: bool = False,
+                 full_or_sub: str = None,
+                 text_path: Union[str, Path] = None,
+                 pos_path: Union[str, Path] = None,
+                 neg_path: Union[str, Path] = None,
+                 device: str = None, is_test: bool = False):
         # Generate the data file by combine and shuffle pos and neg data if no text_path
         if text_path is None:
             # Adapt inputs to real filenames
@@ -26,11 +32,11 @@ class TransformersPredictEval(TransformersPredict):
                 full_or_sub_file_suffix = ''
             elif full_or_sub == 'full':
                 full_or_sub_file_suffix = '_full'
-
+            self.full_or_sub = full_or_sub
             if pos_path is None:
-                pos_path = Path(data_path, 'train_pos' + full_or_sub_file_suffix + '.txt')
+                pos_path = Path(data_path, 'train_pos{0}.txt'.format(full_or_sub_file_suffix))
             if neg_path is None:
-                neg_path = Path(data_path, 'train_neg' + full_or_sub_file_suffix + '.txt')
+                neg_path = Path(data_path, 'train_neg{0}.txt'.format(full_or_sub_file_suffix))
             logger.debug('Loading data from:')
             logger.debug(pos_path)
             logger.debug(neg_path)
@@ -49,23 +55,31 @@ class TransformersPredictEval(TransformersPredict):
             data_indexed = [(i,) + d for i, d in enumerate(tmp, 1)]
             # ... then write the data to a file. The separator here is invisible
             data2write = ['\u0001'.join(str(d) for d in doc) for doc in data_indexed]
-            text_path = Path(data_path, full_or_sub + '_data.txt')
+            text_path = Path(data_path, self.full_or_sub + '_data.txt')
             with open(text_path, 'w') as ft:
                 ft.writelines(data2write)
+        else:
+            if 'full' in Path(text_path).stem:
+                self.full_or_sub = 'full'
+            elif 'sub' in Path(text_path).stem:
+                self.full_or_sub = 'sub'
+            else:
+                self.full_or_sub = 'new'
+
         # Init superclass
-        super(TransformersPredictEval, self).__init__(load_path, text_path, fast_tokenizer, cuda_device, is_test)
-        self.full_or_sub = full_or_sub
+        super(TransformersPredictEval, self).__init__(load_path, text_path, fast_tokenizer, device, is_test)
 
     def evaluation_file(self, save_path=None):
         if save_path is None:
             save_path = Path(self.load_path, 'pred_train_' + self.full_or_sub + '.csv')
+        logger.info('The evaluation file will be saved to ' + str(save_path))
         # The golden data read from the file
         data_indexed = pd.read_csv(self.text_path, sep='\u0001', names=['index', 'Golden', 'Text'])
         data_indexed['Text'] = data_indexed['Text'].str.strip()
 
         # The prediction labels, scores, and the index of zero length sentences
-        pred_labels = [r['label'] for r in self.pred]
-        pred_score = [r['score'] for r in self.pred]
+        pred_labels = self.get_predictions().tolist()
+        pred_score = self.get_scores().tolist()
         id_zero_len = self.data['zero_len_ids']
 
         # Randomly predict the label of zero length sentences, and set their probability to 0.5
@@ -91,7 +105,7 @@ def main(args: list):
         args (list): a dictionary containing the program arguments (sys.argv)
         - load_path: The root directory containing 'model' and 'tokenizer'
         - batch_size: The batch size in prediction
-        - cuda_device: The index of cuda device for prediction.
+        - device: The device for prediction.
             If not given, the program will automatically use the first cuda device otherwise the cpu
         - fast_tokenizer: Use Fast Tokenizer or not in predictions. Better to use the same as training tokenizer
             Using fast tokenizer by default
@@ -103,14 +117,18 @@ def main(args: list):
             fast_tokenizer=false full_or_sub=sub
     """
     argv = {a.split('=')[0]: a.split('=')[1] for a in args[1:]}
+
     load_path = argv.get('load_path', None)
     assert load_path, "No load_path specified"
+
     batch_size = argv.get('batch_size', 256)
-    cuda_device = argv.get('cuda_device', -1)
-    cuda_device = int(cuda_device)
+
+    device = argv.get('device', None)
+
     fast_tokenizer = argv.get('fast_tokenizer', 'true').lower()
     assert fast_tokenizer in ['true', 'false']
     fast_tokenizer = False if 'f' in fast_tokenizer else True
+
     text_path = argv.get('text_path', None)
     full_or_sub = argv.get('full_or_sub', None)
     assert text_path or full_or_sub, 'text_path or full_or_sub should be given'
@@ -125,17 +143,11 @@ def main(args: list):
             logger.info("Using the data file which already exists.")
             text_path = _text_path
 
-    trans_predict = TransformersPredictEval(load_path=load_path, text_path=text_path, cuda_device=cuda_device,
+    trans_predict = TransformersPredictEval(load_path=load_path, text_path=text_path, device=device,
                                             fast_tokenizer=fast_tokenizer, full_or_sub=full_or_sub)
     trans_predict.predict(batch_size=batch_size)
     trans_predict.evaluation_file()
 
 
 if __name__ == '__main__':
-    # tpe = TransformersPredictEval(load_path='/home/he/Workspace/cil-project/trainings/vinai/bertweet-base/20210711-131720',
-    #                               text_path='/home/he/Workspace/cil-project/data/sub_data.txt',
-    #                               cuda_device=1,
-    #                               fast_tokenizer='false')
-    # tpe.predict(batch_size=32)
-    # tpe.evaluation_file('./local_eval_bertweet.csv')
     main(sys.argv)

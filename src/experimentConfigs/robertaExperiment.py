@@ -1,20 +1,12 @@
 import json
-import os
 from pathlib import Path
 
 from models import TransformersModel
 # sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from submission import TransformersPredict
 from utils import get_project_path
-import torch
 
 project_directory = get_project_path()
-
-if torch.cuda.is_available():
-    cuda_rank = 0
-else:
-    cuda_rank = -1
-os.environ['CUDA_VISIBLE_DEVICES'] = str(cuda_rank)
 
 # Load the config
 with open(Path(project_directory, 'src', 'configs', 'roberta_base_debug.json'), 'r') as fp:
@@ -55,8 +47,7 @@ trainer = model.getTrainer()
 
 # Predict the test data
 model_predict = TransformersPredict(load_path=model_saved_path,
-                                    text_path=Path(project_directory, 'data', 'test_data.txt'),
-                                    cuda_device=cuda_rank)
+                                    text_path=Path(project_directory, 'data', 'test_data.txt'))
 model_predict.predict(batch_size=32)
 
 model_predict.submission_file(Path(model_saved_path, 'submission.csv'))
