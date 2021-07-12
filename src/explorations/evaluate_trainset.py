@@ -83,6 +83,13 @@ class TransformersPredictEval(TransformersPredict):
                                                                                'score': 'Score'})
         results = results[['Id', 'Golden', 'Prediction', 'Score', 'Text']]
         # ... and write it to a csv file
+        results = results.astype({
+            'Id': int,
+            'Golden': int,
+            'Prediction': int,
+            'Score': float,
+            'Text': object
+        })
         results.to_csv(save_path, index=False)
 
 

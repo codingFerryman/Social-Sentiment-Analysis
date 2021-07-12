@@ -68,6 +68,10 @@ class TransformersPredict:
         pred_est = pred_labels + [random.choice([-1, 1]) for _ in range(len(id_zero_len))]
         pred_dict = {'Id': pred_id, 'Prediction': pred_est}
         pred_df = pd.DataFrame(pred_dict)
+        pred_df = pred_df.astype({
+            'Id': int,
+            'Prediction': int
+        })
         pred_df.to_csv(save_path, index=False)
 
     def pre_process_test(self, lines: list):
