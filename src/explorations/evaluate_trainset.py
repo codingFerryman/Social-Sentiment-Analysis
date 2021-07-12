@@ -54,10 +54,11 @@ class TransformersPredictEval(TransformersPredict):
                 ft.writelines(data2write)
         # Init superclass
         super(TransformersPredictEval, self).__init__(load_path, text_path, fast_tokenizer, cuda_device, is_test)
+        self.full_or_sub = full_or_sub
 
     def evaluation_file(self, save_path=None):
         if save_path is None:
-            save_path = Path(self.load_path, 'prediction_on_train.csv')
+            save_path = Path(self.load_path, 'pred_train_' + self.full_or_sub + '.csv')
         # The golden data read from the file
         data_indexed = pd.read_csv(self.text_path, sep='\u0001', names=['index', 'Golden', 'Text'])
         data_indexed['Text'] = data_indexed['Text'].str.strip()
