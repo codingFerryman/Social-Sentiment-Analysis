@@ -45,7 +45,7 @@ class ReportJSONEncoder(json.JSONEncoder):
         elif isinstance(obj, np.ndarray):
             return obj.tolist()
         else:
-            return super(MyEncoder, self).default(obj)
+            return super(ReportJSONEncoder, self).default(obj)
 
 
 def report(info: dict, reportPath: str):
