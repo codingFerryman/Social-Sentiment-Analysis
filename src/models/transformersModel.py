@@ -307,7 +307,7 @@ class TransformersModel(ModelConstruction):
             model_path = Path(self.training_saving_path, 'model')
         logger.info("Saving TransformersModel")
         self.trainer.save_state()
-        self.trainer.state.save_to_json(Path(self.training_saving_path, 'trainer_state.json'))
         self.trainer.save_model(model_path)
+        self.trainer.state.save_to_json(Path(self.training_saving_path, 'trainer_state.json'))
         _tokenizer = self.getTokenizer()
         _tokenizer.save_pretrained(Path(self.training_saving_path, 'tokenizer'))
