@@ -68,7 +68,7 @@ class TransformersPredict:
         logger.info(f"Loading model from {load_path}")
 
         self.tokenizer = AutoTokenizer.from_pretrained(tokenizer_path, use_fast=fast_tokenizer)
-        self.model = AutoModelForSequenceClassification.from_pretrained(model_path).to(self.device)
+        self.model = AutoModelForSequenceClassification.from_pretrained(model_path, output_hidden_states=True).to(self.device)
 
         with open(text_path, 'r') as fp:
             lines = fp.readlines()
@@ -87,6 +87,7 @@ class TransformersPredict:
         data_loader = DataLoader(dataset, batch_size=batch_size)
         predictions = torch.tensor([], dtype=torch.int8, device=self.device)
         scores = torch.tensor([], device=self.device)
+        last_hidden_states = []
 
         with torch.no_grad():
             for data_text in tqdm(data_loader):
@@ -95,6 +96,7 @@ class TransformersPredict:
                 # Predict
                 input_ids = torch.tensor(inputs['input_ids'], device=self.device)
                 logit = self.model(input_ids).logits
+                last_hidden_states.append(self.model(input_ids)[1])
                 score = torch.softmax(logit, dim=-1)
                 prediction = torch.argmax(score, dim=-1)
                 prediction_score = torch.max(score, dim=-1).values
@@ -103,11 +105,15 @@ class TransformersPredict:
                 scores = torch.cat((scores, prediction_score), 0)
         self.pred = predictions
         self.pred_scores = scores
+        self.last_hidden_states = last_hidden_states
 
     def get_predictions(self):
 
         pred2label = self.pred.cpu().apply_(self.id2label.get)
         return pred2label
+
+    def getVectorRepresentation(self):
+        return self.last_hidden_states
 
     def get_scores(self):
         return self.pred_scores
