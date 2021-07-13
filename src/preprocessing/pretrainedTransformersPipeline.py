@@ -11,7 +11,6 @@ from transformers.file_utils import PaddingStrategy
 from transformers.tokenization_utils_base import PreTrainedTokenizerBase
 
 from preprocessing.InputPipeline import InputPipeline
-from preprocessing.cleaningText import cleaning_default
 from utils.inputFunctions import loadData
 from utils.loggers import getLogger
 
@@ -20,8 +19,7 @@ logger = getLogger("PretrainedTransformersPipeLine", debug=True)
 
 class TwitterDatasetTorch(Dataset):
     def __init__(self, text: list, labels: list, tokenizer: PreTrainedTokenizerBase,
-                 tokenizerConfig: dict = None,
-                 cleaning_function: callable = None):
+                 tokenizerConfig: dict = None):
         """ This is a wrapper to pass data of the twitter dataset to pytorch.
         Args:
             text (list): The list of raw text.
@@ -36,27 +34,16 @@ class TwitterDatasetTorch(Dataset):
             tokenizerConfig = {"padding": PaddingStrategy.MAX_LENGTH, "max_length": 64, "truncation": True}
         if "max_length" not in tokenizerConfig.keys():
             tokenizerConfig["max_length"] = 64
-        if cleaning_function is None:
-            self.cleaning_function = cleaning_default
-        else:
-            self.cleaning_function = cleaning_function
 
         self.tokenizerConfig = tokenizerConfig
 
     def __getitem__(self, idx):
         tweet = self.text_list[idx]
-        tweet = self.cleaning_function(tweet)
 
-        # Solve the problem if empty text exists
-        if len(tweet) > 0:
-            inputs = self.tokenizer.encode_plus(text=tweet, **self.tokenizerConfig)
-            _ids = torch.tensor(inputs['input_ids'], dtype=torch.int)
-            _mask = torch.tensor(inputs['attention_mask'], dtype=torch.uint8)
-        else:
-            # Set all the input_ids to padding token id
-            _ids = torch.tensor([self.tokenizer.pad_token_id] * self.tokenizerConfig["max_length"], dtype=torch.int)
-            # TODO
-            _mask = torch.tensor([1] + [0] * (self.tokenizerConfig["max_length"] - 1), dtype=torch.uint8)
+        inputs = self.tokenizer.encode_plus(text=tweet, **self.tokenizerConfig)
+        _ids = torch.tensor(inputs['input_ids'], dtype=torch.int)
+        _mask = torch.tensor(inputs['attention_mask'], dtype=torch.uint8)
+
         _label = torch.tensor(self.labels[idx], dtype=torch.long)
         return {
             'input_ids': _ids,
@@ -197,17 +184,15 @@ class PretrainedTransformersPipeLine(InputPipeline):
         return min_len, max_len, zero_len_idx
 
     def getEncodedDatasetTorch(self, train_dataX: list, train_datay: list, val_dataX: list, val_datay: list,
-                               tokenizerConfig: dict, cleaning_function: callable):
+                               tokenizerConfig: dict):
         """Convert the raw texts to PyTorch Datasets for training"""
 
         encDataTrain = TwitterDatasetTorch(text=train_dataX, labels=train_datay,
                                            tokenizer=self.tokenizer,
-                                           tokenizerConfig=tokenizerConfig,
-                                           cleaning_function=cleaning_function)
+                                           tokenizerConfig=tokenizerConfig)
         encDataVal = TwitterDatasetTorch(text=val_dataX, labels=val_datay,
                                          tokenizer=self.tokenizer,
-                                         tokenizerConfig=tokenizerConfig,
-                                         cleaning_function=cleaning_function)
+                                         tokenizerConfig=tokenizerConfig)
         return encDataTrain, encDataVal
 
     def getClassWeight(self, posLabel=1, negLabel=0) -> Dict[int, float]:
@@ -243,6 +228,11 @@ class PretrainedTransformersPipeLine(InputPipeline):
         posAsOnes = np.ones((len(self.dataPos),), dtype=np.int32)
         argMix = np.concatenate((posAsOnes, negAsZeros))
         labels = list(self.getLabels(argMix=list(argMix), posLabel=posLabel, negLabel=negLabel))
+
+        logger.info('Cleaning the dataset ...')
+        self.allData = cleaning_function(self.allData)
+        logger.info('Cleaned!')
+
         # get max sequence length
         min_len, max_len, zero_len_idx = self.getSequenceMaxLength()
 
@@ -262,8 +252,7 @@ class PretrainedTransformersPipeLine(InputPipeline):
             encDataTrain, encDataVal = self.getEncodedDatasetTorch(train_dataX=self.allData,
                                                                    train_datay=labels,
                                                                    val_dataX=[], val_datay=[],
-                                                                   tokenizerConfig=tokenizerConfig,
-                                                                   cleaning_function=cleaning_function)
+                                                                   tokenizerConfig=tokenizerConfig)
             yield encDataTrain, encDataVal
         else:
             if stratify:
@@ -275,8 +264,7 @@ class PretrainedTransformersPipeLine(InputPipeline):
                                                                            train_datay=list(train_datay),
                                                                            val_dataX=val_dataX,
                                                                            val_datay=list(val_datay),
-                                                                           tokenizerConfig=tokenizerConfig,
-                                                                           cleaning_function=cleaning_function)
+                                                                           tokenizerConfig=tokenizerConfig)
                     yield encDataTrain, encDataVal
             else:
                 stratify_label = None
@@ -286,8 +274,7 @@ class PretrainedTransformersPipeLine(InputPipeline):
                                                                            train_datay=list(train_datay),
                                                                            val_dataX=val_dataX,
                                                                            val_datay=list(val_datay),
-                                                                           tokenizerConfig=tokenizerConfig,
-                                                                           cleaning_function=cleaning_function)
+                                                                           tokenizerConfig=tokenizerConfig)
                     yield encDataTrain, encDataVal
 
     def trainTokenizer(self):
