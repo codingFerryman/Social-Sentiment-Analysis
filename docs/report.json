@@ -1,5 +1,5 @@
 {
-    "num_experiments": 13,
+    "num_experiments": 14,
     "experiments": [
         {
             "model_name_or_path": "vinai/bertweet-base",
@@ -717,6 +717,64 @@
             },
             "output_dir": "/cluster/home/heliuhe/cil-project/trainings/vinai/bertweet-base/20210711-131720",
             "time_stamp": "2021-07-12 01:40:17.078373"
+        },
+        {
+            "description": "microsoft_mpnet-base. Dataset: full; Epochs: 10; tokenizer_len: 50; learning_rate: 1e-4, weight_decay: 0.0001",
+            "results": {
+                "accuracy": 0.8922567346147747
+            },
+            "output_dir": "/cluster/home/iathanasi/Computational-Intelligence-Lab/trainings/microsoft/mpnet-base/20210713-143207",
+            "time_stamp": "2021-07-14 06:16:12.934432",
+            "stopped_epoch": 6.0,
+            "model_name_or_path": "microsoft/mpnet-base",
+            "data_load_ratio": 1,
+            "model_type": "transformers",
+            "tokenizer_type": "transformers",
+            "fast_tokenizer": false,
+            "args": {
+                "epochs": 10,
+                "batch_size": 256,
+                "adafactor": false,
+                "warmup_steps": 100,
+                "weight_decay": 0.0001,
+                "learning_rate": 0.0001,
+                "evaluation_strategy": "epoch",
+                "logging_strategy": "epoch",
+                "overwrite_output_dir": true,
+                "load_best_model_at_end": true,
+                "metric_for_best_model": "accuracy",
+                "early_stopping_patience": 3,
+                "early_stopping_threshold": 0.0001,
+                "train_val_split_iterator": "train_test_split",
+                "fine_tune_layers": {
+                    "freeze": false,
+                    "num_unfrozen_layers": 1,
+                    "unfrozen_embeddings": true
+                },
+                "report_to": null
+            },
+            "tokenizer_config": {
+                "add_special_tokens": true,
+                "max_length": 50,
+                "padding": "max_length",
+                "truncation": true,
+                "return_token_type_ids": true,
+                "return_attention_mask": true
+            },
+            "model_config": {
+                "num_labels": 2,
+                "problem_type": "single_label_classification",
+                "output_attentions": false,
+                "output_hidden_states": false,
+                "id2label": {
+                    "1": 1,
+                    "0": -1
+                }
+            },
+            "metric": [
+                "glue",
+                "mrpc"
+            ]
         }
     ]
 }
