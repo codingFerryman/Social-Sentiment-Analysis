@@ -18,7 +18,7 @@ try:
     for h in trans_predictPos.extractHiddenStates(batch_size=batch_size, appendToList=True):
         pass
 except KeyboardInterrupt:
-    print("Keyboard interupt, progress till now is saved")
+    print("Keyboard interupt, progress till now will be saved")
     pass
 vecReprPos = trans_predictPos.getVectorRepresentation()
 with open('test.npy', 'wb') as fw:

@@ -88,7 +88,7 @@ class TransformersPredict:
         return batch_size, data_filtered, dataset, data_loader, last_hidden_states
     
     def predict(self, batch_size=128):
-        batch_size, data_filtered, dataset, data_loader, last_hidden_states = self.initPredictions()
+        batch_size, data_filtered, dataset, data_loader, last_hidden_states = self.initPredictions(batch_size=batch_size)
         predictions = torch.tensor([], dtype=torch.int8, device=self.device)
         scores = torch.tensor([], device=self.device)
         last_hidden_states = []
@@ -107,6 +107,26 @@ class TransformersPredict:
                 scores = torch.cat((scores, prediction_score), 0)
         self.pred = predictions
         self.pred_scores = scores
+    
+    def predictIterator(self, batch_size=128):
+        batch_size, data_filtered, dataset, data_loader, last_hidden_states = self.initPredictions(batch_size=batch_size)
+        predictions = torch.tensor([], dtype=torch.int8, device=self.device)
+        scores = torch.tensor([], device=self.device)
+        last_hidden_states = []
+        with torch.no_grad():
+            for data_text in tqdm(data_loader):
+                # Encode texts
+                inputs = self.tokenizer(data_text, **self.tokenizer_config)
+                # Predict
+                input_ids = torch.tensor(inputs['input_ids'], device=self.device)
+                logit = self.model(input_ids).logits
+                score = torch.softmax(logit, dim=-1)
+                prediction = torch.argmax(score, dim=-1)
+                prediction_score = torch.max(score, dim=-1).values
+                # Concatenate predictions
+                # predictions = torch.cat((predictions, prediction), 0)
+                # scores = torch.cat((scores, prediction_score), 0)
+                yield prediction, prediction_score
     
     def extractHiddenStates(self, batch_size=128, appendToList:bool=False):
         batch_size, data_filtered, dataset, data_loader = self.initPredictions()
