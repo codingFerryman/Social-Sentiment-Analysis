@@ -80,15 +80,18 @@ class TransformersPredict:
         self.pred = None
         self.pred_scores = None
 
-    def predict(self, batch_size=128):
+    def initPredictions(self, batch_size):
         batch_size = int(batch_size)
         data_filtered = list(filter(None, self.data['text']))
         dataset = TestDataset(data_filtered)
         data_loader = DataLoader(dataset, batch_size=batch_size)
+        return batch_size, data_filtered, dataset, data_loader, last_hidden_states
+    
+    def predict(self, batch_size=128):
+        batch_size, data_filtered, dataset, data_loader, last_hidden_states = self.initPredictions()
         predictions = torch.tensor([], dtype=torch.int8, device=self.device)
         scores = torch.tensor([], device=self.device)
         last_hidden_states = []
-
         with torch.no_grad():
             for data_text in tqdm(data_loader):
                 # Encode texts
@@ -96,7 +99,6 @@ class TransformersPredict:
                 # Predict
                 input_ids = torch.tensor(inputs['input_ids'], device=self.device)
                 logit = self.model(input_ids).logits
-                last_hidden_states.append(self.model(input_ids)[1])
                 score = torch.softmax(logit, dim=-1)
                 prediction = torch.argmax(score, dim=-1)
                 prediction_score = torch.max(score, dim=-1).values
@@ -105,14 +107,28 @@ class TransformersPredict:
                 scores = torch.cat((scores, prediction_score), 0)
         self.pred = predictions
         self.pred_scores = scores
-        self.last_hidden_states = last_hidden_states
+    
+    def extractHiddenStates(self, batch_size=128, appendToList:bool=False):
+        batch_size, data_filtered, dataset, data_loader = self.initPredictions()
+        last_hidden_states = []
+        with torch.no_grad():
+            for data_text in tqdm(data_loader):
+                # Encode texts
+                inputs = self.tokenizer(data_text, **self.tokenizer_config)
+                # Predict
+                input_ids = torch.tensor(inputs['input_ids'], device=self.device)
+                logit = self.model(input_ids).logits
+                h = self.model(input_ids)[1]
+                self.last_hidden_states.append(h if appendToList else [])
+                yield(h)
+
 
     def get_predictions(self):
-
         pred2label = self.pred.cpu().apply_(self.id2label.get)
         return pred2label
 
     def getVectorRepresentation(self):
+        self.last_hidden_states = [el for el in self.last_hidden_states if el != []]
         return self.last_hidden_states
 
     def get_scores(self):
