@@ -230,7 +230,7 @@ class DiskArray(Sequence):
             i = self.indexBytes(dill.dumps(x))
             return i
         except ValueError:
-            raise Value(f"object {x} does not exist in DiskArray")
+            raise ValueError(f"object {x} does not exist in DiskArray")
         
     def save(self, newFilePath:str):
         """This saves the current file used by this diskArray instance to a file newFilePath.
