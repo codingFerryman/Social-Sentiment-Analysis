@@ -129,7 +129,7 @@ class TransformersPredict:
                 yield prediction, prediction_score
     
     def extractHiddenStates(self, batch_size=128, appendToList:bool=False):
-        batch_size, data_filtered, dataset, data_loader = self.initPredictions()
+        batch_size, data_filtered, dataset, data_loader = self.initPredictions(batch_size=batch_size)
         last_hidden_states = []
         with torch.no_grad():
             for data_text in tqdm(data_loader):
