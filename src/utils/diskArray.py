@@ -1,3 +1,4 @@
+# An array structure that stores data in disk and not in RAM or cache
 import os
 import numpy as np
 import dill
@@ -15,7 +16,7 @@ def getDiskArrayFileIndex() -> str:
     i = 0
     while True:
         i += 1
-        fileName = f'tempDiskArray{i}.hdf5'
+        fileName = f'tempDiskArray{i}.tempDiskArray'
         if os.path.exists(fileName):
             continue 
         yield fileName

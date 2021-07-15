@@ -135,7 +135,7 @@ class TransformersPredict:
                 inputs = self.tokenizer(data_text, **self.tokenizer_config)
                 # Predict
                 input_ids = torch.tensor(inputs['input_ids'], device=self.device)
-                h = self.model(input_ids)[1]
+                h = self.model(input_ids).hidden_states[-1]
                 self.last_hidden_states.append(h if appendToList else [])
                 yield(h)
 
