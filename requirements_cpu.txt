@@ -13,12 +13,9 @@ hyperopt~=0.2.5
 yapf
 emoji
 sentencepiece
-<<<<<<< HEAD
 dill
-=======
 clean-text
 neuspell
->>>>>>> 21ae6e73d64c29b06d2e3a92b9de412a41ec62ee
 
 # package location
 --find-links https://download.pytorch.org/whl/lts/1.8/torch_lts.html
