@@ -1,0 +1,9 @@
+transformers
+coloredlogs
+GitPython~=3.1
+yapf
+emoji
+sentencepiece
+cleantext
+neuspell
+dill
