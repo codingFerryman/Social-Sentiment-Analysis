@@ -13,6 +13,8 @@ hyperopt~=0.2.5
 yapf
 emoji
 sentencepiece
+clean-text
+neuspell
 
 # package location
 --find-links https://download.pytorch.org/whl/lts/1.8/torch_lts.html
