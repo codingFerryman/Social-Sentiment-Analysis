@@ -128,14 +128,13 @@ class TransformersPredict:
     
     def extractHiddenStates(self, batch_size=128, appendToList:bool=False):
         batch_size, data_filtered, dataset, data_loader = self.initPredictions(batch_size=batch_size)
-        last_hidden_states = []
+        self.last_hidden_states = []
         with torch.no_grad():
             for data_text in tqdm(data_loader):
                 # Encode texts
                 inputs = self.tokenizer(data_text, **self.tokenizer_config)
                 # Predict
                 input_ids = torch.tensor(inputs['input_ids'], device=self.device)
-                logit = self.model(input_ids).logits
                 h = self.model(input_ids)[1]
                 self.last_hidden_states.append(h if appendToList else [])
                 yield(h)
