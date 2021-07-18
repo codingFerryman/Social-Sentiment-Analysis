@@ -18,7 +18,7 @@ clean-text
 neuspell
 unidecode
 nltk
-swifter[modin-dask]
+modin[dask]
 
 # package location
 --find-links https://download.pytorch.org/whl/lts/1.8/torch_lts.html
