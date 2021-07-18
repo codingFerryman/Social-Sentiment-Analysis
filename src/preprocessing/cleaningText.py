@@ -1,15 +1,14 @@
 from typing import Dict, Callable, Union
 
-# import pandas as pd
-import modin.pandas as pd
+import modin.pandas as mpd
+import pandas as pd
 import regex
 from cleantext import clean
 from distributed import Client
-from modin.config import ProgressBar
 from nltk.tokenize.treebank import TreebankWordDetokenizer
 from tqdm import tqdm
 
-ProgressBar.enable()
+# ProgressBar.enable()
 
 EMOTICONS = r"""
     (?:
@@ -125,8 +124,8 @@ def cleaning_default_dev(text: Union[str, list]):
 
 
 def cleaning_default_dev_mp(text_list):
-    _ = Client()
-    _tmp = pd.Series(text_list)
+    client = Client(n_workers=4)
+    _tmp = mpd.Series(text_list)
     _tmp = _tmp.map(cleaning_default_dev)
     text = _tmp.to_list()
     return text
@@ -144,5 +143,5 @@ def cleaningMap() -> Dict[str, Callable]:
 if __name__ == '__main__':
     with open('../../data/full_data.txt') as fp:
         data = fp.readlines()
-    data = data[:100000]
-    cleaning_default_dev_mp(data)
+    data = data[:10000]
+    t = cleaning_default_dev_mp(data)
