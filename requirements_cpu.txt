@@ -18,6 +18,7 @@ clean-text
 neuspell
 unidecode
 nltk
+swifter[modin-dask]
 
 # Viz in notebook
 matplotlib

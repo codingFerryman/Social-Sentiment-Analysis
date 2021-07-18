@@ -5,10 +5,10 @@
     "model_type": "transformers",
     "tokenizer_type": "transformers",
     "fast_tokenizer": false,
-    "text_pre_cleaning": "dev",
+    "text_pre_cleaning": "dev_mp",
     "args": {
         "epochs": 10,
-        "batch_size": 256,
+        "batch_size": 64,
         "adafactor": false,
         "warmup_steps": 100,
         "weight_decay": 0.0001,
