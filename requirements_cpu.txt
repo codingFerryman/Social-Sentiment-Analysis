@@ -17,6 +17,7 @@ dill
 clean-text
 neuspell
 unidecode
+nltk
 
 # Viz in notebook
 matplotlib
