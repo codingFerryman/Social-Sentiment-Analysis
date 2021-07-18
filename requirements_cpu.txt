@@ -16,6 +16,13 @@ sentencepiece
 dill
 clean-text
 neuspell
+unidecode
+
+# Viz in notebook
+matplotlib
+mpld3
+mplcursors
+wordcloud
 
 # package location
 --find-links https://download.pytorch.org/whl/lts/1.8/torch_lts.html
