@@ -4,6 +4,7 @@ import pandas as pd
 import regex
 from cleantext import clean
 from nltk.tokenize.treebank import TreebankWordDetokenizer
+from tqdm import tqdm
 
 EMOTICONS = r"""
     (?:
@@ -111,8 +112,9 @@ def cleaning_default_dev(text: Union[str, list]):
         words = WORD_RE.findall(safe_text)
         text = " ".join(words)
     else:
+        tqdm.pandas()
         _tmp = pd.Series(text)
-        _tmp = _tmp.apply(cleaning_default_dev)
+        _tmp = _tmp.progress_apply(cleaning_default_dev)
         text = _tmp.to_list()
     return text
 
@@ -129,10 +131,5 @@ def cleaningMap() -> Dict[str, Callable]:
 if __name__ == '__main__':
     with open('../../data/full_data.txt') as fp:
         data = fp.readlines()
-    data = data[:100]
-    for text in data:
-        text = text.split('\u0001')[2]
-        print(text)
-        print(cleaning_default_dev(text))
-        print("\n")
-        pass
+    data = data[:10000]
+    cleaning_default_dev(data)
