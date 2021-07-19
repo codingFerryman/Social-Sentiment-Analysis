@@ -5,7 +5,7 @@
     "model_type": "transformers",
     "tokenizer_type": "transformers",
     "fast_tokenizer": false,
-    "text_pre_cleaning": "none",
+    "text_pre_cleaning": "strip",
     "args": {
         "epochs": 8,
         "batch_size": 64,

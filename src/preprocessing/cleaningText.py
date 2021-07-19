@@ -15,8 +15,8 @@ from nltk.tokenize.treebank import TreebankWordDetokenizer
 from tqdm import tqdm
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-from utils import getLogger
-from utils import get_project_path
+from utils.loggers import getLogger
+from utils.others import get_project_path
 
 logger = getLogger("CleaningText", True)
 PROJECT_PATH = get_project_path()
@@ -103,9 +103,6 @@ def cleaning_strip(text: Union[str, list]):
         _result = _tmp.str.strip().to_list()
         return _result
 
-def no_cleaning(text):
-    return text
-
 def _cleaning_tweet(text: str, spell_checker=None):
     dtknzr = TreebankWordDetokenizer()
     if spell_checker:
@@ -176,7 +173,6 @@ def cleaningMap() -> Dict[str, Callable]:
         "default": cleaning_default,
         "masks": cleaning_masks,
         "strip": cleaning_strip,
-        "none": no_cleaning,
         "tweet": cleaning_tweet
     }
 

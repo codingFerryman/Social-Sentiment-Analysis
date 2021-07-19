@@ -4,9 +4,8 @@ from typing import Union, Tuple
 
 import numpy as np
 
-from preprocessing.cleaningText import cleaning_strip
-from utils import getLogger
-from utils import get_data_path
+from .loggers import getLogger
+from .others import get_data_path
 
 DATA_DIRECTORY = get_data_path()
 logger = getLogger("InputPipeline", debug=True)
@@ -57,13 +56,10 @@ def loadData(dataDirectory: str = None, ratio: Union[str, float, int] = "full") 
         elif ratio == 'clean':
             with open(PurePath(dataDirectory, 'train_pos_clean.txt'), 'r', encoding='utf-8') as fp:
                 pos = fp.readlines()
-                pos = cleaning_strip(pos)
             with open(PurePath(dataDirectory, 'train_neg_clean.txt'), 'r', encoding='utf-8') as fp:
                 neg = fp.readlines()
-                neg = cleaning_strip(neg)
             with open(PurePath(dataDirectory, 'test_clean.txt'), 'r', encoding='utf-8') as fp:
                 test_full = fp.readlines()
-                test_full = cleaning_strip(test_full)
         else:
             raise AttributeError(
                 'The input should be \'full\', \'sub\', \'clean\', or a (float) number between 0 and 1')
