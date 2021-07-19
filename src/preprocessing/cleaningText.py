@@ -15,7 +15,8 @@ from nltk.tokenize.treebank import TreebankWordDetokenizer
 from tqdm import tqdm
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-from utils import loggers, get_project_path
+from utils import loggers
+from utils.utils import get_project_path
 
 logger = loggers.getLogger("CleaningText", True)
 PROJECT_PATH = get_project_path()
@@ -134,7 +135,6 @@ def _cleaning_tweet(text: str, spell_checker=None):
 
 def cleaning_tweet(text_list, check_spell=True, batch_size=512):
     if check_spell is True:
-
         spell_checker_path = Path(PROJECT_PATH, 'src', 'preprocessing', 'subwordbert-probwordnoise')
         spell_checker_exists = spell_checker_path.exists()
         if Path().resolve().parts[1] == 'cluster' and not spell_checker_exists:
