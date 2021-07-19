@@ -102,6 +102,8 @@ def cleaning_strip(text: Union[str, list]):
         _result = _tmp.str.strip().to_list()
         return _result
 
+def no_cleaning(text):
+    return text
 
 def _cleaning_tweet(text: str, spell_checker=None):
     dtknzr = TreebankWordDetokenizer()
@@ -131,8 +133,8 @@ def _cleaning_tweet(text: str, spell_checker=None):
 
 
 def cleaning_tweet(text_list, check_spell=True, batch_size=512):
-    logger.info("This cleaning method may take 10~30 min, please wait ...")
     if check_spell is True:
+
         spell_checker_path = Path(PROJECT_PATH, 'src', 'preprocessing', 'subwordbert-probwordnoise')
         spell_checker_exists = spell_checker_path.exists()
         if Path().resolve().parts[1] == 'cluster' and not spell_checker_exists:
@@ -161,7 +163,7 @@ def cleaning_tweet(text_list, check_spell=True, batch_size=512):
             results.extend(text_batch)
             torch.cuda.empty_cache()
         text_list = results
-    logger.info("Cleaning text by 3 workers")
+    logger.info("Cleaning text by 3 workers. It will take around 20 min, please wait ...")
     client = Client(n_workers=3)
     _tmp = mpd.Series(text_list)
     _tmp = _tmp.map(_cleaning_tweet)
@@ -172,8 +174,9 @@ def cleaning_tweet(text_list, check_spell=True, batch_size=512):
 def cleaningMap() -> Dict[str, Callable]:
     return {
         "default": cleaning_default,
-        "masks": cleaning_strip,
+        "masks": cleaning_masks,
         "strip": cleaning_strip,
+        "none": no_cleaning,
         "tweet": cleaning_tweet
     }
 
