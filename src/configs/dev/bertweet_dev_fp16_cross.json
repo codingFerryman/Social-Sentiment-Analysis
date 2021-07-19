@@ -1,5 +1,5 @@
 {
-    "description": "vinai/bertweet-base. Dataset: full; Epochs: 10; tokenizer_len: 64",
+    "description": "vinai/bertweet-base, stratifiedKfold, FP16, dev_mp clean",
     "model_name_or_path": "vinai/bertweet-base",
     "data_load_ratio": 1,
     "model_type": "transformers",
@@ -7,7 +7,7 @@
     "fast_tokenizer": false,
     "text_pre_cleaning": "dev_mp",
     "args": {
-        "epochs": 10,
+        "epochs": 8,
         "batch_size": 64,
         "adafactor": false,
         "warmup_steps": 100,
@@ -21,7 +21,7 @@
         "early_stopping_patience": 3,
         "early_stopping_threshold": 0.00001,
         "train_val_split_iterator": "stratifiedKfold",
-        "fp16": false,
+        "fp16": true,
         "fine_tune_layers": {
             "freeze": false,
             "num_unfrozen_layers": 1,

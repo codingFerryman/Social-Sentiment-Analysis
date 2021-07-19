@@ -124,7 +124,7 @@ def cleaning_default_dev(text: Union[str, list]):
 
 
 def cleaning_default_dev_mp(text_list):
-    client = Client(n_workers=4)
+    client = Client(n_workers=8)
     _tmp = mpd.Series(text_list)
     _tmp = _tmp.map(cleaning_default_dev)
     text = _tmp.to_list()
