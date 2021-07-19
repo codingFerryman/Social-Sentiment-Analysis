@@ -58,7 +58,7 @@ def loadData(dataDirectory: str = None, ratio: Union[str, float, int] = "full") 
                 pos = fp.readlines()
             with open(PurePath(dataDirectory, 'train_neg_clean.txt'), 'r', encoding='utf-8') as fp:
                 neg = fp.readlines()
-            with open(PurePath(dataDirectory, 'test_clean.txt'), 'r', encoding='utf-8') as fp:
+            with open(PurePath(dataDirectory, 'test_data_clean.txt'), 'r', encoding='utf-8') as fp:
                 test_full = fp.readlines()
         else:
             raise AttributeError(
