@@ -7,6 +7,7 @@ import modin.pandas as mpd
 import neuspell
 import pandas as pd
 import regex
+import torch
 from cleantext import clean
 from distributed import Client
 from neuspell import BertChecker
@@ -152,7 +153,10 @@ def cleaning_default_dev_mp(text_list, check_spell=True):
             neuspell.seq_modeling.downloads.download_pretrained_model(str(spell_checker_path))
         else:
             logger.info("The pre-trained spell checker already exists.")
-        checker = BertChecker()
+        if torch.cuda.is_available():
+            checker = BertChecker(device="cuda")
+        else:
+            checker = BertChecker(device="cpu")
         checker.from_pretrained(spell_checker_path)
         logger.info("Correcting misspelling words ...")
         text_list = checker.correct_strings(text_list)
@@ -176,5 +180,5 @@ def cleaningMap() -> Dict[str, Callable]:
 if __name__ == '__main__':
     with open('../../data/full_data.txt') as fp:
         data = fp.readlines()
-    data = data[:100]
+    data = data[:1000]
     t = cleaning_default_dev_mp(data)
