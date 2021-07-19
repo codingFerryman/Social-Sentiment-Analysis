@@ -103,40 +103,34 @@ def cleaning_strip(text: Union[str, list]):
         return _result
 
 
-def cleaning_default_dev(text: Union[str, list], spell_checker=None):
+def _cleaning_tweet(text: str, spell_checker=None):
     dtknzr = TreebankWordDetokenizer()
-    if type(text) is str:
-        if spell_checker:
-            text = spell_checker(text)
-        text = dtknzr.detokenize(text.split())
-        text = cleaning_masks(text)
-        text = clean(text,
-                     fix_unicode=True,  # fix various unicode errors
-                     to_ascii=True,  # transliterate to closest ASCII representation
-                     no_line_breaks=True,  # fully strip line breaks as opposed to only normalizing them
-                     no_urls=True,  # replace all URLs with a special token
-                     no_phone_numbers=True,  # replace all phone numbers with a special token
-                     no_currency_symbols=True,  # replace all currency symbols with a special token
-                     replace_with_url="",
-                     replace_with_phone_number="",
-                     replace_with_currency_symbol="",
-                     lang="en"
-                     )
-        text = reduce_lengthening(text, 2)
-        # Shorten problematic sequences of characters
-        safe_text = HANG_RE.sub(r"\1\1\1", text)
-        # Tokenize:
-        words = WORD_RE.findall(safe_text)
-        text = " ".join(words)
-    else:
-        tqdm.pandas(delay=15, mininterval=45)
-        _tmp = pd.Series(text)
-        _tmp = _tmp.apply(cleaning_default_dev)
-        text = _tmp.to_list()
+    if spell_checker:
+        text = spell_checker(text)
+    text = dtknzr.detokenize(text.split())
+    text = cleaning_masks(text)
+    text = clean(text,
+                 fix_unicode=True,  # fix various unicode errors
+                 to_ascii=True,  # transliterate to closest ASCII representation
+                 no_line_breaks=True,  # fully strip line breaks as opposed to only normalizing them
+                 no_urls=True,  # replace all URLs with a special token
+                 no_phone_numbers=True,  # replace all phone numbers with a special token
+                 no_currency_symbols=True,  # replace all currency symbols with a special token
+                 replace_with_url="",
+                 replace_with_phone_number="",
+                 replace_with_currency_symbol="",
+                 lang="en"
+                 )
+    text = reduce_lengthening(text, 2)
+    # Shorten problematic sequences of characters
+    safe_text = HANG_RE.sub(r"\1\1\1", text)
+    # Tokenize:
+    words = WORD_RE.findall(safe_text)
+    text = " ".join(words)
     return text
 
 
-def cleaning_default_dev_mp(text_list, check_spell=True):
+def cleaning_tweet(text_list, check_spell=True, batch_size=512):
     logger.info("This cleaning method may take 10~30 min, please wait ...")
     if check_spell is True:
         spell_checker_path = Path(PROJECT_PATH, 'src', 'preprocessing', 'subwordbert-probwordnoise')
@@ -153,32 +147,61 @@ def cleaning_default_dev_mp(text_list, check_spell=True):
             neuspell.seq_modeling.downloads.download_pretrained_model(str(spell_checker_path))
         else:
             logger.info("The pre-trained spell checker already exists.")
+
         if torch.cuda.is_available():
-            checker = BertChecker(device="cuda")
+            checker = BertChecker(device='cuda')
         else:
-            checker = BertChecker(device="cpu")
+            checker = BertChecker(device='cpu')
         checker.from_pretrained(spell_checker_path)
         logger.info("Correcting misspelling words ...")
-        text_list = checker.correct_strings(text_list)
-    logger.info("Cleaning text by 8 workers")
-    client = Client(n_workers=8)
+        results = []
+        for i in tqdm(range(0, len(text_list), batch_size)):
+            text_batch = text_list[i:i + batch_size]
+            text_batch = checker.correct_strings(text_batch)
+            results.extend(text_batch)
+            torch.cuda.empty_cache()
+        text_list = results
+    logger.info("Cleaning text by 3 workers")
+    client = Client(n_workers=3)
     _tmp = mpd.Series(text_list)
-    _tmp = _tmp.map(cleaning_default_dev)
+    _tmp = _tmp.map(_cleaning_tweet)
     text = _tmp.to_list()
     return text
+
 
 def cleaningMap() -> Dict[str, Callable]:
     return {
         "default": cleaning_default,
         "masks": cleaning_strip,
         "strip": cleaning_strip,
-        "dev": cleaning_default_dev,
-        "dev_mp": cleaning_default_dev_mp
+        "tweet": cleaning_tweet
     }
 
 
+def main(args: list):
+    """The function for cleaning data and export the cleaned data to a new file"""
+    argv = {a.split('=')[0]: a.split('=')[1] for a in args[1:]}
+    data_path = argv.get('data', None)
+    assert data_path is not None, "No data_path specified"
+    input_path = Path(data_path)
+    input_file = input_path.parts[-1]
+    input_file_name = input_file.split('.')[0]
+    input_file_extension = input_file.split('.')[-1]
+    output_file = input_file_name + '_clean.' + input_file_extension
+    output_dir = input_path.parents[0]
+    output_path_default = Path(output_dir, output_file).resolve()
+    output_path = argv.get('output', str(output_path_default))
+
+    with open(input_path, 'r') as fr:
+        input_data = fr.readlines()
+    input_data = map(lambda x: x.strip(), input_data)
+    input_data = list(set(input_data))
+    input_data = list(filter(None, input_data))
+    cleaned = cleaning_tweet(input_data)
+    cleaned_lines = map(lambda x: x + '\n', cleaned)
+    with open(Path(output_path), 'w') as fw:
+        fw.writelines(cleaned_lines)
+
+
 if __name__ == '__main__':
-    with open('../../data/full_data.txt') as fp:
-        data = fp.readlines()
-    data = data[:1000]
-    t = cleaning_default_dev_mp(data)
+    main(sys.argv)
