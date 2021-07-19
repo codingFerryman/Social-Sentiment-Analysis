@@ -15,7 +15,7 @@ from datasets import list_metrics
 from transformers import logging as hf_logging
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-from utils.utils import get_project_path
+from utils import get_project_path
 from models.Model import ModelConstruction
 from models.transformersModel import TransformersModel
 

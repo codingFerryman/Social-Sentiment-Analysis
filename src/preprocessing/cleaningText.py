@@ -15,10 +15,10 @@ from nltk.tokenize.treebank import TreebankWordDetokenizer
 from tqdm import tqdm
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-from utils import loggers
-from utils.utils import get_project_path
+from utils import getLogger
+from utils import get_project_path
 
-logger = loggers.getLogger("CleaningText", True)
+logger = getLogger("CleaningText", True)
 PROJECT_PATH = get_project_path()
 # ProgressBar.enable()
 

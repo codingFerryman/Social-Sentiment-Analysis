@@ -13,7 +13,7 @@ from transformers import AutoModelForSequenceClassification, AutoTokenizer
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 from utils import loggers
-from utils.utils import get_data_path
+from utils import get_data_path
 from preprocessing.cleaningText import cleaningMap
 
 logger = loggers.getLogger("PredictForSubmission", True)

@@ -5,8 +5,8 @@ from typing import Union, Tuple
 import numpy as np
 
 from preprocessing.cleaningText import cleaning_strip
-from utils.loggers import getLogger
-from utils.utils import get_data_path
+from utils import getLogger
+from utils import get_data_path
 
 DATA_DIRECTORY = get_data_path()
 logger = getLogger("InputPipeline", debug=True)
