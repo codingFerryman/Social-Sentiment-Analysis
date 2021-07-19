@@ -8,7 +8,7 @@
     "text_pre_cleaning": "strip",
     "args": {
         "epochs": 10,
-        "batch_size": 256,
+        "batch_size": 128,
         "adafactor": false,
         "warmup_steps": 100,
         "weight_decay": 0.0001,
@@ -21,6 +21,7 @@
         "early_stopping_patience": 3,
         "early_stopping_threshold": 0.00005,
         "train_val_split_iterator": "train_test_split",
+        "fp16": false,
         "fine_tune_layers": {
             "freeze": false,
             "num_unfrozen_layers": 1,
