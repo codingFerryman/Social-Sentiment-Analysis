@@ -279,6 +279,7 @@ class TransformersModel(ModelConstruction):
         logits, labels = eval_pred
         predictions = np.argmax(logits, axis=-1)
         result = metric.compute(predictions=predictions, references=labels)
+        logger.debug("The metrics in this eval: {}".format(str(result)))
         return result
 
     def getPipeLine(self):

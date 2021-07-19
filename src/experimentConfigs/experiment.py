@@ -21,7 +21,7 @@ from models.transformersModel import TransformersModel
 
 PROJECT_DIRECTORY = get_project_path()
 
-# hf_logging.set_verbosity_debug()
+hf_logging.set_verbosity_error()
 hf_logging.enable_explicit_format()
 
 

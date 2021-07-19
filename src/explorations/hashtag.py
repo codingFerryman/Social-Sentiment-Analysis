@@ -2,9 +2,8 @@ from collections import Counter
 from typing import Tuple
 
 import pandas as pd
-from icecream import ic
 
-from inputFunctions import loadData
+from utils.inputFunctions import loadData
 
 ic.disable()
 

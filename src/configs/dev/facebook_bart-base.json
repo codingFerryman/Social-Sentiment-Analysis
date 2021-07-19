@@ -1,6 +1,6 @@
 {
-    "description": "vinai/bertweet-base, FP32, pre-cleaned dataset",
-    "model_name_or_path": "vinai/bertweet-base",
+    "description": "facebook/bart-base. FP32, pre-cleaned dataset",
+    "model_name_or_path": "facebook/bart-base",
     "data_load_ratio": "clean",
     "model_type": "transformers",
     "tokenizer_type": "transformers",
@@ -8,11 +8,11 @@
     "text_pre_cleaning": "strip",
     "args": {
         "epochs": 10,
-        "batch_size": 64,
+        "batch_size": 32,
         "adafactor": false,
         "warmup_steps": 100,
         "weight_decay": 0.0001,
-        "learning_rate": 1e-5,
+        "learning_rate": 5e-5,
         "evaluation_strategy": "epoch",
         "logging_strategy": "epoch",
         "overwrite_output_dir": true,
