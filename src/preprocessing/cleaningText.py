@@ -198,8 +198,14 @@ def main(args: list):
     input_data = list(filter(None, input_data))
     cleaned = cleaning_tweet(input_data)
     cleaned_lines = map(lambda x: x + '\n', cleaned)
+
+    if 'test' in input_file_name:
+        results = [','.join(t.split(' , ', 1)) for t in cleaned_lines]
+    else:
+        results = cleaned_lines
+
     with open(Path(output_path), 'w') as fw:
-        fw.writelines(cleaned_lines)
+        fw.writelines(results)
 
 
 if __name__ == '__main__':
