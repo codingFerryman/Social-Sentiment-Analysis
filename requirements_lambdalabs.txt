@@ -7,5 +7,8 @@ sentencepiece
 cleantext
 neuspell
 dill
+spacy
 hyperopt
 datasets
+modin[dask]
+distributed
