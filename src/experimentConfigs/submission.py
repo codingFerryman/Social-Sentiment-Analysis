@@ -70,6 +70,9 @@ class TransformersPredict:
         self.tokenizer = AutoTokenizer.from_pretrained(tokenizer_path, use_fast=fast_tokenizer)
         self.model = AutoModelForSequenceClassification.from_pretrained(model_path, output_hidden_states=True).to(self.device)
 
+        for param in self.model.parameters():
+            param.requires_grad = False
+
         with open(text_path, 'r') as fp:
             lines = fp.readlines()
         self.data = self.pre_process_test(lines)

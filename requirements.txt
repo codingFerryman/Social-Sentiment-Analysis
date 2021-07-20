@@ -19,6 +19,6 @@ neuspell
 unidecode
 nltk
 modin[dask]
-
+distributed
 # package location
 --find-links https://download.pytorch.org/whl/lts/1.8/torch_lts.html
