@@ -4,8 +4,8 @@ from typing import Union, Tuple
 
 import numpy as np
 
-from utils.loggers import getLogger
-from utils.utils import get_data_path
+from .loggers import getLogger
+from .others import get_data_path
 
 DATA_DIRECTORY = get_data_path()
 logger = getLogger("InputPipeline", debug=True)
@@ -40,7 +40,8 @@ def loadData(dataDirectory: str = None, ratio: Union[str, float, int] = "full") 
     assert isinstance(ratio, str) or isinstance(ratio, float)
     if type(ratio) is float:
         if ratio <= 0 or ratio > 1:
-            raise AttributeError('The input should be \'full\', \'sub\', or a (float) number between 0 and 1')
+            raise AttributeError(
+                'The input should be \'full\', \'sub\', \'clean\', or a (float) number between 0 and 1')
         pos_num_samples = int(ratio * len(train_pos_full))
         neg_num_samples = int(ratio * len(train_neg_full))
         pos = random.sample(train_pos_full, pos_num_samples)
@@ -52,8 +53,16 @@ def loadData(dataDirectory: str = None, ratio: Union[str, float, int] = "full") 
         elif ratio == 'sub':
             pos = train_pos_sub
             neg = train_neg_sub
+        elif ratio == 'clean':
+            with open(PurePath(dataDirectory, 'train_pos_full_clean.txt'), 'r', encoding='utf-8') as fp:
+                pos = fp.readlines()
+            with open(PurePath(dataDirectory, 'train_neg_full_clean.txt'), 'r', encoding='utf-8') as fp:
+                neg = fp.readlines()
+            with open(PurePath(dataDirectory, 'test_data_clean.txt'), 'r', encoding='utf-8') as fp:
+                test_full = fp.readlines()
         else:
-            raise AttributeError('The input should be \'full\', \'sub\', or a (float) number between 0 and 1')
+            raise AttributeError(
+                'The input should be \'full\', \'sub\', \'clean\', or a (float) number between 0 and 1')
     logger.info(f"Dataset loaded!")
     logger.debug(f"Positive: {len(pos)}, Negative: {len(neg)}, Test: {len(test_full)}")
     return pos, neg, test_full

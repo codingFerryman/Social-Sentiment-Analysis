@@ -15,13 +15,13 @@ from datasets import list_metrics
 from transformers import logging as hf_logging
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-from utils.utils import get_project_path
+from utils import get_project_path
 from models.Model import ModelConstruction
 from models.transformersModel import TransformersModel
 
 PROJECT_DIRECTORY = get_project_path()
 
-# hf_logging.set_verbosity_debug()
+hf_logging.set_verbosity_error()
 hf_logging.enable_explicit_format()
 
 

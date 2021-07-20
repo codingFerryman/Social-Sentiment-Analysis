@@ -1,12 +1,13 @@
 {
-    "description": "vinai/bertweet-base. In development",
+    "description": "vinai/bertweet-base. stratifiedKfold, FP16 disabled, dev_mp clean",
     "model_name_or_path": "vinai/bertweet-base",
     "data_load_ratio": 1,
     "model_type": "transformers",
     "tokenizer_type": "transformers",
     "fast_tokenizer": false,
+    "text_pre_cleaning": "tweet",
     "args": {
-        "epochs": 10,
+        "epochs": 5,
         "batch_size": 64,
         "adafactor": false,
         "warmup_steps": 100,
@@ -18,8 +19,9 @@
         "load_best_model_at_end": true,
         "metric_for_best_model": "accuracy",
         "early_stopping_patience": 3,
-        "early_stopping_threshold": 0.0001,
-        "train_val_split_iterator": "train_test_split",
+        "early_stopping_threshold": 0.00001,
+        "train_val_split_iterator": "stratifiedKfold",
+        "fp16": false,
         "fine_tune_layers": {
             "freeze": false,
             "num_unfrozen_layers": 1,
@@ -38,7 +40,6 @@
     "model_config": {
         "num_labels": 2,
         "problem_type": "single_label_classification",
-        "max_length": 64,
         "output_attentions": false,
         "output_hidden_states": false,
         "id2label": {
