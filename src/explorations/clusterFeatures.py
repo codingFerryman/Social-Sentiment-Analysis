@@ -7,6 +7,7 @@ sys.path.append(os.path.join(os.getcwd(), '..'))
 
 # local imports
 from experimentConfigs.submission import TransformersPredict
+from utils import diskArray
 from utils.diskArray import DiskArray
 
 #%% setting up paths
@@ -18,7 +19,7 @@ text_path_neg = os.path.join(CIL_REPO, "data/train_neg.txt")
 batch_size=32
 
 #%% positive label features
-daPos = DiskArray()
+daPos = DiskArray(loaderDumper=diskArray.TorchTensorLoaderDumper)
 try:
     trans_predictPos = TransformersPredict(load_path=load_path, text_path=text_path_pos)
     for h in trans_predictPos.extractHiddenStates(batch_size=batch_size, appendToList=False):
@@ -27,13 +28,16 @@ except KeyboardInterrupt:
     print("Keyboard interupt, progress till now will be saved")
     pass
 daPos.save("roberta-base-pos-features.diskArray")
-#%% negative label features
-daNeg = DiskArray()
-try:
-    trans_predictPos = TransformersPredict(load_path=load_path, text_path=text_path_neg)
-    for h in trans_predictPos.extractHiddenStates(batch_size=batch_size, appendToList=False):
-        daNeg.append(h)
-except KeyboardInterrupt:
-    print("Keyboard interupt, progress till now will be saved")
-    pass
-daNeg.save("roberta-base-neg-features.diskArray")
+# #%% negative label features
+# daNeg = DiskArray(loaderDumper=diskArray.TorchTensorLoaderDumper)
+# try:
+#     trans_predictPos = TransformersPredict(load_path=load_path, text_path=text_path_neg)
+#     for h in trans_predictPos.extractHiddenStates(batch_size=batch_size, appendToList=False):
+#         daNeg.append(h)
+# except KeyboardInterrupt:
+#     print("Keyboard interupt, progress till now will be saved")
+#     pass
+# daNeg.save("roberta-base-neg-features.diskArray")
+#%%
+# daPos = DiskArray.load("/home/sniper/projects_local/CIL/Computational-Intelligence-Lab/data/extracted-features/roberta-features/roberta-base-pos-features.diskArray")
+# print(len(daPos))
