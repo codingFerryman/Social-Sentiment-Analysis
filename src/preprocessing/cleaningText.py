@@ -130,7 +130,7 @@ def _cleaning_tweet(text: str, spell_checker=None):
     return text
 
 
-def cleaning_tweet(text_list, check_spell=True, batch_size=512):
+def cleaning_tweet(text_list, check_spell=True, batch_size=512, is_test=False):
     if check_spell is True:
         spell_checker_path = Path(PROJECT_PATH, 'src', 'preprocessing', 'subwordbert-probwordnoise')
         spell_checker_exists = spell_checker_path.exists()
@@ -154,17 +154,34 @@ def cleaning_tweet(text_list, check_spell=True, batch_size=512):
         checker.from_pretrained(spell_checker_path)
         logger.info("Correcting misspelling words ...")
         results = []
-        for i in tqdm(range(0, len(text_list), batch_size)):
-            text_batch = text_list[i:i + batch_size]
-            text_batch = checker.correct_strings(text_batch)
-            results.extend(text_batch)
-            torch.cuda.empty_cache()
+        if is_test:
+            for test_sent in tqdm(text_list):
+                _id = test_sent.split(',', 1)[0]
+                _sent = test_sent.split(',', 1)[-1]
+                _sent_cleaned = checker.correct(_sent)
+                results.append((_id, _sent_cleaned))
+        else:
+            for i in tqdm(range(0, len(text_list), batch_size)):
+                text_batch = text_list[i:i + batch_size]
+                text_batch = checker.correct_strings(text_batch)
+                results.extend(text_batch)
+                torch.cuda.empty_cache()
         text_list = results
-    logger.info("Cleaning text by 3 workers. It will take around 20 min, please wait ...")
-    client = Client(n_workers=3)
-    _tmp = mpd.Series(text_list)
-    _tmp = _tmp.map(_cleaning_tweet)
-    text = _tmp.to_list()
+    if is_test:
+        logger.info("Cleaning test texts ...")
+        text = []
+        for test_sent in tqdm(text_list):
+            _id = test_sent[0]
+            _sent = test_sent[1]
+            _sent_cleaned = _cleaning_tweet(_sent)
+            _result = ",".join([str(_id), _sent_cleaned])
+            text.append(_result)
+    else:
+        logger.info("Cleaning text by 3 workers. It will take around 20 min, please wait ...")
+        client = Client(n_workers=3)
+        _tmp = mpd.Series(text_list)
+        _tmp = _tmp.map(_cleaning_tweet)
+        text = _tmp.to_list()
     return text
 
 
@@ -196,16 +213,12 @@ def main(args: list):
     input_data = map(lambda x: x.strip(), input_data)
     input_data = list(set(input_data))
     input_data = list(filter(None, input_data))
-    cleaned = cleaning_tweet(input_data)
+
+    cleaned = cleaning_tweet(input_data, is_test=True if 'test' in input_file_name else False)
     cleaned_lines = map(lambda x: x + '\n', cleaned)
 
-    if 'test' in input_file_name:
-        results = [','.join(t.split(' , ', 1)) for t in cleaned_lines]
-    else:
-        results = cleaned_lines
-
     with open(Path(output_path), 'w') as fw:
-        fw.writelines(results)
+        fw.writelines(cleaned_lines)
 
 
 if __name__ == '__main__':
