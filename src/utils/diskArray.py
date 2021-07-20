@@ -3,9 +3,12 @@ import os
 import numpy as np
 import dill
 import typing
-from collections.abc import Sequence
+import abc
+from collections.abc import Sequence, Container
 from .loggers import getLogger
 from dataclasses import dataclass
+import io
+import torch
 
 __all__ = ['DiskArray']
 
@@ -24,6 +27,44 @@ def getDiskArrayFileIndex() -> str:
 DiskArrayFileIndexIterator = getDiskArrayFileIndex()
 
 
+
+
+class LoaderDumper(metaclass=abc.ABCMeta):
+    """ Loader interface for loading objects from bytes and encoding them to bytes.
+    """
+    @classmethod
+    def __subclasshook__(cls, subclass):
+        return (hasattr(subclass, 'loads') and 
+                callable(subclass.loads) and 
+                hasattr(subclass, 'dumps') and 
+                callable(subclass.dumps))
+
+class DillLoaderDumper(LoaderDumper):
+    def __init__(self, hookedObj: Container):
+        super(DillLoaderDumper, self).__init__()
+    def dumps(self, obj:any, **kwargs) -> bytes:
+        return dill.dumps(obj)
+    def loads(self, _b:bytes, **kwargs) -> any:
+        return dill.loads(_b)
+
+class TorchTensorLoaderDumper(LoaderDumper):
+    def __init__(self, hookedObj: Container):
+        super(TorchTensorLoaderDumper, self).__init__()
+        self.args = {'map_location' : 'cpu'}
+    def dumps(self, obj:any, **kwargs) -> bytes:
+        s = io.BytesIO()
+        torch.save(obj, s)
+        s.seek(0)
+        return s.read()
+    def loads(self, _b:bytes, **kwargs) -> any:
+        s = io.BytesIO(_b)
+        s.seek(0)
+        return torch.load(s, **kwargs, **self.args)
+
+DefaultLoaderDumper = DillLoaderDumper
+
+
+
 class DiskArray(Sequence):
     BYTEORDER:str = 'big'
     INTSIZE:int = 32
@@ -31,7 +72,7 @@ class DiskArray(Sequence):
     INTSIZE_BYTES:int = 32//4
     BIG_INTSIZE_BYTES:int= 64//4
 
-    def __init__(self, fileName:str=None):
+    def __init__(self, fileName:str=None, loaderDumper=DefaultLoaderDumper):
         """ DiskArray is a list like object which stores its elements in disk memory rather than
         keeping them in RAM or cache. It uses the typical python files to do this. The file used is
         a binary file. The only methods supported are append and get item. Element deletion is not yet
@@ -44,7 +85,7 @@ class DiskArray(Sequence):
         self.cursorList: list = []
         self.fileCursorEnd: int = 0
         self.fileName: str = next(DiskArrayFileIndexIterator) if fileName == None else fileName
-        
+        self.loaderDumper:LoaderDumper = loaderDumper(self)
         self.numObjs: int = 0
 
     def appendBytes(self, _bytes:bytes):
@@ -69,7 +110,7 @@ class DiskArray(Sequence):
             obj (any): the object to store
         """
         logger.debug(f"append obj to {self.fileName}")
-        self.appendBytes(dill.dumps(obj))
+        self.appendBytes(self.loaderDumper.dumps(obj))
 
     def __len__(self):
         return self.numObjs
@@ -96,7 +137,7 @@ class DiskArray(Sequence):
                 nextCursorPos = self.fileCursorEnd
             fr.seek(cursorPos, 0)
             elBytes = fr.read(nextCursorPos - cursorPos)
-            el = dill.loads(elBytes)
+            el = self.loaderDumper.loads(elBytes)
         return el
     
     def iterateBytes(self) -> bytes:
@@ -132,7 +173,7 @@ class DiskArray(Sequence):
             any: Object returned by iterating the elements of this diskArray
         """
         for _bytes in self.iterateBytes():
-            yield dill.loads(_bytes)
+            yield self.loaderDumper.loads(_bytes)
 
     def iterateBytesReversed(self) -> bytes:
         """ Iterates the bytes of the elements of this diskArray in reversed order.
@@ -167,7 +208,7 @@ class DiskArray(Sequence):
             any: object stored inside the diskArray
         """
         for _bytes in self.iterateBytesReversed():
-            yield dill.loads(_bytes)
+            yield self.loaderDumper.loads(_bytes)
         
     def containsBytes(self, _bytes:bytes)->bool:
         """If this diskArray contains an object transformable to these bytes.
@@ -193,7 +234,7 @@ class DiskArray(Sequence):
         Returns:
             bool: Whether this diskArray contains such an object
         """
-        vbytes = dill.dumps(value)
+        vbytes = self.loaderDumper.dumps(value)
         return self.containsBytes(vbytes)
     
     def indexBytes(self, _bytes:bytes) -> int:
@@ -228,7 +269,7 @@ class DiskArray(Sequence):
             int: The first index of an object equal to the value provided
         """
         try:
-            i = self.indexBytes(dill.dumps(x))
+            i = self.indexBytes(self.loaderDumper.dumps(x))
             return i
         except ValueError:
             raise ValueError(f"object {x} does not exist in DiskArray")
@@ -243,17 +284,17 @@ class DiskArray(Sequence):
         logger.info(f"Saving DiskArray from {self.fileName} to {newFilePath}")
         try:
             with open(newFilePath, 'wb') as fw:
-                fw.write(self.numObjs.to_bytes(DiskArray.INTSIZE, byteorder=DiskArray.BYTEORDER, signed=False))
-                fw.write(self.fileCursorEnd.to_bytes(DiskArray.BIG_INTSIZE, byteorder=DiskArray.BYTEORDER, signed=False))
+                fw.write(self.numObjs.to_bytes(DiskArray.INTSIZE_BYTES, byteorder=DiskArray.BYTEORDER, signed=False))
+                fw.write(self.fileCursorEnd.to_bytes(DiskArray.BIG_INTSIZE_BYTES, byteorder=DiskArray.BYTEORDER, signed=False))
                 for s in self.cursorList:
-                    fw.write(s.to_bytes(DiskArray.BIG_INTSIZE, byteorder=DiskArray.BYTEORDER, signed=False))
+                    fw.write(s.to_bytes(DiskArray.BIG_INTSIZE_BYTES, byteorder=DiskArray.BYTEORDER, signed=False))
                 # cursorIndex = fw.tell()
                 for _bytes in self.iterateBytes():
                     fw.write(_bytes)
         except OSError as e:
             raise f"{e.strerror} No such file found for saving DiskArray"
 
-    def load(filePath:str) -> 'DiskArray':
+    def load(filePath:str, loaderDumper=DefaultLoaderDumper) -> 'DiskArray':
         """Load a diskArray from a file saved via the diskArray.save function.
         Attention: This file is not the same file used by diskArray!!!!
 
@@ -264,7 +305,7 @@ class DiskArray(Sequence):
             DiskArray: The diskArray recovered from the file. This diskArray will use another file to store its data.
         """
         logger.info(f"Loading DiskArray from {filePath}")
-        newD = DiskArray()
+        newD = DiskArray(loaderDumper=loaderDumper)
         try:
             with open(filePath, 'rb') as fr:
                 index = int.from_bytes(fr.read(DiskArray.INTSIZE_BYTES), byteorder=DiskArray.BYTEORDER)
