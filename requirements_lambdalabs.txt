@@ -7,3 +7,5 @@ sentencepiece
 cleantext
 neuspell
 dill
+hyperopt
+datasets
