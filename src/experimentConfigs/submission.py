@@ -170,6 +170,7 @@ class TransformersPredict:
             'Id': int,
             'Prediction': int
         })
+        pred_df.sort_values('Id', inplace=True)
         pred_df.to_csv(save_path, index=False)
 
     def pre_process_test(self, lines: list):
