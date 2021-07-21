@@ -158,11 +158,11 @@ def cleaning_tweet(text_list, check_spell=False, batch_size=512, is_test=False):
         logger.info("Correcting misspelling words ...")
         results = []
         if is_test:
-            for test_sent in tqdm(text_list):
+            for test_sent in text_list:
                 _id = test_sent.split(',', 1)[0]
                 _sent = test_sent.split(',', 1)[-1]
                 _sent_cleaned = checker.correct(_sent)
-                results.append((_id, _sent_cleaned))
+                results.append(','.join([_id, _sent_cleaned]))
         else:
             for i in tqdm(range(0, len(text_list), batch_size)):
                 text_batch = text_list[i:i + batch_size]
@@ -173,9 +173,9 @@ def cleaning_tweet(text_list, check_spell=False, batch_size=512, is_test=False):
     if is_test:
         logger.info("Cleaning test texts ...")
         text = []
-        for test_sent in tqdm(text_list):
-            _id = test_sent[0]
-            _sent = test_sent[1]
+        for test_sent in text_list:
+            _id = test_sent.split(',', 1)[0]
+            _sent = test_sent.split(',', 1)[-1]
             _sent_cleaned = _cleaning_tweet(_sent)
             _result = ",".join([str(_id), _sent_cleaned])
             text.append(_result)
