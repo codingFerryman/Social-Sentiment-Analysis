@@ -171,7 +171,6 @@ def cleaning_tweet(text_list, check_spell=False, batch_size=512, is_test=False):
                 torch.cuda.empty_cache()
         text_list = results
     if is_test:
-        logger.info("Cleaning test texts ...")
         text = []
         for test_sent in text_list:
             _id = test_sent.split(',', 1)[0]
