@@ -197,7 +197,7 @@ def cleaningMap() -> Dict[str, Callable]:
 def main(args: list):
     """The function for cleaning data and export the cleaned data to a new file"""
     argv = {a.split('=')[0]: a.split('=')[1] for a in args[1:]}
-    data_path = argv.get('data', None)
+    data_path = argv.get('data_path', None)
     assert data_path is not None, "No data_path specified"
     input_path = Path(data_path)
     input_file = input_path.parts[-1]
