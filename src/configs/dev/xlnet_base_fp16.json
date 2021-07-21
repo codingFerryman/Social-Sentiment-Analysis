@@ -1,5 +1,5 @@
 {
-  "description": "xlnet-base, FP32",
+  "description": "xlnet-base, FP16",
   "model_name_or_path": "xlnet-base-cased",
   "data_load_ratio": 1.0,
   "model_type": "transformers",
@@ -8,7 +8,7 @@
   "text_pre_cleaning": "tweet",
   "args": {
     "epochs": 7,
-    "batch_size": 64,
+    "batch_size": 128,
     "adafactor": false,
     "warmup_steps": 100,
     "weight_decay": 0.0001,
@@ -21,7 +21,7 @@
     "early_stopping_patience": 3,
     "early_stopping_threshold": 0.00005,
     "train_val_split_iterator": "train_test_split",
-    "fp16": false,
+    "fp16": true,
     "fine_tune_layers": {
       "freeze": false,
       "num_unfrozen_layers": 1,

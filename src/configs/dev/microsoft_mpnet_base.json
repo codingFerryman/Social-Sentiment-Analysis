@@ -1,11 +1,11 @@
 {
-    "description": "microsoft/mpnet-base, FP32, pre-cleaned dataset ",
+    "description": "microsoft/mpnet-base, FP32",
     "model_name_or_path": "microsoft/mpnet-base",
-    "data_load_ratio": "clean",
+    "data_load_ratio": 1.0,
     "model_type": "transformers",
     "tokenizer_type": "transformers",
     "fast_tokenizer": false,
-    "text_pre_cleaning": "strip",
+    "text_pre_cleaning": "tweet",
     "args": {
         "epochs": 10,
         "batch_size": 128,
