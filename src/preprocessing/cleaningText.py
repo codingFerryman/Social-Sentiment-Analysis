@@ -16,10 +16,11 @@ from tqdm import tqdm
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from utils.loggers import getLogger
-from utils.others import get_project_path
+from utils.others import get_project_path, get_data_path
 
 logger = getLogger("CleaningText", True)
 PROJECT_PATH = get_project_path()
+DATA_PATH = get_data_path()
 # ProgressBar.enable()
 
 EMOTICONS = r"""
@@ -130,7 +131,7 @@ def _cleaning_tweet(text: str, spell_checker=None):
     return text
 
 
-def cleaning_tweet(text_list, check_spell=False, batch_size=512, is_test=False):
+def cleaning_tweet(text_list, check_spell=True, batch_size=512, is_test=False):
     if type(text_list) is str:
         is_test = True
         text_list = [text_list]
@@ -199,7 +200,7 @@ def cleaningMap() -> Dict[str, Callable]:
 def main(args: list):
     """The function for cleaning data and export the cleaned data to a new file"""
     argv = {a.split('=')[0]: a.split('=')[1] for a in args[1:]}
-    data_path = argv.get('data_path', None)
+    data_path = argv.get('data_path', Path(DATA_PATH, 'test_data.txt'))
     assert data_path is not None, "No data_path specified"
     input_path = Path(data_path)
     input_file = input_path.parts[-1]
@@ -212,12 +213,12 @@ def main(args: list):
 
     with open(input_path, 'r') as fr:
         input_data = fr.readlines()
-    input_data = map(lambda x: x.strip(), input_data)
-    input_data = list(set(input_data))
+    input_data = cleaning_strip(input_data)
+    # input_data = list(set(input_data))
     input_data = list(filter(None, input_data))
 
     cleaned = cleaning_tweet(input_data, is_test=True if 'test' in input_file_name else False)
-    cleaned_lines = map(lambda x: x + '\n', cleaned)
+    cleaned_lines = [t + '\n' for t in cleaned]
 
     with open(Path(output_path), 'w') as fw:
         fw.writelines(cleaned_lines)

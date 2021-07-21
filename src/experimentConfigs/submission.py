@@ -97,7 +97,11 @@ class TransformersPredict:
         with torch.no_grad():
             for data_text in tqdm(data_loader):
                 # Encode texts
-                inputs = self.tokenizer(data_text, **self.tokenizer_config)
+                # TODO:
+                try:
+                    inputs = self.tokenizer(data_text, **self.tokenizer_config)
+                except ValueError:
+                    inputs = self.tokenizer(data_text[0], **self.tokenizer_config)
                 # Predict
                 input_ids = torch.tensor(inputs['input_ids'], device=self.device)
                 logit = self.model(input_ids).logits
@@ -250,3 +254,8 @@ def main(args: list):
 
 if __name__ == '__main__':
     main(sys.argv)
+    # load_path = "/home/he/Workspace/cil-project/trainings/vinai/bertweet-base/20210720-155040"
+    # text_path = "/home/he/Workspace/cil-project/data/test_data_clean.txt"
+    # trans_predict = TransformersPredict(load_path, text_path)
+    # trans_predict.predict(batch_size=128)
+    # trans_predict.submission_file()
