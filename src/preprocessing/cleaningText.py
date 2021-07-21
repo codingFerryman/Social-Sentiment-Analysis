@@ -131,6 +131,8 @@ def _cleaning_tweet(text: str, spell_checker=None):
 
 
 def cleaning_tweet(text_list, check_spell=False, batch_size=512, is_test=False):
+    if type(text_list) is str:
+        is_test = True
     if check_spell is True:
         spell_checker_path = Path(PROJECT_PATH, 'src', 'preprocessing', 'subwordbert-probwordnoise')
         spell_checker_exists = spell_checker_path.exists()
