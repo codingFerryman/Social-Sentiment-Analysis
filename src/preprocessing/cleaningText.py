@@ -69,7 +69,7 @@ HANG_RE = regex.compile(r"([^a-zA-Z0-9])\1{3,}")
 EMOTICON_RE = regex.compile(EMOTICONS, regex.VERBOSE | regex.I | regex.UNICODE)
 
 
-def reduce_lengthening(text, reduce_to_length: int = 2):
+def reduce_lengthening(text, reduce_to_length: int = 3):
     pattern = regex.compile(r"(.)\1{2,}")
     return pattern.sub(r"\1" * reduce_to_length, text)
 

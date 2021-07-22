@@ -97,11 +97,7 @@ class TransformersPredict:
         with torch.no_grad():
             for data_text in tqdm(data_loader):
                 # Encode texts
-                # TODO:
-                try:
-                    inputs = self.tokenizer(data_text, **self.tokenizer_config)
-                except ValueError:
-                    inputs = self.tokenizer(data_text[0], **self.tokenizer_config)
+                inputs = self.tokenizer(data_text[0], **self.tokenizer_config)
                 # Predict
                 input_ids = torch.tensor(inputs['input_ids'], device=self.device)
                 logit = self.model(input_ids).logits
@@ -181,8 +177,10 @@ class TransformersPredict:
         logger.info('Preprocessing the data ...')
         if self.is_test:
             # Clean test set
-            data = [s.split(',', 1)[-1] for s in lines]
-            ids = [s.split(',', 1)[0] for s in lines]
+            lines = self.text_pre_cleaning_function(lines)
+            text = [s.split(',', 1)[-1] for s in lines]
+            text_id = [s.split(',', 1)[0] for s in lines]
+            zero_len_idx = []
         else:
             # Clean the train set
             data = []
@@ -191,16 +189,17 @@ class TransformersPredict:
                 _tmp = s.split('\u0001')
                 data.append(_tmp[-1])
                 ids.append(int(_tmp[0]))
-        text_id = []
-        text = []
-        zero_len_idx = []
-        for idx, sent in tqdm(zip(ids, data)):
-            sent_proc = self.text_pre_cleaning_function(sent)
-            if len(sent_proc) != 0:
-                text_id.append(idx)
-                text.append(sent_proc)
-            else:
-                zero_len_idx.append(idx)
+            text_id = []
+            text = []
+            zero_len_idx = []
+            for idx, sent in tqdm(zip(ids, data)):
+                # TODO: Move this cleaning out of the loop to avoid initializing the model every time
+                sent_proc = self.text_pre_cleaning_function(sent)
+                if len(sent_proc) != 0:
+                    text_id.append(idx)
+                    text.append(sent_proc)
+                else:
+                    zero_len_idx.append(idx)
         logger.info('Preprocessed!')
         return {
             'text': text,
@@ -254,8 +253,8 @@ def main(args: list):
 
 if __name__ == '__main__':
     main(sys.argv)
-    # load_path = "/home/he/Workspace/cil-project/trainings/vinai/bertweet-base/20210720-155040"
-    # text_path = "/home/he/Workspace/cil-project/data/test_data_clean.txt"
+    # load_path = "/home/he/Workspace/cil-project/trainings/vinai/bertweet-base/20210721-024602"
+    # text_path = "/home/he/Workspace/cil-project/data/test_data.txt"
     # trans_predict = TransformersPredict(load_path, text_path)
     # trans_predict.predict(batch_size=128)
     # trans_predict.submission_file()
