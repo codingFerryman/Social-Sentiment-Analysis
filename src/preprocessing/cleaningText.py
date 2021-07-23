@@ -120,7 +120,8 @@ def _cleaning_tweet(text: str, **kwargs):
                  replace_with_currency_symbol="",
                  lang="en"
                  )
-    text = reduce_lengthening(text, 2)
+    reduce2len = kwargs.get('reduce2len', 3)
+    text = reduce_lengthening(text, reduce2len)
     # Shorten problematic sequences of characters
     safe_text = HANG_RE.sub(r"\1\1\1", text)
     # Tokenize:
@@ -129,11 +130,27 @@ def _cleaning_tweet(text: str, **kwargs):
     return text
 
 
-def cleaning_tweet(text_list, check_spell=True, batch_size=512, is_test=False):
+def cleaning_tweet(text_list, reduce2len=3, check_spell=True, batch_size=512, is_test=False):
     if type(text_list) is str:
         is_test = True
         text_list = [text_list]
-    text_list = cleaning_masks(text_list)
+
+    if is_test:
+        _tmp = []
+        for test_sent in text_list:
+            _id = test_sent.split(',', 1)[0]
+            _sent = test_sent.split(',', 1)[-1]
+            _sent_cleaned = _cleaning_tweet(_sent, reduce2len=reduce2len)
+            _result = ",".join([str(_id), _sent_cleaned])
+            _tmp.append(_result)
+        text_list = _tmp
+    else:
+        logger.info("Cleaning text by 7 workers. It may take around 60 min, please wait ...")
+        text_list = list(set(text_list))
+        client = Client(n_workers=7)
+        _tmp = mpd.Series(text_list)
+        _tmp = _tmp.map(_cleaning_tweet)
+        text_list = _tmp.to_list()
 
     if check_spell is True:
         spell_checker_path = Path(PROJECT_PATH, 'src', 'preprocessing', 'subwordbert-probwordnoise')
@@ -141,9 +158,7 @@ def cleaning_tweet(text_list, check_spell=True, batch_size=512, is_test=False):
         if Path().resolve().parts[1] == 'cluster' and not spell_checker_exists:
             logger.info("Set the proxy for downloading spell checker")
             proxy = "http://proxy.ethz.ch:3128"
-            os.environ['http_proxy'] = proxy
             os.environ['HTTP_PROXY'] = proxy
-            os.environ['https_proxy'] = proxy
             os.environ['HTTPS_PROXY'] = proxy
         if not spell_checker_exists:
             logger.info("Downloading the spell checker ...")
@@ -174,21 +189,8 @@ def cleaning_tweet(text_list, check_spell=True, batch_size=512, is_test=False):
                 results.extend(text_batch)
                 torch.cuda.empty_cache()
         text_list = results
-    if is_test:
-        text = []
-        for test_sent in text_list:
-            _id = test_sent.split(',', 1)[0]
-            _sent = test_sent.split(',', 1)[-1]
-            _sent_cleaned = _cleaning_tweet(_sent)
-            _result = ",".join([str(_id), _sent_cleaned])
-            text.append(_result)
-    else:
-        logger.info("Cleaning text by 3 workers. It will take around 20 min, please wait ...")
-        client = Client(n_workers=3)
-        _tmp = mpd.Series(text_list)
-        _tmp = _tmp.map(_cleaning_tweet)
-        text = _tmp.to_list()
-    return text
+
+    return text_list
 
 
 def cleaningMap() -> Dict[str, Callable]:
@@ -217,7 +219,6 @@ def main(args: list):
     with open(input_path, 'r') as fr:
         input_data = fr.readlines()
     input_data = cleaning_strip(input_data)
-    # input_data = list(set(input_data))
     input_data = list(filter(None, input_data))
 
     cleaned = cleaning_tweet(input_data, is_test=True if 'test' in input_file_name else False)
