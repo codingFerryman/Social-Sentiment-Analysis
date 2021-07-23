@@ -74,7 +74,7 @@ def reduce_lengthening(text, reduce_to_length: int = 3):
     return pattern.sub(r"\1" * reduce_to_length, text)
 
 
-def cleaning_default(text: Union[str, list]):
+def cleaning_default(text: Union[str, list], **kwargs):
     to_be_removed = r'(<.*?>)|[\'\"]'
     if type(text) is str:
         return regex.sub(to_be_removed, '', text.strip())
@@ -85,7 +85,7 @@ def cleaning_default(text: Union[str, list]):
         return _result
 
 
-def cleaning_masks(text: Union[str, list]):
+def cleaning_masks(text: Union[str, list], **kwargs):
     to_be_removed = r'(<.*?>)|(\.{3})|(http[^a-zA-Z])'
     if type(text) is str:
         return regex.sub(to_be_removed, '', text.strip())
@@ -96,7 +96,7 @@ def cleaning_masks(text: Union[str, list]):
         return _result
 
 
-def cleaning_strip(text: Union[str, list]):
+def cleaning_strip(text: Union[str, list], **kwargs):
     if type(text) is str:
         return text.strip()
     else:
@@ -104,12 +104,10 @@ def cleaning_strip(text: Union[str, list]):
         _result = _tmp.str.strip().to_list()
         return _result
 
-def _cleaning_tweet(text: str, spell_checker=None):
+
+def _cleaning_tweet(text: str, **kwargs):
     dtknzr = TreebankWordDetokenizer()
-    if spell_checker:
-        text = spell_checker(text)
     text = dtknzr.detokenize(text.split())
-    text = cleaning_masks(text)
     text = clean(text,
                  fix_unicode=True,  # fix various unicode errors
                  to_ascii=True,  # transliterate to closest ASCII representation
@@ -135,6 +133,8 @@ def cleaning_tweet(text_list, check_spell=True, batch_size=512, is_test=False):
     if type(text_list) is str:
         is_test = True
         text_list = [text_list]
+    text_list = cleaning_masks(text_list)
+
     if check_spell is True:
         spell_checker_path = Path(PROJECT_PATH, 'src', 'preprocessing', 'subwordbert-probwordnoise')
         spell_checker_exists = spell_checker_path.exists()
@@ -159,10 +159,13 @@ def cleaning_tweet(text_list, check_spell=True, batch_size=512, is_test=False):
         logger.info("Correcting misspelling words ...")
         results = []
         if is_test:
-            for test_sent in text_list:
+            for test_sent in tqdm(text_list):
                 _id = test_sent.split(',', 1)[0]
                 _sent = test_sent.split(',', 1)[-1]
-                _sent_cleaned = checker.correct(_sent)
+                if len(_sent) > 0:
+                    _sent_cleaned = checker.correct(_sent)
+                else:
+                    _sent_cleaned = ''
                 results.append(','.join([_id, _sent_cleaned]))
         else:
             for i in tqdm(range(0, len(text_list), batch_size)):
