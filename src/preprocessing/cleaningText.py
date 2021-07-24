@@ -146,9 +146,9 @@ def cleaning_tweet(text_list, reduce2len=3, check_spell=True, batch_size=512, is
             _tmp.append(_result)
         text_list = _tmp
     else:
-        logger.info("Cleaning text by 3 workers. It may take around 60 min, please wait ...")
+        logger.info("Cleaning text by 7 workers. It may take around 60 min, please wait ...")
         text_list = list(set(text_list))
-        client = Client(n_workers=3)
+        client = Client(n_workers=7)
         _tmp = mpd.Series(text_list)
         _tmp = _tmp.map(_cleaning_tweet)
         text_list = _tmp.to_list()
