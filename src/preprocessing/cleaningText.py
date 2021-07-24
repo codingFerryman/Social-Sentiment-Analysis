@@ -189,6 +189,7 @@ def cleaning_tweet(text_list, reduce2len=3, check_spell=True, batch_size=512, is
         else:
             for i in tqdm(range(0, len(text_list), batch_size)):
                 text_batch = text_list[i:i + batch_size]
+                text_batch = list(filter(None, text_batch))
                 text_batch = checker.correct_strings(text_batch)
                 results.extend(text_batch)
                 torch.cuda.empty_cache()
