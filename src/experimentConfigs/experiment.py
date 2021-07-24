@@ -31,7 +31,6 @@ class ModelType(enum.Enum):
     transformers = "transformers"
     bagOfWords2LayerModel = "BagOfWords2LayerModel"
 
-
 class TokenizerType(enum.Enum):
     transformers = "transformers"
 
@@ -90,7 +89,8 @@ def processTransformersLog(log_history: list) -> Tuple[dict, dict]:
 
 def launchExperimentFromDict(d: dict, reportPath: str = None):
     """ This function launches experiment from a dictionary.
-
+    The experiment configuration can use the hyperopt package or not.
+    Also it can specify parameters regarding the model configuration, tokenizer configuration (tokenizer_config) and training configuration (args)
     Args:
         d (dict): [description]
         reportPath (str, optional): The json file to write or append the report. to. Defaults to './report.json'.
@@ -201,6 +201,7 @@ def launchExperimentFromDict(d: dict, reportPath: str = None):
 
 
 def getHypervisorFunction(funcName: str) -> callable:
+    """maps a function name from the hyperopt package to the function in the hyperopt package"""
     d = {
         "normal": hyperopt.hp.normal,
         "lognormal": hyperopt.hp.lognormal,
@@ -218,6 +219,9 @@ def getHypervisorFunction(funcName: str) -> callable:
 
 
 def getHyperoptValue(name: str, val: any):
+    """This gets a value and if it is a dictionary it transforms it to a dictionary {name:value} where value is a function from the hyperopt package  
+    Only use this if hyperopt_active is true on the first level of the dictionary configuration.
+    """
     USE_HYPEROPT = "use_hyperopt"
     HYPEROPT_FUNC = "hyperopt_function"
     HYPEROPT_ARGS = "arguments"
