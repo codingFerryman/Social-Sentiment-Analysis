@@ -75,7 +75,7 @@ class TransformersModel(ModelConstruction):
             self._modelName = modelName_or_pipeLine.tokenizer.name_or_path
             self._dataLoaded = self.pipeLine.is_data_loaded()
 
-        self.text_pre_cleaning_function = cleaningMap()[text_pre_cleaning]
+        self.text_pre_cleaning_function = cleaningMap(text_pre_cleaning)
         # Initialise some variables
         self._registeredMetrics = []
         self.metric = ('accuracy',)

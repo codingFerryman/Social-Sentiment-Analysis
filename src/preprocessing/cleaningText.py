@@ -196,13 +196,15 @@ def cleaning_tweet(text_list, reduce2len=3, check_spell=True, batch_size=512, is
     return text_list
 
 
-def cleaningMap() -> Dict[str, Callable]:
-    return {
+def cleaningMap(clFunction: str) -> Dict[str, Callable]:
+    d= {
         "default": cleaning_default,
         "masks": cleaning_masks,
         "strip": cleaning_strip,
         "tweet": cleaning_tweet
     }
+    assert clFunction in d.keys(), f"There is no {clFunction} in cleaning functions"
+    return d[clFunction]
 
 
 def main(args: list):

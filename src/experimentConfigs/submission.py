@@ -46,7 +46,7 @@ class TransformersPredict:
             fast_tokenizer = fast_tokenizer_cfg
 
         text_pre_cleaning = cfg.get('text_pre_cleaning', 'default')
-        self.text_pre_cleaning_function = cleaningMap()[text_pre_cleaning]
+        self.text_pre_cleaning_function = cleaningMap(text_pre_cleaning)
 
         logger.info(f"Loading model from {load_path}")
 
