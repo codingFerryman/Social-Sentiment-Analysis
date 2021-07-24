@@ -145,15 +145,18 @@ def cleaning_tweet(text_list, reduce2len=3, check_spell=True, batch_size=512, is
             _tmp.append(_result)
         text_list = _tmp
     else:
-        logger.info("Cleaning text by 7 workers. It may take around 60 min, please wait ...")
+        logger.info("Cleaning text by 3 workers. It may take around 60 min, please wait ...")
         text_list = list(set(text_list))
-        client = Client(n_workers=7)
+        client = Client(n_workers=3)
         _tmp = mpd.Series(text_list)
         _tmp = _tmp.map(_cleaning_tweet)
         text_list = _tmp.to_list()
 
     if check_spell is True:
-        spell_checker_path = Path(PROJECT_PATH, 'src', 'preprocessing', 'subwordbert-probwordnoise')
+        if Path().resolve().parts[1] == 'cluster':
+            spell_checker_path = Path(os.getenv("SCRATCH"), '.cache', 'subwordbert-probwordnoise')
+        else:
+            spell_checker_path = Path(PROJECT_PATH, 'src', 'preprocessing', 'subwordbert-probwordnoise')
         spell_checker_exists = spell_checker_path.exists()
         if Path().resolve().parts[1] == 'cluster' and not spell_checker_exists:
             logger.info("Set the proxy for downloading spell checker")
@@ -229,4 +232,6 @@ def main(args: list):
 
 
 if __name__ == '__main__':
+    if Path().resolve().parts[1] == 'cluster':
+        os.environ["TRANSFORMERS_CACHE"] = os.path.join(os.getenv("SCRATCH"), '.cache/huggingface/')
     main(sys.argv)
