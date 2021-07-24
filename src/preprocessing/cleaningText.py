@@ -16,10 +16,11 @@ from tqdm import tqdm
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from utils.loggers import getLogger
-from utils.others import get_project_path
+from utils.others import get_project_path, get_data_path
 
 logger = getLogger("CleaningText", True)
 PROJECT_PATH = get_project_path()
+DATA_PATH = get_data_path()
 # ProgressBar.enable()
 
 EMOTICONS = r"""
@@ -68,12 +69,12 @@ HANG_RE = regex.compile(r"([^a-zA-Z0-9])\1{3,}")
 EMOTICON_RE = regex.compile(EMOTICONS, regex.VERBOSE | regex.I | regex.UNICODE)
 
 
-def reduce_lengthening(text, reduce_to_length: int = 2):
+def reduce_lengthening(text, reduce_to_length: int = 3):
     pattern = regex.compile(r"(.)\1{2,}")
     return pattern.sub(r"\1" * reduce_to_length, text)
 
 
-def cleaning_default(text: Union[str, list]):
+def cleaning_default(text: Union[str, list], **kwargs):
     to_be_removed = r'(<.*?>)|[\'\"]'
     if type(text) is str:
         return regex.sub(to_be_removed, '', text.strip())
@@ -84,7 +85,7 @@ def cleaning_default(text: Union[str, list]):
         return _result
 
 
-def cleaning_masks(text: Union[str, list]):
+def cleaning_masks(text: Union[str, list], **kwargs):
     to_be_removed = r'(<.*?>)|(\.{3})|(http[^a-zA-Z])'
     if type(text) is str:
         return regex.sub(to_be_removed, '', text.strip())
@@ -95,7 +96,7 @@ def cleaning_masks(text: Union[str, list]):
         return _result
 
 
-def cleaning_strip(text: Union[str, list]):
+def cleaning_strip(text: Union[str, list], **kwargs):
     if type(text) is str:
         return text.strip()
     else:
@@ -103,12 +104,10 @@ def cleaning_strip(text: Union[str, list]):
         _result = _tmp.str.strip().to_list()
         return _result
 
-def _cleaning_tweet(text: str, spell_checker=None):
+
+def _cleaning_tweet(text: str, **kwargs):
     dtknzr = TreebankWordDetokenizer()
-    if spell_checker:
-        text = spell_checker(text)
     text = dtknzr.detokenize(text.split())
-    text = cleaning_masks(text)
     text = clean(text,
                  fix_unicode=True,  # fix various unicode errors
                  to_ascii=True,  # transliterate to closest ASCII representation
@@ -121,7 +120,8 @@ def _cleaning_tweet(text: str, spell_checker=None):
                  replace_with_currency_symbol="",
                  lang="en"
                  )
-    text = reduce_lengthening(text, 2)
+    reduce2len = kwargs.get('reduce2len', 3)
+    text = reduce_lengthening(text, reduce2len)
     # Shorten problematic sequences of characters
     safe_text = HANG_RE.sub(r"\1\1\1", text)
     # Tokenize:
@@ -130,16 +130,38 @@ def _cleaning_tweet(text: str, spell_checker=None):
     return text
 
 
-def cleaning_tweet(text_list, check_spell=True, batch_size=512):
+def cleaning_tweet(text_list, reduce2len=3, check_spell=True, batch_size=512, is_test=False):
+    if type(text_list) is str:
+        is_test = True
+        text_list = [text_list]
+
+    if is_test:
+        _tmp = []
+        for test_sent in text_list:
+            _id = test_sent.split(',', 1)[0]
+            _sent = test_sent.split(',', 1)[-1]
+            _sent_cleaned = _cleaning_tweet(_sent, reduce2len=reduce2len)
+            _result = ",".join([str(_id), _sent_cleaned])
+            _tmp.append(_result)
+        text_list = _tmp
+    else:
+        logger.info("Cleaning text by 3 workers. It may take around 60 min, please wait ...")
+        text_list = list(set(text_list))
+        client = Client(n_workers=3)
+        _tmp = mpd.Series(text_list)
+        _tmp = _tmp.map(_cleaning_tweet)
+        text_list = _tmp.to_list()
+
     if check_spell is True:
-        spell_checker_path = Path(PROJECT_PATH, 'src', 'preprocessing', 'subwordbert-probwordnoise')
+        if Path().resolve().parts[1] == 'cluster':
+            spell_checker_path = Path(os.getenv("SCRATCH"), '.cache', 'subwordbert-probwordnoise')
+        else:
+            spell_checker_path = Path(PROJECT_PATH, 'src', 'preprocessing', 'subwordbert-probwordnoise')
         spell_checker_exists = spell_checker_path.exists()
         if Path().resolve().parts[1] == 'cluster' and not spell_checker_exists:
             logger.info("Set the proxy for downloading spell checker")
             proxy = "http://proxy.ethz.ch:3128"
-            os.environ['http_proxy'] = proxy
             os.environ['HTTP_PROXY'] = proxy
-            os.environ['https_proxy'] = proxy
             os.environ['HTTPS_PROXY'] = proxy
         if not spell_checker_exists:
             logger.info("Downloading the spell checker ...")
@@ -154,18 +176,24 @@ def cleaning_tweet(text_list, check_spell=True, batch_size=512):
         checker.from_pretrained(spell_checker_path)
         logger.info("Correcting misspelling words ...")
         results = []
-        for i in tqdm(range(0, len(text_list), batch_size)):
-            text_batch = text_list[i:i + batch_size]
-            text_batch = checker.correct_strings(text_batch)
-            results.extend(text_batch)
-            torch.cuda.empty_cache()
+        if is_test:
+            for test_sent in tqdm(text_list):
+                _id = test_sent.split(',', 1)[0]
+                _sent = test_sent.split(',', 1)[-1]
+                if len(_sent) > 0:
+                    _sent_cleaned = checker.correct(_sent)
+                else:
+                    _sent_cleaned = ''
+                results.append(','.join([_id, _sent_cleaned]))
+        else:
+            for i in tqdm(range(0, len(text_list), batch_size)):
+                text_batch = text_list[i:i + batch_size]
+                text_batch = checker.correct_strings(text_batch)
+                results.extend(text_batch)
+                torch.cuda.empty_cache()
         text_list = results
-    logger.info("Cleaning text by 3 workers. It will take around 20 min, please wait ...")
-    client = Client(n_workers=3)
-    _tmp = mpd.Series(text_list)
-    _tmp = _tmp.map(_cleaning_tweet)
-    text = _tmp.to_list()
-    return text
+
+    return text_list
 
 
 def cleaningMap() -> Dict[str, Callable]:
@@ -180,7 +208,7 @@ def cleaningMap() -> Dict[str, Callable]:
 def main(args: list):
     """The function for cleaning data and export the cleaned data to a new file"""
     argv = {a.split('=')[0]: a.split('=')[1] for a in args[1:]}
-    data_path = argv.get('data', None)
+    data_path = argv.get('data_path', Path(DATA_PATH, 'test_data.txt'))
     assert data_path is not None, "No data_path specified"
     input_path = Path(data_path)
     input_file = input_path.parts[-1]
@@ -193,20 +221,17 @@ def main(args: list):
 
     with open(input_path, 'r') as fr:
         input_data = fr.readlines()
-    input_data = map(lambda x: x.strip(), input_data)
-    input_data = list(set(input_data))
+    input_data = cleaning_strip(input_data)
     input_data = list(filter(None, input_data))
-    cleaned = cleaning_tweet(input_data)
-    cleaned_lines = map(lambda x: x + '\n', cleaned)
 
-    if 'test' in input_file_name:
-        results = [','.join(t.split(' , ', 1)) for t in cleaned_lines]
-    else:
-        results = cleaned_lines
+    cleaned = cleaning_tweet(input_data, is_test=True if 'test' in input_file_name else False)
+    cleaned_lines = [t + '\n' for t in cleaned]
 
     with open(Path(output_path), 'w') as fw:
-        fw.writelines(results)
+        fw.writelines(cleaned_lines)
 
 
 if __name__ == '__main__':
+    if Path().resolve().parts[1] == 'cluster':
+        os.environ["TRANSFORMERS_CACHE"] = os.path.join(os.getenv("SCRATCH"), '.cache/huggingface/')
     main(sys.argv)

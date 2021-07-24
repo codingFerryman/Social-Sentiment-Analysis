@@ -6,7 +6,6 @@ from pathlib import Path
 
 import pandas as pd
 import torch
-from torch.utils.data import DataLoader, Dataset
 from tqdm.auto import tqdm
 from transformers import AutoModelForSequenceClassification, AutoTokenizer
 
@@ -17,22 +16,6 @@ from utils import get_data_path
 from preprocessing.cleaningText import cleaningMap
 
 logger = loggers.getLogger("PredictForSubmission", True)
-
-
-class TestDataset(Dataset):
-    """The PyTorch Dataset for evaluation and submission
-    There is no label in this Dataset"""
-
-    def __init__(self, dataset):
-        self.dataset = dataset
-
-    def __getitem__(self, index):
-        data = self.dataset[index]
-        return data
-
-    def __len__(self):
-        return len(self.dataset)
-
 
 class TransformersPredict:
     def __init__(self, load_path, text_path, fast_tokenizer=False, device=None, is_test=True, ):
@@ -68,7 +51,8 @@ class TransformersPredict:
         logger.info(f"Loading model from {load_path}")
 
         self.tokenizer = AutoTokenizer.from_pretrained(tokenizer_path, use_fast=fast_tokenizer)
-        self.model = AutoModelForSequenceClassification.from_pretrained(model_path, output_hidden_states=True).to(self.device)
+        self.model = AutoModelForSequenceClassification.from_pretrained(model_path, output_hidden_states=True,
+                                                                        config=cfg['model_config']).to(self.device)
 
         for param in self.model.parameters():
             param.requires_grad = False
@@ -83,24 +67,16 @@ class TransformersPredict:
         self.pred = None
         self.pred_scores = None
 
-    def initPredictions(self, batch_size):
-        batch_size = int(batch_size)
-        data_filtered = list(filter(None, self.data['text']))
-        dataset = TestDataset(data_filtered)
-        data_loader = DataLoader(dataset, batch_size=batch_size)
-        return batch_size, data_filtered, dataset, data_loader
-    
     def predict(self, batch_size=128):
-        batch_size, data_filtered, dataset, data_loader = self.initPredictions(batch_size=batch_size)
-        predictions = torch.tensor([], dtype=torch.int8, device=self.device)
-        scores = torch.tensor([], device=self.device)
+        predictions = torch.tensor([], dtype=torch.int8)
+        scores = torch.tensor([])
         with torch.no_grad():
-            for data_text in tqdm(data_loader):
-                # Encode texts
-                inputs = self.tokenizer(data_text, **self.tokenizer_config)
+            for i in tqdm(range(0, len(self.data['text']), batch_size)):
+                batch_data = self.data['text'][i:i + batch_size]
+                inputs = self.tokenizer(batch_data, return_tensors='pt', **self.tokenizer_config)
+                inputs = self.ensure_tensor_on_device(**inputs)
                 # Predict
-                input_ids = torch.tensor(inputs['input_ids'], device=self.device)
-                logit = self.model(input_ids).logits
+                logit = self.model(**inputs)[0].cpu()
                 score = torch.softmax(logit, dim=-1)
                 prediction = torch.argmax(score, dim=-1)
                 prediction_score = torch.max(score, dim=-1).values
@@ -111,36 +87,29 @@ class TransformersPredict:
         self.pred_scores = scores
     
     def predictIterator(self, batch_size=128):
-        batch_size, data_filtered, dataset, data_loader = self.initPredictions(batch_size=batch_size)
-        predictions = torch.tensor([], dtype=torch.int8, device=self.device)
-        scores = torch.tensor([], device=self.device)
         with torch.no_grad():
-            for data_text in tqdm(data_loader):
-                # Encode texts
-                inputs = self.tokenizer(data_text, **self.tokenizer_config)
+            for i in tqdm(range(0, len(self.data['text']), batch_size)):
+                batch_data = self.data['text'][i:i + batch_size]
+                inputs = self.tokenizer(batch_data, return_tensors='pt', **self.tokenizer_config)
+                inputs = self.ensure_tensor_on_device(**inputs)
                 # Predict
-                input_ids = torch.tensor(inputs['input_ids'], device=self.device)
-                logit = self.model(input_ids).logits
+                logit = self.model(**inputs)[0].cpu()
                 score = torch.softmax(logit, dim=-1)
                 prediction = torch.argmax(score, dim=-1)
                 prediction_score = torch.max(score, dim=-1).values
-                # Concatenate predictions
-                # predictions = torch.cat((predictions, prediction), 0)
-                # scores = torch.cat((scores, prediction_score), 0)
                 yield prediction, prediction_score
-    
-    def extractHiddenStates(self, batch_size=128, appendToList:bool=False):
-        batch_size, data_filtered, dataset, data_loader = self.initPredictions(batch_size=batch_size)
+
+    def extractHiddenStates(self, batch_size=128, appendToList: bool = False):
         self.last_hidden_states = []
         with torch.no_grad():
-            for data_text in tqdm(data_loader):
-                # Encode texts
-                inputs = self.tokenizer(data_text, **self.tokenizer_config)
+            for i in tqdm(range(0, len(self.data['text']), batch_size)):
+                batch_data = self.data['text'][i:i + batch_size]
+                inputs = self.tokenizer(batch_data, return_tensors='pt', **self.tokenizer_config)
+                inputs = self.ensure_tensor_on_device(**inputs)
                 # Predict
-                input_ids = torch.tensor(inputs['input_ids'], device=self.device)
-                h = self.model(input_ids).hidden_states[-1]
+                h = self.model(**inputs).hidden_states[-1].cpu()
                 self.last_hidden_states.append(h if appendToList else [])
-                yield(h)
+                yield h
 
 
     def get_predictions(self):
@@ -170,14 +139,26 @@ class TransformersPredict:
             'Id': int,
             'Prediction': int
         })
+        pred_df.sort_values('Id', inplace=True)
         pred_df.to_csv(save_path, index=False)
 
     def pre_process_test(self, lines: list):
         logger.info('Preprocessing the data ...')
+        text_id = []
+        text = []
+        zero_len_idx = []
+
         if self.is_test:
             # Clean test set
-            data = [s.split(',', 1)[-1] for s in lines]
-            ids = [s.split(',', 1)[0] for s in lines]
+            lines = self.text_pre_cleaning_function(lines, is_test=True)
+            for line in lines:
+                _text = line.split(',', 1)[-1]
+                _id = line.split(',', 1)[0]
+                if len(_text) == 0:
+                    zero_len_idx.append(_id)
+                else:
+                    text.append(_text)
+                    text_id.append(_id)
         else:
             # Clean the train set
             data = []
@@ -186,21 +167,32 @@ class TransformersPredict:
                 _tmp = s.split('\u0001')
                 data.append(_tmp[-1])
                 ids.append(int(_tmp[0]))
-        text_id = []
-        text = []
-        zero_len_idx = []
-        for idx, sent in tqdm(zip(ids, data)):
-            sent_proc = self.text_pre_cleaning_function(sent)
-            if len(sent_proc) != 0:
-                text_id.append(idx)
-                text.append(sent_proc)
-            else:
-                zero_len_idx.append(idx)
+            for idx, sent in tqdm(zip(ids, data)):
+                # TODO: Move this cleaning out of the loop to avoid initializing the model every time
+                sent_proc = self.text_pre_cleaning_function(sent)
+                if len(sent_proc) != 0:
+                    text_id.append(idx)
+                    text.append(sent_proc)
+                else:
+                    zero_len_idx.append(idx)
         logger.info('Preprocessed!')
         return {
             'text': text,
             'ids': text_id,
             'zero_len_ids': zero_len_idx
+        }
+
+    def ensure_tensor_on_device(self, **inputs):
+        """
+        Ensure PyTorch tensors are on the specified device.
+        Args:
+            inputs (keyword arguments that should be :obj:`torch.Tensor`): The tensors to place on :obj:`self.device`.
+        Return:
+            :obj:`Dict[str, torch.Tensor]`: The same as :obj:`inputs` but on the proper device.
+        """
+        return {
+            name: tensor.to(self.device) if isinstance(tensor, torch.Tensor) else tensor
+            for name, tensor in inputs.items()
         }
 
 def main(args: list):
@@ -249,3 +241,8 @@ def main(args: list):
 
 if __name__ == '__main__':
     main(sys.argv)
+    # load_path = "/home/he/Workspace/cil-project/trainings/vinai/bertweet-base/20210721-024602"
+    # text_path = "/home/he/Workspace/cil-project/data/test_data.txt"
+    # trans_predict = TransformersPredict(load_path, text_path)
+    # trans_predict.predict()
+    # trans_predict.submission_file()

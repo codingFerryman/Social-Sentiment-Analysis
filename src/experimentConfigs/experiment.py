@@ -21,7 +21,7 @@ from models.transformersModel import TransformersModel
 
 PROJECT_DIRECTORY = get_project_path()
 
-hf_logging.set_verbosity_error()
+# hf_logging.set_verbosity_error()
 hf_logging.enable_explicit_format()
 
 
@@ -274,8 +274,6 @@ def main(args: list):
         args (list): a dictionary containing the program arguments (sys.argv)
     """
     # Set the cache directory to /cluster/scratch if running on the cluster
-    if Path().resolve().parts[1] == 'cluster':
-        os.environ["TRANSFORMERS_CACHE"] = os.path.join(os.getenv("SCRATCH"), '.cache/huggingface/')
 
     argv = {a.split('=')[0]: a.split('=')[1] for a in args[1:]}
     testPath = argv.get('test_path', None)
@@ -289,4 +287,5 @@ def main(args: list):
 if __name__ == "__main__":
     if Path().resolve().parts[1] == 'cluster':
         os.environ["WANDB_DISABLED"] = "true"  # for cluster we need to disable this
+        os.environ["TRANSFORMERS_CACHE"] = os.path.join(os.getenv("SCRATCH"), '.cache/huggingface/')
     main(sys.argv)

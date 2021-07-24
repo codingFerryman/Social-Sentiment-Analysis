@@ -1,5 +1,5 @@
 {
-    "num_experiments": 16,
+    "num_experiments": 25,
     "experiments": [
         {
             "model_name_or_path": "vinai/bertweet-base",
@@ -853,6 +853,555 @@
             "args": {
                 "epochs": 10,
                 "batch_size": 128,
+                "adafactor": false,
+                "warmup_steps": 100,
+                "weight_decay": 0.0001,
+                "learning_rate": 5e-05,
+                "evaluation_strategy": "epoch",
+                "logging_strategy": "epoch",
+                "overwrite_output_dir": true,
+                "load_best_model_at_end": true,
+                "metric_for_best_model": "accuracy",
+                "early_stopping_patience": 3,
+                "early_stopping_threshold": 5e-05,
+                "train_val_split_iterator": "train_test_split",
+                "fp16": false,
+                "fine_tune_layers": {
+                    "freeze": false,
+                    "num_unfrozen_layers": 1,
+                    "unfrozen_embeddings": true
+                },
+                "report_to": null
+            },
+            "tokenizer_config": {
+                "add_special_tokens": true,
+                "max_length": 64,
+                "padding": "max_length",
+                "truncation": true,
+                "return_token_type_ids": true,
+                "return_attention_mask": true
+            },
+            "model_config": {
+                "num_labels": 2,
+                "problem_type": "single_label_classification",
+                "max_length": 64,
+                "output_attentions": false,
+                "output_hidden_states": false,
+                "id2label": {
+                    "1": 1,
+                    "0": -1
+                }
+            },
+            "metric": [
+                "glue",
+                "mrpc"
+            ]
+        },
+        {
+            "description": "vinai/bertweet-base, FP16, pre-cleaned dataset",
+            "results": {
+                "accuracy": 0.9014024207614652
+            },
+            "output_dir": "/cluster/home/heliuhe/cil-project/trainings/vinai/bertweet-base/20210720-155034",
+            "time_stamp": "2021-07-20 22:53:42.554402",
+            "stopped_epoch": 5.0,
+            "model_name_or_path": "vinai/bertweet-base",
+            "data_load_ratio": "clean",
+            "model_type": "transformers",
+            "tokenizer_type": "transformers",
+            "fast_tokenizer": false,
+            "text_pre_cleaning": "strip",
+            "args": {
+                "epochs": 10,
+                "batch_size": 64,
+                "adafactor": false,
+                "warmup_steps": 100,
+                "weight_decay": 0.0001,
+                "learning_rate": 1e-05,
+                "evaluation_strategy": "epoch",
+                "logging_strategy": "epoch",
+                "overwrite_output_dir": true,
+                "load_best_model_at_end": true,
+                "metric_for_best_model": "accuracy",
+                "early_stopping_patience": 3,
+                "early_stopping_threshold": 5e-05,
+                "train_val_split_iterator": "train_test_split",
+                "fp16": true,
+                "fine_tune_layers": {
+                    "freeze": false,
+                    "num_unfrozen_layers": 1,
+                    "unfrozen_embeddings": true
+                },
+                "report_to": null
+            },
+            "tokenizer_config": {
+                "add_special_tokens": true,
+                "max_length": 64,
+                "padding": "max_length",
+                "truncation": true,
+                "return_token_type_ids": true,
+                "return_attention_mask": true
+            },
+            "model_config": {
+                "num_labels": 2,
+                "problem_type": "single_label_classification",
+                "max_length": 64,
+                "output_attentions": false,
+                "output_hidden_states": false,
+                "id2label": {
+                    "1": 1,
+                    "0": -1
+                }
+            },
+            "metric": [
+                "glue",
+                "mrpc"
+            ]
+        },
+        {
+            "description": "vinai/bertweet-base, FP32, pre-cleaned dataset",
+            "results": {
+                "accuracy": 0.9017882626543808
+            },
+            "output_dir": "/cluster/home/heliuhe/cil-project/trainings/vinai/bertweet-base/20210720-155040",
+            "time_stamp": "2021-07-21 02:43:13.306270",
+            "stopped_epoch": 5.0,
+            "model_name_or_path": "vinai/bertweet-base",
+            "data_load_ratio": "clean",
+            "model_type": "transformers",
+            "tokenizer_type": "transformers",
+            "fast_tokenizer": false,
+            "text_pre_cleaning": "strip",
+            "args": {
+                "epochs": 7,
+                "batch_size": 64,
+                "adafactor": false,
+                "warmup_steps": 100,
+                "weight_decay": 0.0001,
+                "learning_rate": 1e-05,
+                "evaluation_strategy": "epoch",
+                "logging_strategy": "epoch",
+                "overwrite_output_dir": true,
+                "load_best_model_at_end": true,
+                "metric_for_best_model": "accuracy",
+                "early_stopping_patience": 3,
+                "early_stopping_threshold": 5e-05,
+                "train_val_split_iterator": "train_test_split",
+                "fp16": false,
+                "fine_tune_layers": {
+                    "freeze": false,
+                    "num_unfrozen_layers": 1,
+                    "unfrozen_embeddings": true
+                },
+                "report_to": null
+            },
+            "tokenizer_config": {
+                "add_special_tokens": true,
+                "max_length": 64,
+                "padding": "max_length",
+                "truncation": true,
+                "return_token_type_ids": true,
+                "return_attention_mask": true
+            },
+            "model_config": {
+                "num_labels": 2,
+                "problem_type": "single_label_classification",
+                "max_length": 64,
+                "output_attentions": false,
+                "output_hidden_states": false,
+                "id2label": {
+                    "1": 1,
+                    "0": -1
+                }
+            },
+            "metric": [
+                "glue",
+                "mrpc"
+            ]
+        },
+        {
+            "description": "vinai/bertweet-base, FP16",
+            "results": {
+                "accuracy": 0.9086735143325287
+            },
+            "output_dir": "/cluster/home/heliuhe/cil-project/trainings/vinai/bertweet-base/20210721-024602",
+            "time_stamp": "2021-07-21 11:00:53.791348",
+            "stopped_epoch": 6.0,
+            "model_name_or_path": "vinai/bertweet-base",
+            "data_load_ratio": 1.0,
+            "model_type": "transformers",
+            "tokenizer_type": "transformers",
+            "fast_tokenizer": false,
+            "text_pre_cleaning": "tweet",
+            "args": {
+                "epochs": 10,
+                "batch_size": 128,
+                "adafactor": false,
+                "warmup_steps": 100,
+                "weight_decay": 0.0001,
+                "learning_rate": 1e-05,
+                "evaluation_strategy": "epoch",
+                "logging_strategy": "epoch",
+                "overwrite_output_dir": true,
+                "load_best_model_at_end": true,
+                "metric_for_best_model": "accuracy",
+                "early_stopping_patience": 3,
+                "early_stopping_threshold": 5e-05,
+                "train_val_split_iterator": "train_test_split",
+                "fp16": true,
+                "fine_tune_layers": {
+                    "freeze": false,
+                    "num_unfrozen_layers": 1,
+                    "unfrozen_embeddings": true
+                },
+                "report_to": null
+            },
+            "tokenizer_config": {
+                "add_special_tokens": true,
+                "max_length": 64,
+                "padding": "max_length",
+                "truncation": true,
+                "return_token_type_ids": true,
+                "return_attention_mask": true
+            },
+            "model_config": {
+                "num_labels": 2,
+                "problem_type": "single_label_classification",
+                "max_length": 64,
+                "output_attentions": false,
+                "output_hidden_states": false,
+                "id2label": {
+                    "1": 1,
+                    "0": -1
+                }
+            },
+            "metric": [
+                "glue",
+                "mrpc"
+            ]
+        },
+        {
+            "description": "roberta-base. FP16",
+            "results": {
+                "accuracy": 0.8968286967705562
+            },
+            "output_dir": "/cluster/home/heliuhe/cil-project/trainings/roberta-base/20210721-030010",
+            "time_stamp": "2021-07-21 13:05:17.036470",
+            "stopped_epoch": 8.0,
+            "model_name_or_path": "roberta-base",
+            "data_load_ratio": 1.0,
+            "model_type": "transformers",
+            "tokenizer_type": "transformers",
+            "fast_tokenizer": false,
+            "text_pre_cleaning": "tweet",
+            "args": {
+                "epochs": 10,
+                "batch_size": 128,
+                "adafactor": false,
+                "warmup_steps": 100,
+                "weight_decay": 0.0001,
+                "learning_rate": 1e-05,
+                "evaluation_strategy": "epoch",
+                "logging_strategy": "epoch",
+                "overwrite_output_dir": true,
+                "load_best_model_at_end": true,
+                "metric_for_best_model": "accuracy",
+                "early_stopping_patience": 3,
+                "early_stopping_threshold": 5e-05,
+                "train_val_split_iterator": "train_test_split",
+                "fp16": true,
+                "fine_tune_layers": {
+                    "freeze": false,
+                    "num_unfrozen_layers": 1,
+                    "unfrozen_embeddings": true
+                },
+                "report_to": null
+            },
+            "tokenizer_config": {
+                "add_special_tokens": true,
+                "max_length": 64,
+                "padding": "max_length",
+                "truncation": true,
+                "return_token_type_ids": true,
+                "return_attention_mask": true
+            },
+            "model_config": {
+                "num_labels": 2,
+                "problem_type": "single_label_classification",
+                "max_length": 64,
+                "output_attentions": false,
+                "output_hidden_states": false,
+                "id2label": {
+                    "1": 1,
+                    "0": -1
+                }
+            },
+            "metric": [
+                "glue",
+                "mrpc"
+            ]
+        },
+        {
+            "description": "xlnet-base, FP16",
+            "results": {
+                "accuracy": 0.8908226008210152
+            },
+            "output_dir": "/cluster/home/heliuhe/cil-project/trainings/xlnet-base-cased/20210721-024833",
+            "time_stamp": "2021-07-21 15:56:50.955647",
+            "stopped_epoch": 7.0,
+            "model_name_or_path": "xlnet-base-cased",
+            "data_load_ratio": 1.0,
+            "model_type": "transformers",
+            "tokenizer_type": "transformers",
+            "fast_tokenizer": false,
+            "text_pre_cleaning": "tweet",
+            "args": {
+                "epochs": 7,
+                "batch_size": 128,
+                "adafactor": false,
+                "warmup_steps": 100,
+                "weight_decay": 0.0001,
+                "learning_rate": 5e-05,
+                "evaluation_strategy": "epoch",
+                "logging_strategy": "epoch",
+                "overwrite_output_dir": true,
+                "load_best_model_at_end": true,
+                "metric_for_best_model": "accuracy",
+                "early_stopping_patience": 3,
+                "early_stopping_threshold": 5e-05,
+                "train_val_split_iterator": "train_test_split",
+                "fp16": true,
+                "fine_tune_layers": {
+                    "freeze": false,
+                    "num_unfrozen_layers": 1,
+                    "unfrozen_embeddings": true
+                },
+                "report_to": null
+            },
+            "tokenizer_config": {
+                "add_special_tokens": true,
+                "max_length": 64,
+                "padding": "max_length",
+                "truncation": true,
+                "return_token_type_ids": true,
+                "return_attention_mask": true
+            },
+            "model_config": {
+                "num_labels": 2,
+                "problem_type": "single_label_classification",
+                "max_length": 64,
+                "output_attentions": false,
+                "output_hidden_states": false,
+                "id2label": {
+                    "1": 1,
+                    "0": -1
+                }
+            },
+            "metric": [
+                "glue",
+                "mrpc"
+            ]
+        },
+        {
+            "description": "vinai/bertweet-base, FP32",
+            "results": {
+                "accuracy": 0.908264768582956
+            },
+            "output_dir": "/cluster/home/heliuhe/cil-project/trainings/vinai/bertweet-base/20210721-024634",
+            "time_stamp": "2021-07-21 16:59:27.977914",
+            "stopped_epoch": 6.0,
+            "model_name_or_path": "vinai/bertweet-base",
+            "data_load_ratio": 1.0,
+            "model_type": "transformers",
+            "tokenizer_type": "transformers",
+            "fast_tokenizer": false,
+            "text_pre_cleaning": "tweet",
+            "args": {
+                "epochs": 10,
+                "batch_size": 64,
+                "adafactor": false,
+                "warmup_steps": 100,
+                "weight_decay": 0.0001,
+                "learning_rate": 1e-05,
+                "evaluation_strategy": "epoch",
+                "logging_strategy": "epoch",
+                "overwrite_output_dir": true,
+                "load_best_model_at_end": true,
+                "metric_for_best_model": "accuracy",
+                "early_stopping_patience": 3,
+                "early_stopping_threshold": 5e-05,
+                "train_val_split_iterator": "train_test_split",
+                "fp16": false,
+                "fine_tune_layers": {
+                    "freeze": false,
+                    "num_unfrozen_layers": 1,
+                    "unfrozen_embeddings": true
+                },
+                "report_to": null
+            },
+            "tokenizer_config": {
+                "add_special_tokens": true,
+                "max_length": 64,
+                "padding": "max_length",
+                "truncation": true,
+                "return_token_type_ids": true,
+                "return_attention_mask": true
+            },
+            "model_config": {
+                "num_labels": 2,
+                "problem_type": "single_label_classification",
+                "max_length": 64,
+                "output_attentions": false,
+                "output_hidden_states": false,
+                "id2label": {
+                    "1": 1,
+                    "0": -1
+                }
+            },
+            "metric": [
+                "glue",
+                "mrpc"
+            ]
+        },
+        {
+            "description": "microsoft/mpnet-base, FP32",
+            "results": {
+                "accuracy": 0.8947691115065453
+            },
+            "output_dir": "/cluster/home/heliuhe/cil-project/trainings/microsoft/mpnet-base/20210721-024804",
+            "time_stamp": "2021-07-21 20:10:42.148159",
+            "stopped_epoch": 7.0,
+            "model_name_or_path": "microsoft/mpnet-base",
+            "data_load_ratio": 1.0,
+            "model_type": "transformers",
+            "tokenizer_type": "transformers",
+            "fast_tokenizer": false,
+            "text_pre_cleaning": "tweet",
+            "args": {
+                "epochs": 10,
+                "batch_size": 128,
+                "adafactor": false,
+                "warmup_steps": 100,
+                "weight_decay": 0.0001,
+                "learning_rate": 5e-05,
+                "evaluation_strategy": "epoch",
+                "logging_strategy": "epoch",
+                "overwrite_output_dir": true,
+                "load_best_model_at_end": true,
+                "metric_for_best_model": "accuracy",
+                "early_stopping_patience": 3,
+                "early_stopping_threshold": 5e-05,
+                "train_val_split_iterator": "train_test_split",
+                "fp16": false,
+                "fine_tune_layers": {
+                    "freeze": false,
+                    "num_unfrozen_layers": 1,
+                    "unfrozen_embeddings": true
+                },
+                "report_to": null
+            },
+            "tokenizer_config": {
+                "add_special_tokens": true,
+                "max_length": 64,
+                "padding": "max_length",
+                "truncation": true,
+                "return_token_type_ids": true,
+                "return_attention_mask": true
+            },
+            "model_config": {
+                "num_labels": 2,
+                "problem_type": "single_label_classification",
+                "max_length": 64,
+                "output_attentions": false,
+                "output_hidden_states": false,
+                "id2label": {
+                    "1": 1,
+                    "0": -1
+                }
+            },
+            "metric": [
+                "glue",
+                "mrpc"
+            ]
+        },
+        {
+            "description": "roberta-base. FP16",
+            "results": {
+                "accuracy": 0.8969855000969009
+            },
+            "output_dir": "/cluster/home/heliuhe/cil-project/trainings/roberta-base/20210721-030005",
+            "time_stamp": "2021-07-21 20:57:33.817253",
+            "stopped_epoch": 8.0,
+            "model_name_or_path": "roberta-base",
+            "data_load_ratio": 1.0,
+            "model_type": "transformers",
+            "tokenizer_type": "transformers",
+            "fast_tokenizer": false,
+            "text_pre_cleaning": "tweet",
+            "args": {
+                "epochs": 10,
+                "batch_size": 128,
+                "adafactor": false,
+                "warmup_steps": 100,
+                "weight_decay": 0.0001,
+                "learning_rate": 1e-05,
+                "evaluation_strategy": "epoch",
+                "logging_strategy": "epoch",
+                "overwrite_output_dir": true,
+                "load_best_model_at_end": true,
+                "metric_for_best_model": "accuracy",
+                "early_stopping_patience": 3,
+                "early_stopping_threshold": 5e-05,
+                "train_val_split_iterator": "train_test_split",
+                "fp16": false,
+                "fine_tune_layers": {
+                    "freeze": false,
+                    "num_unfrozen_layers": 1,
+                    "unfrozen_embeddings": true
+                },
+                "report_to": null
+            },
+            "tokenizer_config": {
+                "add_special_tokens": true,
+                "max_length": 64,
+                "padding": "max_length",
+                "truncation": true,
+                "return_token_type_ids": true,
+                "return_attention_mask": true
+            },
+            "model_config": {
+                "num_labels": 2,
+                "problem_type": "single_label_classification",
+                "max_length": 64,
+                "output_attentions": false,
+                "output_hidden_states": false,
+                "id2label": {
+                    "1": 1,
+                    "0": -1
+                }
+            },
+            "metric": [
+                "glue",
+                "mrpc"
+            ]
+        },
+        {
+            "description": "xlnet-base, FP32",
+            "results": {
+                "accuracy": 0.8848852164414454
+            },
+            "output_dir": "/cluster/home/heliuhe/cil-project/trainings/xlnet-base-cased/20210721-024833",
+            "time_stamp": "2021-07-21 23:43:44.646225",
+            "stopped_epoch": 7.0,
+            "model_name_or_path": "xlnet-base-cased",
+            "data_load_ratio": 1.0,
+            "model_type": "transformers",
+            "tokenizer_type": "transformers",
+            "fast_tokenizer": false,
+            "text_pre_cleaning": "tweet",
+            "args": {
+                "epochs": 7,
+                "batch_size": 64,
                 "adafactor": false,
                 "warmup_steps": 100,
                 "weight_decay": 0.0001,

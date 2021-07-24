@@ -1,6 +1,6 @@
 {
-    "description": "microsoft/mpnet-base, FP32",
-    "model_name_or_path": "microsoft/mpnet-base",
+    "description": "vinai/bertweet-base, FP16",
+    "model_name_or_path": "vinai/bertweet-base",
     "data_load_ratio": 1.0,
     "model_type": "transformers",
     "tokenizer_type": "transformers",
@@ -12,7 +12,7 @@
         "adafactor": false,
         "warmup_steps": 100,
         "weight_decay": 0.0001,
-        "learning_rate": 5e-5,
+        "learning_rate": 1e-5,
         "evaluation_strategy": "epoch",
         "logging_strategy": "epoch",
         "overwrite_output_dir": true,
@@ -21,7 +21,7 @@
         "early_stopping_patience": 3,
         "early_stopping_threshold": 0.00005,
         "train_val_split_iterator": "train_test_split",
-        "fp16": false,
+        "fp16": true,
         "fine_tune_layers": {
             "freeze": false,
             "num_unfrozen_layers": 1,
