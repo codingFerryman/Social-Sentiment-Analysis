@@ -108,6 +108,7 @@ def cleaning_strip(text: Union[str, list], **kwargs):
 def _cleaning_tweet(text: str, **kwargs):
     dtknzr = TreebankWordDetokenizer()
     text = dtknzr.detokenize(text.split())
+    text = cleaning_masks(text)
     text = clean(text,
                  fix_unicode=True,  # fix various unicode errors
                  to_ascii=True,  # transliterate to closest ASCII representation
