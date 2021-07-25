@@ -33,8 +33,8 @@ def main(argv):
         _data = fp.readlines()
         _data_processed = []
         for _t in tqdm(_data, dynamic_ncols=True, desc="Lemmatization", mininterval=30, maxinterval=60):
-            # _data_processed.append(lemmatization(_t) + '\n')
-            pass
+            _data_processed.append(lemmatization(_t) + '\n')
+            # pass
     output_path = argv[1].split('.')[0] + '_lemma' + argv[1].split('.')[-1]
     with open(output_path, 'w') as fp:
         fp.writelines(_data_processed)
