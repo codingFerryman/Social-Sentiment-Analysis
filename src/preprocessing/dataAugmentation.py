@@ -15,14 +15,16 @@ if Path().resolve().parts[1] == 'cluster':
     proxy = "http://proxy.ethz.ch:3128"
     os.environ['HTTP_PROXY'] = proxy
     os.environ['HTTPS_PROXY'] = proxy
+
     os.environ['STANZA_RESOURCES_DIR'] = os.path.join(os.getenv("SCRATCH"), '.cache/stanza_resources/')
-    stanza.download(lang='en',
-                    model_dir=os.getenv('STANZA_RESOURCES_DIR'))
+    stanza.download(lang='en', model_dir=os.getenv('STANZA_RESOURCES_DIR'))
+    nlp = stanza.Pipeline(lang='en', dir=os.getenv('STANZA_RESOURCES_DIR'), processors='tokenize,pos,lemma')
+
 else:
     import stanza
 
     stanza.download('en')
-nlp = stanza.Pipeline(lang='en', processors='tokenize,pos,lemma')
+    nlp = stanza.Pipeline(lang='en', processors='tokenize,pos,lemma')
 
 
 def lemmatization(text):
