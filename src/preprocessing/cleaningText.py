@@ -75,7 +75,7 @@ def reduce_lengthening(text, reduce_to_length: int = 3):
 
 
 def cleaning_default(text: Union[str, list], **kwargs):
-    to_be_removed = r'(<.*?>)|[\'\"]'
+    to_be_removed = r'(<.*?>)|[\'\"]|\.{3,}'
     if type(text) is str:
         return regex.sub(to_be_removed, '', text.strip())
     else:

@@ -60,6 +60,13 @@ def loadData(dataDirectory: str = None, ratio: Union[str, float, int] = "full") 
                 neg = fp.readlines()
             with open(PurePath(dataDirectory, 'test_data_clean.txt'), 'r', encoding='utf-8') as fp:
                 test_full = fp.readlines()
+        elif ratio == 'aug':
+            with open(PurePath(dataDirectory, 'train_pos_full_aug.txt'), 'r', encoding='utf-8') as fp:
+                pos = fp.readlines()
+            with open(PurePath(dataDirectory, 'train_neg_full_aug.txt'), 'r', encoding='utf-8') as fp:
+                neg = fp.readlines()
+            with open(PurePath(dataDirectory, 'test_data.txt'), 'r', encoding='utf-8') as fp:
+                test_full = fp.readlines()
         else:
             raise AttributeError(
                 'The input should be \'full\', \'sub\', \'clean\', or a (float) number between 0 and 1')
