@@ -12,6 +12,9 @@ DATA_PATH = get_data_path()
 if Path().resolve().parts[1] == 'cluster':
     import stanza
 
+    proxy = "http://proxy.ethz.ch:3128"
+    os.environ['HTTP_PROXY'] = proxy
+    os.environ['HTTPS_PROXY'] = proxy
     os.environ['STANZA_RESOURCES_DIR'] = os.path.join(os.getenv("SCRATCH"), '.cache/stanza_resources/')
     stanza.download(lang='en',
                     model_dir=os.getenv('STANZA_RESOURCES_DIR'))
