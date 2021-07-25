@@ -134,6 +134,7 @@ def _cleaning_tweet(text: str, **kwargs):
 def cleaning_tweet(text_list, reduce2len=3, check_spell=True, batch_size=512, is_test=False):
     if type(text_list) is str:
         is_test = True
+        check_spell = False
         text_list = [text_list]
 
     if is_test:
