@@ -2,7 +2,7 @@
 # Please connect to ETHZ internal network before using this script
 declare USERNAME=$1
 declare TEST_PATH=$2
-HARDWARE_REQUIREMENTS='-n 8 -R "rusage[mem=9000,scratch=10000,ngpus_excl_p=1]" -R "select[gpu_mtotal0>=10000]"'
+HARDWARE_REQUIREMENTS='-n 8 -R "rusage[mem=12000,scratch=10000,ngpus_excl_p=1]" -R "select[gpu_mtotal0>=10000]"'
 # Prepare folder
 # ssh $USERNAME@login.leonhard.ethz.ch 'rm -r ~/cil-project; mkdir ~/cil-project'
 
