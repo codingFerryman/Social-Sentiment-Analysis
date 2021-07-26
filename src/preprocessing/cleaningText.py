@@ -8,7 +8,7 @@ import pandas as pd
 import regex
 import torch
 from joblib import Parallel, delayed
-from cleantext import clean
+from cleantext.clean import clean
 
 from neuspell import BertChecker
 from nltk.tokenize.treebank import TreebankWordDetokenizer
@@ -109,6 +109,7 @@ def _cleaning_tweet(text: str, **kwargs):
     dtknzr = TreebankWordDetokenizer()
     text = dtknzr.detokenize(text.split())
     text = cleaning_masks(text)
+    print("NotCallable")
     text = clean(text,
                  fix_unicode=True,  # fix various unicode errors
                  to_ascii=True,  # transliterate to closest ASCII representation
@@ -151,7 +152,7 @@ def cleaning_tweet(text_list, reduce2len=3, check_spell=True, batch_size=512, is
         _text_list = list(set(text_list))
         tmp = Parallel(n_jobs=n_workers)(delayed(_cleaning_tweet)(tel) for tel in _text_list)
         text_list = tmp
-        
+
     if check_spell is True:
         if Path().resolve().parts[1] == 'cluster':
             spell_checker_path = Path(os.getenv("SCRATCH"), '.cache', 'subwordbert-probwordnoise')
