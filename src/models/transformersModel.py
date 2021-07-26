@@ -225,7 +225,8 @@ class TransformersModel(ModelConstruction):
                 # Please do NOT add logging_dir here (that is for TensorBoard)
                 # Please save checkpoints to scratch when training on the cluster
                 output_dir=training_logging_dir,
-                **trainer_config_copy
+                **trainer_config_copy,
+                save_strategy='epoch'
             )
             logger.debug(f"The program is running from: {str(pathlib.Path().resolve())}")
             logger.debug(f"The checkpoints will be saved in {training_logging_dir}")
