@@ -1,7 +1,7 @@
 import os
 import sys
 from pathlib import Path
-from typing import Dict, Callable, Union
+from typing import Dict, Callable, Union, List
 
 import neuspell
 import pandas as pd
@@ -69,12 +69,29 @@ HANG_RE = regex.compile(r"([^a-zA-Z0-9])\1{3,}")
 EMOTICON_RE = regex.compile(EMOTICONS, regex.VERBOSE | regex.I | regex.UNICODE)
 
 
-def reduce_lengthening(text, reduce_to_length: int = 3):
+def reduce_lengthening(text:str, reduce_to_length: int = 3):
+    """ reduces the lengths of sequences of the same character like 'ooooo' to the provided reduce_to_length
+
+    Args:
+        text (str): sentence text 
+        reduce_to_length (int, optional): maximum length to reduce sequences of repeated characters. Defaults to 3.
+
+    Returns:
+        str: sentece text containing sequences of repeated characters of length up to reduce_to_length
+    """
     pattern = regex.compile(r"(.)\1{2,}")
     return pattern.sub(r"\1" * reduce_to_length, text)
 
 
 def cleaning_default(text: Union[str, list], **kwargs):
+    """Default cleaning just removes ', ", <.*?> characters from string
+
+    Args:
+        text (Union[str, list]): [description]
+
+    Returns:
+        Union[str, List[str]]: the same type as text
+    """
     to_be_removed = r'(<.*?>)|[\'\"]|\.{3,}'
     if type(text) is str:
         return regex.sub(to_be_removed, '', text.strip())
@@ -86,6 +103,14 @@ def cleaning_default(text: Union[str, list], **kwargs):
 
 
 def cleaning_masks(text: Union[str, list], **kwargs):
+    """keeping links such as <url> or http:/ with a single string representation.
+
+    Args:
+        text (Union[str, List[str]): list of texts to strip
+
+    Returns:
+        Union[str, List[str]]: the same type as text
+    """
     to_be_removed = r'(<.*?>)|(\.{3})|(http[^a-zA-Z])'
     if type(text) is str:
         return regex.sub(to_be_removed, '', text.strip())
@@ -96,7 +121,15 @@ def cleaning_masks(text: Union[str, list], **kwargs):
         return _result
 
 
-def cleaning_strip(text: Union[str, list], **kwargs):
+def cleaning_strip(text: Union[str, List[str]], **kwargs) -> Union[str, List[str]]:
+    """ strips text if text is str or strip every text element in list if it is a list
+
+    Args:
+        text (Union[str, List[str]): list of texts to strip
+
+    Returns:
+        Union[str, List[str]]: the same type as text (the text is stripped)
+    """
     if type(text) is str:
         return text.strip()
     else:
@@ -131,7 +164,20 @@ def _cleaning_tweet(text: str, **kwargs):
     return text
 
 
-def cleaning_tweet(text_list, reduce2len=3, check_spell=True, batch_size=512, is_test=False, n_workers=10):
+def cleaning_tweet(text_list: List[str], reduce2len:int=3, check_spell:bool=True, batch_size:int=512, is_test:bool=False, n_workers:int=10) -> List[str]:
+    """This function cleans (preprocess) sentences in text_list as if they are tweets
+
+    Args:
+        text_list (List[str]): list containing the strings texts of tweets to clean.
+        reduce2len (int, optional): the minimum length of a tweet. Defaults to 3.
+        check_spell (bool, optional): If any misspellings should be also corrected. Defaults to True.
+        batch_size (int, optional): The texts in text_list is processed in batches of size batch_size. Defaults to 512.
+        is_test (bool, optional): Whether the text_list corresponds to the testing data and not the training or validation data. Defaults to False.
+        n_workers (int, optional): number of workers (=number of processes) to use when cleaning the tweets. Defaults to 10.
+
+    Returns:
+        List[str]: A list containing cleaned (preprocessed) strings of tweets
+    """
     if type(text_list) is str:
         is_test = True
         check_spell = False
@@ -197,7 +243,14 @@ def cleaning_tweet(text_list, reduce2len=3, check_spell=True, batch_size=512, is
     return text_list
 
 
-def cleaningMap(clFunction: str) -> Dict[str, Callable]:
+def cleaningMap(clFunction: str) -> Callable:
+    """ Maps the cleaning function names to functions
+
+    Args:
+        clFunction (str): function name in str. It can be one of default, masks, strip, tweet
+    Returns:
+        Callable: function which does the cleaning
+    """
     d= {
         "default": cleaning_default,
         "masks": cleaning_masks,
