@@ -3,13 +3,13 @@ import sys
 from pathlib import Path
 from typing import Dict, Callable, Union
 
-import modin.pandas as mpd
 import neuspell
 import pandas as pd
 import regex
 import torch
+from joblib import Parallel, delayed
 from cleantext import clean
-from distributed import Client
+
 from neuspell import BertChecker
 from nltk.tokenize.treebank import TreebankWordDetokenizer
 from tqdm import tqdm
@@ -130,7 +130,7 @@ def _cleaning_tweet(text: str, **kwargs):
     return text
 
 
-def cleaning_tweet(text_list, reduce2len=3, check_spell=True, batch_size=512, is_test=False):
+def cleaning_tweet(text_list, reduce2len=3, check_spell=True, batch_size=512, is_test=False, n_workers=10):
     if type(text_list) is str:
         is_test = True
         text_list = [text_list]
@@ -145,12 +145,9 @@ def cleaning_tweet(text_list, reduce2len=3, check_spell=True, batch_size=512, is
             _tmp.append(_result)
         text_list = _tmp
     else:
-        logger.info("Cleaning text by 3 workers. It may take around 60 min, please wait ...")
+        logger.info(f"Cleaning text by {n_workers} workers. It may take around 60 min, please wait ...")
         text_list = list(set(text_list))
-        client = Client(n_workers=3)
-        _tmp = mpd.Series(text_list)
-        _tmp = _tmp.map(_cleaning_tweet)
-        text_list = _tmp.to_list()
+        text_list = Parallel(n_jobs=n_workers)(delayed(_cleaning_tweet)(tel) for tel in text_list)
 
     if check_spell is True:
         if Path().resolve().parts[1] == 'cluster':
