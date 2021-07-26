@@ -148,9 +148,10 @@ def cleaning_tweet(text_list, reduce2len=3, check_spell=True, batch_size=512, is
         text_list = _tmp
     else:
         logger.info(f"Cleaning text by {n_workers} workers. It may take around 60 min, please wait ...")
-        text_list = list(set(text_list))
-        text_list = Parallel(n_jobs=n_workers)(delayed(_cleaning_tweet)(tel) for tel in text_list)
-
+        _text_list = list(set(text_list))
+        tmp = Parallel(n_jobs=n_workers)(delayed(_cleaning_tweet)(tel) for tel in _text_list)
+        text_list = tmp
+        
     if check_spell is True:
         if Path().resolve().parts[1] == 'cluster':
             spell_checker_path = Path(os.getenv("SCRATCH"), '.cache', 'subwordbert-probwordnoise')
