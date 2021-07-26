@@ -75,7 +75,7 @@ def reduce_lengthening(text, reduce_to_length: int = 3):
 
 
 def cleaning_default(text: Union[str, list], **kwargs):
-    to_be_removed = r'(<.*?>)|[\'\"]'
+    to_be_removed = r'(<.*?>)|[\'\"]|\.{3,}'
     if type(text) is str:
         return regex.sub(to_be_removed, '', text.strip())
     else:
@@ -108,6 +108,7 @@ def cleaning_strip(text: Union[str, list], **kwargs):
 def _cleaning_tweet(text: str, **kwargs):
     dtknzr = TreebankWordDetokenizer()
     text = dtknzr.detokenize(text.split())
+    text = cleaning_masks(text)
     text = clean(text,
                  fix_unicode=True,  # fix various unicode errors
                  to_ascii=True,  # transliterate to closest ASCII representation
@@ -133,6 +134,7 @@ def _cleaning_tweet(text: str, **kwargs):
 def cleaning_tweet(text_list, reduce2len=3, check_spell=True, batch_size=512, is_test=False, n_workers=10):
     if type(text_list) is str:
         is_test = True
+        check_spell = False
         text_list = [text_list]
 
     if is_test:
@@ -185,6 +187,7 @@ def cleaning_tweet(text_list, reduce2len=3, check_spell=True, batch_size=512, is
         else:
             for i in tqdm(range(0, len(text_list), batch_size)):
                 text_batch = text_list[i:i + batch_size]
+                text_batch = list(filter(None, text_batch))
                 text_batch = checker.correct_strings(text_batch)
                 results.extend(text_batch)
                 torch.cuda.empty_cache()
