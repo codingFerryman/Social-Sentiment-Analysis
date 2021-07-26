@@ -4,7 +4,6 @@ GitPython~=3.1
 yapf
 emoji
 sentencepiece
-cleantext
 neuspell
 dill
 spacy
@@ -12,3 +11,4 @@ hyperopt
 datasets
 modin[dask]
 distributed
+clean-text
