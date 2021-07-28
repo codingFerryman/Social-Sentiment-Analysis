@@ -163,14 +163,14 @@ def _cleaning_tweet(text: str, **kwargs):
     return text
 
 
-def cleaning_tweet(text_list: List[str], reduce2len: int = 3, check_spell: bool = True, batch_size: int = 512,
+def cleaning_tweet(text_list: List[str], reduce2len: int = 3, check_spell: bool = False, batch_size: int = 512,
                    is_test: bool = False, n_workers: int = 10) -> List[str]:
     """This function cleans (preprocess) sentences in text_list as if they are tweets
 
     Args:
         text_list (List[str]): list containing the strings texts of tweets to clean.
         reduce2len (int, optional): the minimum length of a tweet. Defaults to 3.
-        check_spell (bool, optional): If any misspellings should be also corrected. Defaults to True.
+        check_spell (bool, optional): If any misspellings should be also corrected. Defaults to False.
         batch_size (int, optional): The texts in text_list is processed in batches of size batch_size. Defaults to 512.
         is_test (bool, optional): Whether the text_list corresponds to the testing data and not the training or validation data. Defaults to False.
         n_workers (int, optional): number of workers (=number of processes) to use when cleaning the tweets. Defaults to 10.
