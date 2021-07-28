@@ -6,10 +6,11 @@ import numpy as np
 
 from .loggers import getLogger
 from .others import get_data_path
+from .others import set_seed
 
 DATA_DIRECTORY = get_data_path()
 logger = getLogger("InputPipeline", debug=True)
-
+set_seed()
 
 def loadData(dataDirectory: str = None, ratio: Union[str, float, int] = "full") -> Tuple[list, list, list]:
     """

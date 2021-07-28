@@ -8,7 +8,7 @@ import torch
 from transformers import PreTrainedModel
 
 
-def set_seed(seed: int):
+def set_seed(seed: int = 2021):
     """
     Helper function for reproducible behavior to set the seed in ``random``, ``numpy``, ``torch``
 
