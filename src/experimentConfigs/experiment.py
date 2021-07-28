@@ -16,6 +16,7 @@ from transformers import logging as hf_logging
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from utils import get_project_path
+from utils.others import set_seed
 from models.Model import ModelConstruction
 from models.transformersModel import TransformersModel
 
@@ -269,6 +270,8 @@ def main(args: list):
     Args:
         args (list): a dictionary containing the program arguments (sys.argv)
     """
+    set_seed(2021)
+
     # Set the cache directory to /cluster/scratch if running on the cluster
 
     argv = {a.split('=')[0]: a.split('=')[1] for a in args[1:]}
