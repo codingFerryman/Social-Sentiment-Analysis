@@ -75,7 +75,7 @@ def reduce_lengthening(text, reduce_to_length: int = 3):
 
 
 def cleaning_default(text: Union[str, list], **kwargs):
-    to_be_removed = r'(<.*?>)|[\'\"]|\.{3,}'
+    to_be_removed = r'(<.*?>)|[\'\"]|\.{3,}|(http[^a-zA-Z])'
     if type(text) is str:
         return regex.sub(to_be_removed, '', text.strip())
     else:
@@ -86,7 +86,7 @@ def cleaning_default(text: Union[str, list], **kwargs):
 
 
 def cleaning_masks(text: Union[str, list], **kwargs):
-    to_be_removed = r'(<.*?>)|(\.{3})|(http[^a-zA-Z])'
+    to_be_removed = r'(<.*?>)|(\.{3})'
     if type(text) is str:
         return regex.sub(to_be_removed, '', text.strip())
     else:
@@ -134,10 +134,10 @@ def _cleaning_tweet(text: str, **kwargs):
 def cleaning_tweet(text_list, reduce2len=3, check_spell=True, batch_size=512, is_test=False):
     if type(text_list) is str:
         is_test = True
-        check_spell = False
         text_list = [text_list]
 
     if is_test:
+        check_spell = False
         _tmp = []
         for test_sent in text_list:
             _id = test_sent.split(',', 1)[0]
