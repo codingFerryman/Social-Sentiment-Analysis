@@ -72,7 +72,7 @@ model_configs = {
 
 roberta_pipeline = TextClassificationPipeline(
     model=AutoModelForSequenceClassification.from_pretrained('roberta-base', **model_configs),
-    tokenizer=AutoTokenizer.from_pretrained('roberta-base'),
+    tokenizer=AutoTokenizer.from_pretrained('roberta-base', use_fast=False),
     framework='pt',
     task='sentiment-analysis-roberta',
     binary_output=True,
@@ -86,7 +86,7 @@ logger.info(f"roberta_accuracy: {roberta_accuracy}")
 
 bert_pipeline = TextClassificationPipeline(
     model=AutoModelForSequenceClassification.from_pretrained('bert-base-uncased', **model_configs),
-    tokenizer=AutoTokenizer.from_pretrained('bert-base-uncased'),
+    tokenizer=AutoTokenizer.from_pretrained('bert-base-uncased', use_fast=False),
     framework='pt',
     task='sentiment-analysis-bert',
     binary_output=True,
@@ -100,7 +100,7 @@ logger.info(f"bert_accuracy: {bert_accuracy}")
 
 xlnet_pipeline = TextClassificationPipeline(
     model=AutoModelForSequenceClassification.from_pretrained('xlnet-base-cased', **model_configs),
-    tokenizer=AutoTokenizer.from_pretrained('xlnet-base-cased'),
+    tokenizer=AutoTokenizer.from_pretrained('xlnet-base-cased', use_fast=False),
     framework='pt',
     task='sentiment-analysis-xlnet',
     binary_output=True,
@@ -114,7 +114,7 @@ logger.info(f"xlnet_accuracy: {xlnet_accuracy}")
 
 bertweet_pipeline = TextClassificationPipeline(
     model=AutoModelForSequenceClassification.from_pretrained('vinai/bertweet-base', **model_configs),
-    tokenizer=AutoTokenizer.from_pretrained('vinai/bertweet-base'),
+    tokenizer=AutoTokenizer.from_pretrained('vinai/bertweet-base', use_fast=False),
     framework='pt',
     task='sentiment-analysis-bertweet',
     binary_output=True,
