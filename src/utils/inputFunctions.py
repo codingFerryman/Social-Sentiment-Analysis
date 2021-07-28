@@ -25,10 +25,6 @@ def loadData(dataDirectory: str = None, ratio: Union[str, float, int] = "full") 
     if dataDirectory is None:
         dataDirectory = DATA_DIRECTORY
 
-    with open(PurePath(dataDirectory, 'train_pos.txt'), 'r', encoding='utf-8') as fp:
-        train_pos_sub = list(set(fp.readlines()))
-    with open(PurePath(dataDirectory, 'train_neg.txt'), 'r', encoding='utf-8') as fp:
-        train_neg_sub = list(set(fp.readlines()))
     with open(PurePath(dataDirectory, 'train_pos_full.txt'), 'r', encoding='utf-8') as fp:
         train_pos_full = list(set(fp.readlines()))
     with open(PurePath(dataDirectory, 'train_neg_full.txt'), 'r', encoding='utf-8') as fp:
@@ -52,6 +48,10 @@ def loadData(dataDirectory: str = None, ratio: Union[str, float, int] = "full") 
             pos = train_pos_full
             neg = train_neg_full
         elif ratio == 'sub':
+            with open(PurePath(dataDirectory, 'train_pos.txt'), 'r', encoding='utf-8') as fp:
+                train_pos_sub = list(set(fp.readlines()))
+            with open(PurePath(dataDirectory, 'train_neg.txt'), 'r', encoding='utf-8') as fp:
+                train_neg_sub = list(set(fp.readlines()))
             pos = train_pos_sub
             neg = train_neg_sub
         elif ratio == 'clean':
