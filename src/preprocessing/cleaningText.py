@@ -3,13 +3,11 @@ import sys
 from pathlib import Path
 from typing import Callable, Union, List
 
-import neuspell
 import pandas as pd
 import regex
 import torch
 from cleantext.clean import clean
 from joblib import Parallel, delayed
-from neuspell import BertChecker
 from nltk.tokenize.treebank import TreebankWordDetokenizer
 from tqdm import tqdm
 
@@ -199,6 +197,9 @@ def cleaning_tweet(text_list: List[str], reduce2len: int = 3, check_spell: bool 
         text_list = tmp
 
     if check_spell is True:
+        import neuspell
+        from neuspell import BertChecker
+
         if Path().resolve().parts[1] == 'cluster':
             spell_checker_path = Path(os.getenv("SCRATCH"), '.cache', 'subwordbert-probwordnoise')
         else:
