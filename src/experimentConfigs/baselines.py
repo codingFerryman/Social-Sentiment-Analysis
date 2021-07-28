@@ -1,6 +1,10 @@
 import os
 import random
 import sys
+from pathlib import Path
+
+if Path().resolve().parts[1] == 'cluster':
+    os.environ["TRANSFORMERS_CACHE"] = os.path.join(os.getenv("SCRATCH"), '.cache/huggingface/')
 
 import torch
 from datasets import load_metric
