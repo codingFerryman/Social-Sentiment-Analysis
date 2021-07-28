@@ -11,6 +11,7 @@
         "batch_size": 128,
         "learning_rate": 5e-5,
         "evaluation_strategy": "epoch",
+        "save_strategy": "epoch",
         "logging_strategy": "epoch",
         "overwrite_output_dir": true,
         "load_best_model_at_end": true,
