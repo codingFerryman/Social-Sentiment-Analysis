@@ -42,7 +42,7 @@ logger.debug("dataset loaded")
 # Predict
 def predict(data, pipeline, batch_size=128):
     _results = []
-    tr = trange(0, len(data), batch_size)
+    tr = trange(0, len(data), batch_size, mininterval=60, maxinterval=300, dynamic_ncols=True)
     for i in tr:
         _results += pipeline(data[i:i + batch_size])
     return _results
