@@ -5,10 +5,7 @@ yapf
 emoji
 sentencepiece
 clean-text
-neuspell
 dill
-spacy
 hyperopt
 datasets
-modin[dask]
 distributed

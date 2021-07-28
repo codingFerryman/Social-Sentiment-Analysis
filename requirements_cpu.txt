@@ -4,7 +4,6 @@ tqdm<4.50.0,>=4.27
 torch==1.8.1+cpu
 torchtext<0.10
 transformers~=4.8.2
-spacy~=3.0.6
 scikit-learn~=0.24.2
 pandas~=1.2.5
 datasets~=1.8.0
