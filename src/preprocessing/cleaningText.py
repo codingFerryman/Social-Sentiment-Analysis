@@ -8,7 +8,6 @@ import regex
 import torch
 from cleantext.clean import clean
 from joblib import Parallel, delayed
-from nltk.tokenize.treebank import TreebankWordDetokenizer
 from tqdm import tqdm
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
@@ -136,8 +135,8 @@ def cleaning_strip(text: Union[str, List[str]], **kwargs) -> Union[str, List[str
 
 
 def _cleaning_tweet(text: str, **kwargs):
-    dtknzr = TreebankWordDetokenizer()
-    text = dtknzr.detokenize(text.split())
+    # dtknzr = TreebankWordDetokenizer()
+    # text = dtknzr.detokenize(text.split())
     text = cleaning_masks(text)
     text = clean(text,
                  fix_unicode=True,  # fix various unicode errors
