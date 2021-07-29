@@ -27,6 +27,6 @@ pip install -r "${SCRIPT_DIR}"/requirements.txt
 # CPU
 #pip install -r "${SCRIPT_DIR}"/requirements_cpu.txt
 
-spacy download en_core_web_sm
+#spacy download en_core_web_sm
 #spacy download en_core_web_trf
 #python "${SCRIPT_DIR}"/setup.py install

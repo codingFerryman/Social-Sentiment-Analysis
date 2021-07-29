@@ -1,7 +1,7 @@
 GitPython~=3.1
 numpy~=1.20.3
 tqdm<4.50.0,>=4.27
-torch==1.8.1+cpu
+torch==1.9.0+cpu
 torchtext<0.10
 transformers~=4.8.2
 scikit-learn~=0.24.2
@@ -26,4 +26,4 @@ mplcursors
 wordcloud
 
 # package location
---find-links https://download.pytorch.org/whl/lts/1.8/torch_lts.html
+--find-links https://download.pytorch.org/whl/torch_stable.html
