@@ -1,11 +1,11 @@
 {
-    "description": "bert baseline tweet digit",
+    "description": "bert preprocess (report document)",
     "model_name_or_path": "bert-base-uncased",
     "data_load_ratio": 1,
     "model_type": "transformers",
     "tokenizer_type": "transformers",
     "fast_tokenizer": false,
-    "text_pre_cleaning": "tweet",
+    "text_pre_cleaning": "default",
     "args": {
         "epochs": 1,
         "batch_size": 128,
