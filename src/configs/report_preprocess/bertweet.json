@@ -21,7 +21,7 @@
         "fine_tune_layers": {
             "freeze": true,
             "num_unfrozen_layers": 0,
-            "unfrozen_embeddings": false
+            "unfrozen_embeddings": true
         },
         "report_to": null
     },
