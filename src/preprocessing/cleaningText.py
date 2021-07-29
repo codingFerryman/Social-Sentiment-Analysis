@@ -1,4 +1,5 @@
 import os
+import string
 import sys
 from pathlib import Path
 from typing import Callable, Union, List
@@ -134,9 +135,20 @@ def cleaning_strip(text: Union[str, List[str]], **kwargs) -> Union[str, List[str
         return _result
 
 
+def _remove_punct(text: str, keep_neutral=False):
+    to_be_removed = string.punctuation
+    neutral_punct = set('!\'#-?')
+    if keep_neutral:
+        _tmp = set(string.punctuation) - neutral_punct
+        to_be_removed = "".join(_tmp)
+    return text.translate(str.maketrans('', '', to_be_removed))
+
+
 def _cleaning_tweet(text: str, **kwargs):
     # dtknzr = TreebankWordDetokenizer()
     # text = dtknzr.detokenize(text.split())
+    no_punct = kwargs.get("no_punct", False)
+    keep_neutral_punct = kwargs.get("keep_neutral_punct", False)
     text = cleaning_default(text)
     text = clean(text,
                  fix_unicode=True,  # fix various unicode errors
@@ -153,11 +165,13 @@ def _cleaning_tweet(text: str, **kwargs):
                  replace_with_url="",
                  replace_with_email="",
                  replace_with_phone_number="",
-                 replace_with_number="0",
-                 replace_with_digit="0",
+                 replace_with_number="",
+                 replace_with_digit="",
                  replace_with_currency_symbol="",
                  lang="en"  # set to 'de' for German special handling
                  )
+    if no_punct:
+        text = _remove_punct(text, keep_neutral_punct)
     # reduce2len = kwargs.get('reduce2len', 3)
     # text = reduce_lengthening(text, reduce2len)
     # Shorten problematic sequences of characters
