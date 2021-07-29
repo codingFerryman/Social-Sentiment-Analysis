@@ -223,15 +223,18 @@ class PretrainedTransformersPipeLine(InputPipeline):
             **splitterConfig: the configuration for the splitter
         """
         assert self._dataLoaded, "Data should be loaded to get the encoded dataset"
+
+        logger.info('Cleaning the dataset ...')
+        self.dataNeg = list(filter(None, set(cleaning_function(self.dataNeg))))
+        self.dataPos = list(filter(None, set(cleaning_function(self.dataPos))))
+        self.allData = self.dataNeg + self.dataPos
+        logger.info('Cleaned!')
+
         # create labels
         negAsZeros = np.zeros((len(self.dataNeg),), dtype=np.int32)
         posAsOnes = np.ones((len(self.dataPos),), dtype=np.int32)
         argMix = np.concatenate((posAsOnes, negAsZeros))
         labels = list(self.getLabels(argMix=list(argMix), posLabel=posLabel, negLabel=negLabel))
-
-        logger.info('Cleaning the dataset ...')
-        self.allData = cleaning_function(self.allData)
-        logger.info('Cleaned!')
 
         # get max sequence length
         min_len, max_len, zero_len_idx = self.getSequenceMaxLength()
