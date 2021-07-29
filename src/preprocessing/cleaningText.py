@@ -81,7 +81,7 @@ def reduce_lengthening(text: str, reduce_to_length: int = 3):
 
 
 def cleaning_default(text: Union[str, list], **kwargs):
-    """Default cleaning removes ", <.*?>, ..., and http:/ or characters from string
+    """Default cleaning removes ", <user>, <url>, ..., and http:/ or characters from string
 
     Args:
         text (Union[str, list]): [description]
@@ -89,7 +89,7 @@ def cleaning_default(text: Union[str, list], **kwargs):
     Returns:
         Union[str, List[str]]: the same type as text
     """
-    to_be_removed = r'(<.*?>)|[\"]|\.{3,}|(http[^a-zA-Z])'
+    to_be_removed = r'(<url>)|(<user>)|[\"]|\.{3,}|(http[^a-zA-Z])'
     if type(text) is str:
         return regex.sub(to_be_removed, '', text.strip())
     else:
@@ -100,7 +100,7 @@ def cleaning_default(text: Union[str, list], **kwargs):
 
 
 def cleaning_masks(text: Union[str, list], **kwargs) -> Union[str, List[str]]:
-    """just remove <.*?> and ... with a single string representation.
+    """just remove <user>, <url>, and ... with a single string representation.
 
     Args:
         text (Union[str, List[str]): list of texts to strip
@@ -108,7 +108,7 @@ def cleaning_masks(text: Union[str, list], **kwargs) -> Union[str, List[str]]:
     Returns:
         Union[str, List[str]]: the same type as text
     """
-    to_be_removed = r'(<.*?>)|(\.{3})'
+    to_be_removed = r'(<url>)|(<user>)|(\.{3})'
     if type(text) is str:
         return regex.sub(to_be_removed, '', text.strip())
     else:

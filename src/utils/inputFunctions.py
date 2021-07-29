@@ -80,7 +80,7 @@ def loadData(dataDirectory: str = None, ratio: Union[str, float, int] = "full") 
 
 
 def preprocessing(pos: list, neg: list) -> Tuple[list, list]:
-    to_be_removed = r'(<.*?>)|(\.{3})'
+    to_be_removed = r'(<user>)|(<url>)|(\.{3})'
 
     pos_df = pd.DataFrame({'text': pos, 'label': [1] * len(pos)})
     pos_df['text'] = pos_df['text'].str.strip().replace(to_be_removed, '')
