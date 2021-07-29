@@ -143,20 +143,28 @@ def _cleaning_tweet(text: str, **kwargs):
                  to_ascii=True,  # transliterate to closest ASCII representation
                  no_line_breaks=True,  # fully strip line breaks as opposed to only normalizing them
                  no_urls=True,  # replace all URLs with a special token
+                 no_emails=True,  # replace all email addresses with a special token
                  no_phone_numbers=True,  # replace all phone numbers with a special token
+                 no_numbers=True,  # replace all numbers with a special token
+                 no_digits=True,  # replace all digits with a special token
                  no_currency_symbols=True,  # replace all currency symbols with a special token
+                 no_punct=False,  # remove punctuations
+                 replace_with_punct="",  # instead of removing punctuations you may replace them
                  replace_with_url="",
+                 replace_with_email="",
                  replace_with_phone_number="",
+                 replace_with_number="0",
+                 replace_with_digit="0",
                  replace_with_currency_symbol="",
-                 lang="en"
+                 lang="en"  # set to 'de' for German special handling
                  )
-    reduce2len = kwargs.get('reduce2len', 3)
-    text = reduce_lengthening(text, reduce2len)
+    # reduce2len = kwargs.get('reduce2len', 3)
+    # text = reduce_lengthening(text, reduce2len)
     # Shorten problematic sequences of characters
-    safe_text = HANG_RE.sub(r"\1\1\1", text)
+    # safe_text = HANG_RE.sub(r"\1\1\1", text)
     # Tokenize:
-    words = WORD_RE.findall(safe_text)
-    text = " ".join(words)
+    # words = WORD_RE.findall(safe_text)
+    # text = " ".join(words)
     return text
 
 
