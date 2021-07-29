@@ -92,11 +92,12 @@ def preprocessing(pos: list, neg: list) -> Tuple[list, list]:
 
     inter_df = pos_count.join(neg_count, on='text', how='inner', lsuffix='_pos', rsuffix='_neg').reset_index()
 
-    to_pos = np.select(inter_df['label_pos'] > inter_df['label_neg'], inter_df['text']).tolist()
-    to_neg = np.select(inter_df['label_pos'] < inter_df['label_neg'], inter_df['text']).tolist()
+    to_pos = inter_df['text'][inter_df['label_pos'] > inter_df['label_neg']].tolist()
+    to_neg = inter_df['text'][inter_df['label_pos'] < inter_df['label_neg']].tolist()
+    to_remove = inter_df['text'][inter_df['label_pos'] == inter_df['label_neg']].tolist()
 
-    pos_result = list(filter(None, set(pos) - set(to_neg)))
-    neg_result = list(filter(None, set(neg) - set(to_pos)))
+    pos_result = list(filter(None, set(pos_df.text) - set(to_neg) - set(to_remove)))
+    neg_result = list(filter(None, set(neg_df.text) - set(to_pos) - set(to_remove)))
 
     return pos_result, neg_result
 
