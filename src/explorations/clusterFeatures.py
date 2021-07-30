@@ -5,8 +5,12 @@ import numpy as np
 
 sys.path.append(os.path.join(os.getcwd(), '..'))
 
+
+import sklearn
+from sklearn import decomposition
+
 # local imports
-from experimentConfigs.submission import TransformersPredict
+from experimentConfigs.transformersPredict import TransformersPredict
 from utils import diskArray
 from utils.diskArray import DiskArray
 
@@ -41,3 +45,7 @@ daPos.save("roberta-base-pos-features.diskArray")
 #%%
 # daPos = DiskArray.load("/home/sniper/projects_local/CIL/Computational-Intelligence-Lab/data/extracted-features/roberta-features/roberta-base-pos-features.diskArray")
 # print(len(daPos))
+
+#%%
+pca = sklearn.decomposition.PCA(3, whiten=True)
+X = pca.fit_transform(daPos)
