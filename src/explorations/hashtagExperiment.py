@@ -6,6 +6,7 @@ from typing import List
 
 import pandas as pd
 import torch
+from joblib import Parallel, delayed
 from sklearn.metrics import accuracy_score
 from tqdm.auto import tqdm
 
@@ -45,7 +46,8 @@ def extract_hashtag_dataset(model_path:Path, data_path=None, prediction_path=Non
         # read_csv in Pandas 1.3.x we are using has bugs in this experiment
         logger.info("Loading dataset ...")
         df_t = pd.DataFrame(columns=['id', 'golden', 'text'])
-        for _t in tqdm(data_t, mininterval=5, dynamic_ncols=True, maxinterval=15):
+
+        def _clean(_t):
             _tmp = _t.split('\u0001', 2)
             _id = int(_tmp[0])
             _golden = int(_tmp[1])
@@ -54,8 +56,13 @@ def extract_hashtag_dataset(model_path:Path, data_path=None, prediction_path=Non
                 if _w.startswith('#') and len(_w) > 1:
                     to_append = [_id, _golden, _text]
                     to_append_series = pd.Series(to_append, index=df_t.columns)
-                    df_t = df_t.append(to_append_series, ignore_index=True)
-                    break
+                    return to_append_series
+            return
+
+        _clean_result = Parallel(n_jobs=8)(
+            delayed(_clean)(_txt) for _txt in tqdm(data_t, desc="Generating hashtag_data.pkl"))
+        _clean_result = [_r for _r in _clean_result if _r is not None]
+        df_t = df_t.append(_clean_result)
 
         df_data = df_t.join(df_p, on="id").set_index("id")
         logger.info(f"Saving the data to {df_data_path}")
@@ -101,12 +108,15 @@ def _hashtag_matters(data_line: pd.Series, **kwargs):
         _pred = predict_by_hashtag(text=_text, pred_pos_prob=_pos_prob, pred_neg_prob=_neg_prob, **kwargs)
     else:
         _pred = _prediction
-    return _pred
+    row['new_prediction'] = _pred
+    return row
 
 
 def hashtag_matters(data: pd.DataFrame, **kwargs):
-    tqdm.pandas(desc="Hashtag analyzing: ")
-    data['new_prediction'] = data.progress_apply(lambda row: _hashtag_matters(row, **kwargs), axis=1)
+    data_records = data.to_dict('records')
+    _tmp = Parallel(n_jobs=8)(
+        delayed(_hashtag_matters)(_line, **kwargs) for _line in tqdm(data_records, desc="Hashtag analyzing"))
+    data = pd.DataFrame(_tmp)
     return data
 
 
