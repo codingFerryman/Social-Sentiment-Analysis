@@ -49,6 +49,6 @@
         }
     },
     "metric": [
-        "acuracy"
+        "accuracy"
     ]
 }
