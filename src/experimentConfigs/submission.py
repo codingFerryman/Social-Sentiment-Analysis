@@ -1,3 +1,13 @@
+#
+# This script creates a submission csv file to be submitted to the kaggle competition.
+# It loads an already trained model from its checkopoints. The device and the model's batch size
+# can be also specified in this file. 
+# 
+# A typical example of usage for roberta is:
+#
+# python submission.py load_path=../../trainings/roberta-base/20210709-102233 batch_size=128 \
+# text_path=../../data/test_data.txt
+#
 import os
 import sys
 from pathlib import Path
@@ -17,12 +27,12 @@ def main(args: list):
     Args:
         args (list): a dictionary containing the program arguments (sys.argv)
         - load_path: The root directory containing 'model' and 'tokenizer'
-        - batch_size: The batch size in prediction
+        - batch_size: The batch size in prediction. The default is 256
         - device: The index of cuda device for prediction.
             If not given, the program will automatically use the first cuda device otherwise the cpu
         - fast_tokenizer: Use Fast Tokenizer or not in predictions. Better to use the same as training tokenizer
             Using normal tokenizer by default
-        - text_path: The text file to be processed. data/test_data.txt by default
+        - text_path: The text file to be processed. data/test_data.txt is used by default.
 
     """
     argv = {a.split('=')[0]: a.split('=')[1] for a in args[1:]}
@@ -30,7 +40,7 @@ def main(args: list):
     load_path = argv.get('load_path', None)
     assert load_path, "No load_path specified"
 
-    batch_size = argv.get('batch_size', 256)
+    batch_size = argv.get('batch_size', 128)
 
     device = argv.get('device', None)
 
@@ -54,7 +64,7 @@ def main(args: list):
     trans_predict = TransformersPredict(load_path=load_path, text_path=text_path, device=device,
                                         fast_tokenizer=fast_tokenizer)
     trans_predict.predict(batch_size=batch_size)
-    trans_predict.submission_file()
+    trans_predict.submissionToFile()
 
 
 if __name__ == '__main__':
@@ -63,4 +73,4 @@ if __name__ == '__main__':
     # text_path = "/home/he/Workspace/cil-project/data/test_data.txt"
     # trans_predict = TransformersPredict(load_path, text_path)
     # trans_predict.predict()
-    # trans_predict.submission_file()
+    # trans_predict.submissionToFile()
