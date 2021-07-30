@@ -28,6 +28,7 @@ bash setup_leonhard.sh
 or do it manually:
 ```bash
 cd <path-to-Computational-Intelligence-Lab-directory>
+mkdir -pv trainings # where training checkpoints are stored
 python -m venv ./cil-venv
 source venv/bin/activate # on windows this path differs
 pip install -r requirements.txt
@@ -50,14 +51,14 @@ There are many scripts and ways of execution that were tried during the developm
 - >bash [runExperimentAndUploadReportCluster.sh](./src/experimentConfigs/runExperimentAndUploadReportCluster.sh) `<path-to-configuration-inside-Leonhard>`  This script is executed inside the cluster. Its purpose is to load the modules and environment needed by the scripts to run, execute the training and then upload the report of the training. This should be executed inside the cluster using the bsub command. To submit this while inside the cluster you can type:
 - >bash [runExperimentAndUploadReport.sh](./src/experimentConfigs/runExperimentAndUploadReport.sh) `<path-to-configuration-inside-your-pc>` This script loads the environment needed to execute the experiment.py and then executes the training of the model. After the training ends, the results are stored inside docs/report.json and uploaded to github This scripts also assumes that a cil-venv environment exists in the bas of the repo and tries to load it.
 - >bash [uploadNewReport.sh](./src/experimentConfigs/uploadNewReport.sh) `<report-file-to-upload =../../docs/report.json>`  This scripts uploads the report.json to github by commiting it and pushing to the branch that the local github project is currently on. It accepts one argument the path of the report file. The argument by default is `../../docs/report.json`.
-- >`python` [experiment.py](./src/experimentConfigs/experiment.py) `test_path=<path-to-configuration> report_path=<path-to-the-report.json-file>` This script provides an entry to the framework and launches an experiment(training) from a configuration file. The configuration file is a json file containing configuration for the model and the preprocessing. The validation results of the training are stored inside the json file specified. If this is not specified `docs/report.json` is used by default. Args for this script are the `test_path` for setting the path of the configuration json file and the `report_path` for setting the path for the report json file to be written or appended.
+- >`python` [experiment.py](./src/experimentConfigs/experiment.py) `test_path=<path-to-configuration> report_path=<path-to-the-report.json-file>` This script provides an entry to the framework and launches an experiment(training) from a configuration file. The configuration file is a json file containing configuration for the model and the preprocessing. The validation results of the training are stored inside the json file specified. If this is not specified `docs/report.json` is used by default. Args for this script are the `test_path` for setting the path of the configuration json file and the `report_path` for setting the path for the report json file to be written or appended. The training's checkpoints will be stored inside the `<path-to-repo>/trainings` directory.
 - >`python` [submission.py](./src/experimentConfigs/submission.py) `load_path=<directory-containing-'model'-and-'tokenizer'>  batch_size=<batch-size-used-for-the-model=128>  device=<gpu-id|cpu-id =cuda:0|cpu> text_path=<path-where-test_data.txt is =../../data/test_data.txt>` This script creates a submission csv file to be submitted to the kaggle competition. It loads an already trained model from its checkpoints. The device and the model's batch size can be also specified when calling it.
 - >`python` [clusterFeatures.py](./src/explorations/clusterFeatures.py) This script is used to view the feature (output of last layers) vectors of a model after performing PCA on them. 
 - >`python` [cleaningText.py](./src/preprocessing/cleaningText.py) `data_path=<path-text-file-with-a-tweet-per-line> output=<path-to-output-cleaned-text-file>` This script cleans/preprocess the text from a file and exports the cleaned data to another (new) file.
 - >`python` [hastagExperiment.py](./src/experimentConfigs/hastagExperiment.py) `dataset=<use-full-or-partial-dataset> load_path=<trained-model-path> freq=500 prob=0.7` This script extracts hashtags and finds how much a hashtag matters. It is used to produce the hashtag analysis in the project's final report.
 
 ### Experimentation on Leonhard
-Run these only after completing the setup section.
+Run these only after completing the setup for leonhard section.
 
 From your pc's console:
 ```bash
@@ -83,7 +84,7 @@ bsub -W 23:30 -n 8 -R "rusage[mem=9000,scratch=10000,ngpus_excl_p=1]" -R "select
 ```
 
 ### Experimentation locally
-
+Run these only after completing the local setup section.
 
 ```bash
 cd <path-to-Computational-Intelligence-Lab-directory>
@@ -133,8 +134,85 @@ python hashtagExperiment.py dataset=full load_path=../../trainings/roberta-base/
 ```
 
 ## Configurations
-The configuration for each training are stored inside a json file. See [example](./src/configs/roberta_base.json).
+The configuration for each training are stored inside a json file. See [example](./src/configs/roberta_base.json). This json file specifies the parameters for preprocessing, tokenization and the model. 
 
+The main parameters for the experiment/training to be launched are described by:
+
+- >description: description of the experiment. This is later used as the experiment name inside the report.json,
+- >model_name_or_path: The model name according to the huggingface transformers or a path to another model,
+- >data_load_ratio: a number in the interval (0,1] indicating how many data will be used from the dataset,
+- >model_type: type of model to use. It can be "transformers" for using the transformers model or "bagOfWords2LayerModel" for using a model based on bag of words. 
+- >tokenizer_type: It can be "transformers" for using a transformers pretrained tokenizer,
+- >fast_tokenizer: Whether to use a fast tokenizer implementation,
+
+The 4 main parts of the configuration are then:
+- >args : arguments of the training
+- >tokenizer_config : tokenizer's and preprocessing's config.
+- >model_config : arguments for the model input output
+- >metric : metrics to be evaluated on the validation data after each epoch.
+
+### args
+
+- > epochs: Number of training epochs.
+- > batch_size: Batch size to use while training.
+- > adafactor: Whether to use Ada rather than Adam for backpropagation.
+- > warmup_steps: Number of warmup steps before starting the training.
+- > weight_decay: Weight decay at each step.
+- > learning_rate: Training's initial learning rate. It drops each 3 epochs while training.
+- > evaluation_strategy: "epoch" for per epoch evaluation or "steps" for per 500 steps evaluation.
+- > logging_strategy: "epoch" for per epoch logging of performance or "steps" for per 500 steps logging of performance.
+- > overwrite_output_dir: Whether to overwrite the output directory or to append the checkpoints if it exists.
+- > load_best_model_at_end: Whether or not to load the best model found during training at the end of training.
+- > metric_for_best_model: Used in conjunction with load_best_model_at_end to specify the metric to use to compare two different models.
+- > early_stopping_patience: Number of epochs with no accuracy improvement over the early_stopping_threshold to wait for stopping.
+- > early_stopping_threshold: If accuracy has not became better than this threshold over early_stopping_patience number of epochs, the training will stop.
+- > train_val_split_iterator: The dataset can be split many times and the model re-trained in order to obtain more robust estimations of the result. This parameter allows picking the split. It can be any of "train_test_split" where split is done once, "cross_validate_accuracy" where split is done multiple times to cross validate the accuracy. 
+- > report_to: The list of integrations to report the results and logs to. We use null here as we support no integrations.
+
+
+### tokenizer_config
+
+- > add_special_tokens: Whether to add special tokens. This is not used anymore.
+- > max_length: The maximum length of each tweet.
+- > padding: Padding strategy. It can be one of "max_length", "longest", "do_not_pad".
+- > truncation: Whether to truncate texts that have length over max_length.
+- > return_token_type_ids: Whether to return token type IDs. If left to the default, will return the token type IDs according to the specific tokenizer’s defaul.
+- > return_attention_mask: Whether to return the attention mask. If left to the default, will return the attention mask according to the specific tokenizer’s default.
+
+### model_config
+
+The arguments for configuring the basic model properties for the problem of the kaggle competition are provided here:
+
+- >num_labels: number of labels (always 2).
+- >problem_type: always use this: "single_label_classification". No other problem types.
+- >output_attentions: Whether to output the attention masks along with the output.
+- >output_hidden_states: Whether to output the hidden states output along with the output.
+- >id2label: map of labels, we use this map because some devices are better to use 0,1 rather than 1, -1.{"1": 1,"0": -1}.
+
+### Hyperparameter optimization
+While training the parameter under args are regarded as hyperparameters. These parameters can be optimized using the hyperopt library and running multiple trainings. The hyperparameters belong in a set provided with the hyperopt library, so that the maximum accuracy is reached. In order to activate and use the hyperopt functionality the keys below should be specified inside the json configuration:
+
+- >use_hyperopt: Whether to use the hyperoptimization or not,
+- >hyperopt_max_evals: maximum evaluations to run the hyperopt optimization
+
+For each parameter inside args of the json configuration the hyperopt optimization can be specified as:
+
+```json
+argsParameter: {"use_hyperopt": <use-hyperoptimization-or-note>, "hyperopt_function":<hyperopt function name>, "arguments": {<arguments of the hyperopt function>}}
+```
+
+Example:
+```json
+argsParameter: {"use_hyperopt": true, "hyperopt_function":"choice", "arguments": {"options": [8,16,32,64]}}
+```
+
+- >use_hyperopt: specify as true to optimize this variable inside the interval specified in arguments.
+- >hyperopt_function: string name of the hyperopt function.
+- >arguments: The arguments of the respective hyperopt function.
+
+Available hyperopt functions are: normal, lognormal, loguniform, qlognormal, qnormal, randint, uniform, uniformint, choice, pchoice.
+
+A full example for roberta can be seen [here](./src/configs/robertaHyperopt.json).
 
 ## Reproducing The Report's Work
 
