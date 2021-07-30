@@ -1447,33 +1447,36 @@
             ]
         },
         {
-            "description": "vinai/bertweet-base. dev: data augmentation",
+            "description": "bert base",
             "results": {
-                "accuracy": 0.938028404404899
+                "accuracy": 0.8880739317799757
             },
-            "output_dir": "/cluster/home/heliuhe/cil-project/trainings/vinai/bertweet-base/20210725-030916",
-            "time_stamp": "2021-07-26 00:53:24.531407",
-            "stopped_epoch": 10.0,
-            "model_name_or_path": "vinai/bertweet-base",
-            "data_load_ratio": "aug",
+            "output_dir": "/home/ubuntu/cil-project/trainings/bert-base-uncased/20210729-181903/checkpoint-53148",
+            "time_stamp": "2021-07-29 18:19:03.26801",
+            "stopped_epoch": 4.0,
+            "model_name_or_path": "bert-base-uncased",
+            "data_load_ratio": 1,
             "model_type": "transformers",
             "tokenizer_type": "transformers",
             "fast_tokenizer": false,
+            "text_pre_cleaning": "default",
             "args": {
                 "epochs": 10,
                 "batch_size": 128,
                 "adafactor": false,
                 "warmup_steps": 100,
                 "weight_decay": 0.0001,
-                "learning_rate": 1e-05,
+                "learning_rate": 1e-5,
                 "evaluation_strategy": "epoch",
+                "save_strategy": "epoch",
                 "logging_strategy": "epoch",
                 "overwrite_output_dir": true,
                 "load_best_model_at_end": true,
                 "metric_for_best_model": "accuracy",
                 "early_stopping_patience": 3,
-                "early_stopping_threshold": 0.0001,
+                "early_stopping_threshold": 0.00001,
                 "train_val_split_iterator": "train_test_split",
+                "fp16": true,
                 "fine_tune_layers": {
                     "freeze": false,
                     "num_unfrozen_layers": 1,
@@ -1501,8 +1504,7 @@
                 }
             },
             "metric": [
-                "glue",
-                "mrpc"
+                "accuracy"
             ]
         }
     ]
