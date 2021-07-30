@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from hashtagExperiment import load_hashtag_config, hashtag_matters
+from explorations.hashtagExperiment import load_hashtag_config, hashtag_matters
 from transformersPredict import TransformersPredict
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
