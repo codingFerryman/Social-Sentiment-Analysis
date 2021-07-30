@@ -18,6 +18,19 @@ PROJECT_DIRECTORY = get_project_path()
 
 class TransformersPredictWithHashtag(TransformersPredict):
     def __init__(self, freq_threshold: int = 500, prob_threshold: float = 0.7, **kwargs):
+        """ This is the transformers prediction class with hashtag analysis.
+        It manages the prediction of data given a model's checkpoint (load_path) and data to predict (text_path).
+        The device to use can be also specified, by default 'cuda:0' is used or 'cpu' (if there is no gpu present).
+
+        Args:
+            freq_threshold: The frequency threshold. Hashtags with lower frequency will be ignored.
+            prob_threshold: The probability/ratio threshold. Hashtags with lower probability/ratio will be ignored.
+            load_path (Path): The root directory containing 'model' and 'tokenizer'. This is common with the torch checkpoint structure.
+            text_path (Path): The text file to be processed. data/test_data.txt by default.
+            fast_tokenizer (bool, optional): Whether to use a fast tokenizer. Some models may output an error when this flag is set to false. Defaults to False.
+            device (str, optional): String identifier of the device to be used. Defaults to None and 'cuda:0' is used or if there is no gpu present 'cpu'
+            is_test (bool, optional): Whether the data are comming from the test data provided by the kaggle competition or not. Defaults to True.
+        """
         super(TransformersPredictWithHashtag, self).__init__(**kwargs)
 
         self.hashtag_dict = load_hashtag_config()
