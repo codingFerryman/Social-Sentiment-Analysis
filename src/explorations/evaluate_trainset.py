@@ -2,7 +2,7 @@ import os
 import random
 import sys
 from pathlib import Path
-from typing import Union
+from typing import Union, List
 
 import pandas as pd
 
@@ -98,7 +98,7 @@ class TransformersPredictEval(TransformersPredict):
         results.to_csv(save_path, index=False)
 
 
-def main(args: list):
+def main(args: List[str]):
     """
     The main function of the evaluation. It will predict the sentiment of texts in the train data
     Args:
