@@ -22,7 +22,7 @@ import json
 import os
 import sys
 from pathlib import Path
-from typing import Tuple
+from typing import Tuple, List
 
 import hyperopt
 import hyperopt.pyll
@@ -275,7 +275,7 @@ def launchExperimentFromJson(fpath: str, reportPath: str):
         launchExperimentFromDict(experimentSettings, reportPath)
 
 
-def main(args: list):
+def main(args: List[str]):
     """ The main function of the program. It launches an experiment from a json file specified and reports
     to a file specified, else it reports to docs/report.json.
     use args:
@@ -284,7 +284,7 @@ def main(args: list):
     call it like:
     python experimentConfigs/experiment.py test_path=experimentConfigs/robertaDefault.json report_path=report.json
     Args:
-        args (list): a dictionary containing the program arguments (sys.argv)
+        args (List[str]): a dictionary containing the program arguments (sys.argv)
     """
     set_seed(2021)
 

@@ -11,6 +11,7 @@
 import os
 import sys
 from pathlib import Path
+from typing import List
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
@@ -23,7 +24,7 @@ logger = loggers.getLogger("PredictForSubmission", True)
 set_seed()
 
 
-def main(args: list):
+def main(args: List[str]):
     """
     The main function of submission. It will predict the sentiment of texts in the text data
     Args:
