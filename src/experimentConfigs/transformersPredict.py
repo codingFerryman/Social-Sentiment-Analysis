@@ -12,22 +12,23 @@ from transformers import AutoModelForSequenceClassification, AutoTokenizer
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 from utils import loggers
-from utils import get_data_path
 from preprocessing.cleaningText import cleaningMap
 
 logger = loggers.getLogger("transformersPredict", True)
 
 
 class TransformersPredict:
-    def __init__(self, load_path, text_path, fast_tokenizer=False, device=None, is_test=True, ):
-        """ This is the transformers prediction function
+    def __init__(self, load_path:Path, text_path:Path, fast_tokenizer:bool=False, device:str=None, is_test:bool=True, ):
+        """ This is the transformers prediction class. It manages the prediction of data given
+        a model's checkpoint (load_path) and data to predict (text_path). The device to use can be also
+        specified, by default 'cuda:0' is used or 'cpu' (if there is no gpu present).
 
         Args:
-            load_path ([type]): [description]
-            text_path ([type]): [description]
-            fast_tokenizer (bool, optional): [description]. Defaults to False.
-            device ([type], optional): [description]. Defaults to None.
-            is_test (bool, optional): [description]. Defaults to True.
+            load_path (Path): The root directory containing 'model' and 'tokenizer'. This is common with the torch checkpoint structure.
+            text_path (Path): The text file to be processed. data/test_data.txt by default.
+            fast_tokenizer (bool, optional): Whether to use a fast tokenizer. Some models may output an error when this flag is set to false. Defaults to False.
+            device (str, optional): String identifier of the device to be used. Defaults to None and 'cuda:0' is used or if there is no gpu present 'cpu' 
+            is_test (bool, optional): Whether the data are comming from the test data provided by the kaggle competition or not. Defaults to True.
         """
         self.is_test = is_test
 
@@ -69,7 +70,7 @@ class TransformersPredict:
 
         with open(text_path, 'r') as fp:
             lines = fp.readlines()
-        self.data = self.pre_process_test(lines)
+        self.data = self.preProcessTest(lines)
 
         self.text_path = text_path
         self.load_path = load_path
@@ -78,6 +79,16 @@ class TransformersPredict:
         self.pred_scores = None
 
     def predict(self, batch_size=128):
+        """ This is the function that will handle the prediction. It iterates through the provided
+        data and uses only the forward part of the models (no training). 
+        It stores the data increasingly inside the device of prediction.
+        Before using it make sure that there is enough memory in your device to run this script. It
+        may exceed memory limits at late stages of prediction and cause prediction stage to fail all
+        together.
+
+        Args:
+            batch_size (int, optional): The batch size to use for prediction. Defaults to 128.
+        """
         predictions = torch.tensor([], dtype=torch.int8)
         scores = torch.tensor([])
         with torch.no_grad():
@@ -97,6 +108,14 @@ class TransformersPredict:
         self.pred_scores = scores
     
     def predictIterator(self, batch_size=128):
+        """
+
+        Args:
+            batch_size (int, optional): The batch size to use for prediction. Defaults to 128.
+
+        Yields:
+            Tuple: predictions and prediction scores for a batch of text
+        """
         with torch.no_grad():
             for i in tqdm(range(0, len(self.data['text']), batch_size)):
                 batch_data = self.data['text'][i:i + batch_size]
@@ -110,6 +129,16 @@ class TransformersPredict:
                 yield prediction, prediction_score
 
     def extractHiddenStates(self, batch_size=128, appendToList: bool = False):
+        """This extract the last hidden state outputs of the model. It can serve as a
+        word2vec function.
+
+        Args:
+            batch_size (int, optional): The batch size to use for the model forward pass. Defaults to 128.
+            appendToList (bool, optional): Whether to append results in a list internally to this object. Defaults to False.
+
+        Yields:
+            torch.Tensor: The last hidden state outputs of the model obtained from a series of tweets.
+        """
         self.last_hidden_states = []
         with torch.no_grad():
             for i in tqdm(range(0, len(self.data['text']), batch_size)):
@@ -133,7 +162,13 @@ class TransformersPredict:
     def get_scores(self):
         return self.pred_scores
 
-    def submission_file(self, save_path=None):
+    def submissionToFile(self, save_path:Path=None):
+        """ This puts the predictions already predicted to a csv file ready
+        for the kaggle api to read and produce the final results from.
+
+        Args:
+            save_path (Path, optional): csv file path to put the predictions inside. Defaults to self.laod_path / submission.csv .
+        """
         if save_path is None:
             save_path = Path(self.load_path, 'submission.csv')
         logger.info('The submission file will be saved to ' + str(save_path))
@@ -152,7 +187,18 @@ class TransformersPredict:
         pred_df.sort_values('Id', inplace=True)
         pred_df.to_csv(save_path, index=False)
 
-    def pre_process_test(self, lines: list):
+    def preProcessTest(self, lines: list) -> dict:
+        """ This function preprocesses the test dataset.
+
+        Args:
+            lines (list): lines of text. Each line contains a tweet
+
+        Returns:
+            dict: A dictionary containing
+                - text: The preprocessed text
+                - ids: The id of the predictions with non empty cleaned text
+                - zero_len_ids: The ids having empty cleaned text  (zero length)
+        """
         logger.info('Preprocessing the data ...')
         text_id = []
         text = []
