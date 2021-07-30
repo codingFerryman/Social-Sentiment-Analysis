@@ -109,7 +109,7 @@ save_path = Path(PROJECT_DIRECTORY, 'trainings', 'hashtagExperimentResults.json'
 report(result, save_path)
 # prepend_multiple_lines(file_name=save_path, list_of_lines=[json.dumps(result, indent=4)])
 
-# def pre_process_test(data_test: list):
+# def preProcessTest(data_test: list):
 #     # Cleaning test set
 #     data_test = [s.split(',', 1)[-1] for s in data_test]
 #     min_test, max_test, zero_len_idx_test = get_min_max(data_test)
