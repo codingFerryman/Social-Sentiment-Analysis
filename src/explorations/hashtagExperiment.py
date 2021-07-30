@@ -2,6 +2,7 @@ import json
 import os
 import sys
 from pathlib import Path
+from typing import List
 
 import pandas as pd
 import torch
@@ -22,7 +23,7 @@ def load_hashtag_config():
         hashtag_dict = json.load(fp)
     return hashtag_dict
 
-def extract_hashtag_dataset(model_path, data_path=None, prediction_path=None):
+def extract_hashtag_dataset(model_path:Path, data_path=None, prediction_path=None):
     """Extract hashtag-only tweets and join their golden labels with predictions"""
     df_data_path = Path(model_path, "hashtag_data.pkl")
     if df_data_path.is_file():
@@ -109,7 +110,7 @@ def hashtag_matters(data: pd.DataFrame, **kwargs):
     return data
 
 
-def main(args: list):
+def main(args: List[str]):
     """
     The function for analysis the impact of hashtags in tweet sentiment analysis.
     The dataset used here should be preprocessed by explorations/evaluate_trainset.py beforehand
@@ -130,7 +131,7 @@ def main(args: list):
         if _load_path_for_test.is_dir():
             load_path = _load_path_for_test
         else:
-            print("No load_path specified")
+            logger.error("No load_path specified")
             exit(0)
     PREDICTION_FILE = Path(load_path, 'pred_train_' + dataset_file + '.csv')
     DATA_FILE = Path(PROJECT_DIRECTORY, 'data/' + dataset_file + '_data.txt')

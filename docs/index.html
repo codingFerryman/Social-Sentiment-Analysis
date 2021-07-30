@@ -77,7 +77,7 @@
     function createChartAbsolute(data, xs, xsMax, xDomain, yDomain, xScale, yScale) {
         let percentWidth = (width - 23 * 2) /100;
         g.append("g")
-            .attr("transform", "translate(0," + height + ")")
+            // .attr("transform", "translate(0," + height + ")")
             .call(d3.axisTop(xScale).tickFormat(function(d){
                     return d + '%';})
                 .ticks(11))
