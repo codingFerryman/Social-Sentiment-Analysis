@@ -51,13 +51,14 @@ def extract_hashtag_dataset(model_path, data_path=None, prediction_path=None):
             _text = _tmp[2]
             for _w in _text.split():
                 if _w.startswith('#') and len(_w) > 1:
-                    df_length = len(df_t)
-                    df_t.loc[df_length] = [_id, _golden, _text]
+                    to_append = [_id, _golden, _text]
+                    to_append_series = pd.Series(to_append, index=df_t.columns)
+                    df_t = df_t.append(to_append_series, ignore_index=True)
                     break
 
         df_data = df_t.join(df_p, on="id").set_index("id")
         logger.info(f"Saving the data to {df_data_path}")
-        df_data.to_pickle(Path(model_path, "hashtag_data.pkl"))
+        df_data.to_pickle(df_data_path)
     return df_data
 
 
