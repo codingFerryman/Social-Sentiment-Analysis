@@ -57,7 +57,7 @@ def extract_hashtag_dataset(model_path, data_path=None, prediction_path=None):
 
         df_data = df_t.join(df_p, on="id").set_index("id")
         logger.info(f"Saving the data to {df_data_path}")
-        df_data.to_pickle(Path(PROJECT_DIRECTORY, 'data', "hashtag_data.pkl"))
+        df_data.to_pickle(Path(model_path, "hashtag_data.pkl"))
     return df_data
 
 
