@@ -11,14 +11,15 @@ from transformers import AutoModelForSequenceClassification, AutoTokenizer
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
-from utils import loggers
+from utils import loggers, set_seed, get_data_path
 from preprocessing.cleaningText import cleaningMap
 
 logger = loggers.getLogger("transformersPredict", True)
-
+set_seed()
 
 class TransformersPredict:
-    def __init__(self, load_path:Path, text_path:Path, fast_tokenizer:bool=False, device:str=None, is_test:bool=True, ):
+    def __init__(self, load_path: Path, text_path: Path = None, fast_tokenizer: bool = False, device: str = None,
+                 is_test: bool = True, ):
         """ This is the transformers prediction class. It manages the prediction of data given
         a model's checkpoint (load_path) and data to predict (text_path). The device to use can be also
         specified, by default 'cuda:0' is used or 'cpu' (if there is no gpu present).
@@ -32,6 +33,10 @@ class TransformersPredict:
         """
         self.is_test = is_test
 
+        if text_path is None:
+            data_path = get_data_path()
+            text_path = Path(data_path, 'test_data.txt')
+
         if device is None:
             if torch.cuda.is_available():
                 device = 'cuda:0'
@@ -39,6 +44,7 @@ class TransformersPredict:
                 device = 'cpu'
         self.device = device
         logger.debug('The program is running on ' + self.device)
+
 
         # Load model, tokenizer and their configurations
         model_path = Path(load_path, 'model')
@@ -109,7 +115,6 @@ class TransformersPredict:
     
     def predictIterator(self, batch_size=128):
         """
-
         Args:
             batch_size (int, optional): The batch size to use for prediction. Defaults to 128.
 
@@ -224,7 +229,6 @@ class TransformersPredict:
                 data.append(_tmp[-1])
                 ids.append(int(_tmp[0]))
             for idx, sent in tqdm(zip(ids, data)):
-                # TODO: Move this cleaning out of the loop to avoid initializing the model every time
                 sent_proc = self.text_pre_cleaning_function(sent)
                 if len(sent_proc) != 0:
                     text_id.append(idx)
