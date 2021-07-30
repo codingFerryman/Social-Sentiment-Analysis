@@ -130,7 +130,7 @@ def main(args: List[str]):
         if _load_path_for_test.is_dir():
             load_path = _load_path_for_test
         else:
-            print("No load_path specified")
+            logger.error("No load_path specified")
             exit(0)
     PREDICTION_FILE = Path(load_path, 'pred_train_' + dataset_file + '.csv')
     DATA_FILE = Path(PROJECT_DIRECTORY, 'data/' + dataset_file + '_data.txt')
