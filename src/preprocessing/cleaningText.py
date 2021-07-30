@@ -283,7 +283,7 @@ def cleaningMap(clFunction: str) -> Callable:
     return d[clFunction]
 
 
-def main(args: list):
+def main(args: List[str]):
     """The function for cleaning data and export the cleaned data to a new file"""
     argv = {a.split('=')[0]: a.split('=')[1] for a in args[1:]}
     data_path = argv.get('data_path', Path(DATA_PATH, 'test_data.txt'))
