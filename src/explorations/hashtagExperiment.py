@@ -24,9 +24,15 @@ def load_hashtag_config():
         hashtag_dict = json.load(fp)
     return hashtag_dict
 
-def extract_hashtag_dataset(model_path:Path, data_path=None, prediction_path=None):
+def extract_hashtag_dataset(model_path: Path, dataset_file="full", data_path=None, prediction_path=None):
     """Extract hashtag-only tweets and join their golden labels with predictions"""
-    df_data_path = Path(model_path, "hashtag_data.pkl")
+    assert dataset_file in ["full", "sub"]
+    if dataset_file == "full":
+        filename = "hashtag_data_full.pkl"
+    else:
+        filename = "hashtag_data_sub.pkl"
+    df_data_path = Path(model_path, filename)
+
     if df_data_path.is_file():
         logger.info(f"Loading the data from {df_data_path}")
         df_data = pd.read_pickle(df_data_path)
@@ -60,7 +66,7 @@ def extract_hashtag_dataset(model_path:Path, data_path=None, prediction_path=Non
             return
 
         _clean_result = Parallel(n_jobs=8)(
-            delayed(_clean)(_txt) for _txt in tqdm(data_t, desc="Generating hashtag_data.pkl"))
+            delayed(_clean)(_txt) for _txt in tqdm(data_t, desc=f"Generating {filename}"))
         _clean_result = [_r for _r in _clean_result if _r is not None]
         df_t = df_t.append(_clean_result)
 
@@ -151,7 +157,8 @@ def main(args: List[str]):
 
     logger.info(f"The frequency and ratio thresholds are set to {freq_threshold}, and {prob_threshold} respectively.")
 
-    df_data = extract_hashtag_dataset(model_path=load_path, data_path=DATA_FILE, prediction_path=PREDICTION_FILE)
+    df_data = extract_hashtag_dataset(model_path=load_path, dataset_file=dataset_file, data_path=DATA_FILE,
+                                      prediction_path=PREDICTION_FILE)
 
     original_accuracy = accuracy_score(df_data.prediction.tolist(), df_data.golden.tolist())
     logger.info(f"The accuracy before processing is {original_accuracy}")
