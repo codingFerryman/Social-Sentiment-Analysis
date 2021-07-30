@@ -75,8 +75,8 @@ def predict_by_hashtag(text: str,
                 pos_ratio = hashtag_dict[tag]['PosRatio']
                 if (pos_freq > freq_threshold or neg_freq > freq_threshold) and (
                         neg_ratio > prob_threshold or pos_ratio > prob_threshold):
-                    pred_neg_prob += neg_ratio * 2
-                    pred_pos_prob += pos_ratio * 2
+                    pred_neg_prob += neg_ratio
+                    pred_pos_prob += pos_ratio
     _pred_prob = torch.softmax(torch.tensor([pred_neg_prob, pred_pos_prob]), dim=-1)
     _pred = torch.argmax(_pred_prob, dim=-1).item()
     if _pred == 0:
@@ -124,7 +124,7 @@ def main(args: list):
 
     dataset_file = argv.get('dataset', 'full')
     load_path = argv.get('load_path', None)
-    _load_path_for_test = Path(PROJECT_DIRECTORY, 'trainings/vinai/bertweet-base/20210709-101103')
+    _load_path_for_test = Path(PROJECT_DIRECTORY, 'trainings/vinai/bertweet-base/20210711-131720')
     if load_path is None:
         if _load_path_for_test.is_dir():
             load_path = _load_path_for_test

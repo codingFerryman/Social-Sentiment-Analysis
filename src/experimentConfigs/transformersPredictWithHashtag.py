@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from hashtagExperiment import load_hashtag_config, hashtag_matters
+from explorations.hashtagExperiment import load_hashtag_config, hashtag_matters
 from transformersPredict import TransformersPredict
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
@@ -17,7 +17,7 @@ PROJECT_DIRECTORY = get_project_path()
 
 
 class TransformersPredictWithHashtag(TransformersPredict):
-    def __init__(self, freq_threshold: float = 100, prob_threshold: float = 0.6, **kwargs):
+    def __init__(self, freq_threshold: int = 500, prob_threshold: float = 0.7, **kwargs):
         super(TransformersPredictWithHashtag, self).__init__(**kwargs)
 
         self.hashtag_dict = load_hashtag_config()

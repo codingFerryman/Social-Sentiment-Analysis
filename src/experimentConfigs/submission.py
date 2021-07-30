@@ -36,7 +36,10 @@ def main(args: list):
         - fast_tokenizer: Use Fast Tokenizer or not in predictions. Better to use the same as training tokenizer
             Using normal tokenizer by default
         - text_path: The text file to be processed. data/test_data.txt is used by default.
-
+        - hashtag_freq: The frequency threshold. Hashtags with lower frequency will be ignored.
+            Only effective when hashtag_analysis is True, Default to 500
+        - hashtag_prob: The probability/ratio threshold. Hashtags with lower probability/ratio will be ignored.
+            Only effective when hashtag_analysis is True, Default to 0.7
     """
     argv = {a.split('=')[0]: a.split('=')[1] for a in args[1:]}
 
@@ -72,8 +75,12 @@ def main(args: list):
         trans_predict = TransformersPredict(load_path=load_path, text_path=text_path, device=device,
                                             fast_tokenizer=fast_tokenizer)
     else:
+        freq_threshold = int(argv.get('hashtag_freq', 500))
+        prob_threshold = float(argv.get('hashtag_prob', 0.7))
         trans_predict = TransformersPredictWithHashtag(load_path=load_path, text_path=text_path, device=device,
-                                                       fast_tokenizer=fast_tokenizer)
+                                                       fast_tokenizer=fast_tokenizer,
+                                                       freq_threshold=freq_threshold,
+                                                       prob_threshold=prob_threshold)
     trans_predict.predict(batch_size=batch_size)
     trans_predict.submissionToFile()
 
