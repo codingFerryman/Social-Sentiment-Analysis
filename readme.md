@@ -1,8 +1,79 @@
 # Computational Intelligence Lab Project 2
 This is the project 2 of CIL course in ETHZ.
 
-## Developing
-To work for this project create a virtual environment in a folder outside the repo-path or use .gitignore to ignore any files of the virtual envronment folder.
+
+
+## Results
+
+- Results on validation data can be seen [here](https://supernlogn.github.io/Computational-Intelligence-Lab/)
+- Results on test data can be seen in the respective Kaggle competition.
+
+## Setup
+To work with this project a certain procedure is needed. First clone this repo. Then we recommend using the automated scripts for setup. Thsese scripts create a virtual environment and download any data needed for this repo. Please be inside the ETHZ network while using them, to download the dataset.
+
+Use an automated script:
+```bash
+cd <path-to-Computational-Intelligence-Lab-directory>
+# local
+bash setup_local.sh # setup local for gpu
+# leonhard cluster
+bash setup_leonhard.sh
+```
+
+or do it manually:
+```bash
+cd <path-to-Computational-Intelligence-Lab-directory>
+python -m venv ./cil-venv
+source venv/bin/activate # on windows this path differs
+pip install -r requirements.txt
+spacy download en_core_web_sm
+# download data to the data folder
+# start developing / running
+```
+Note: If you use a cpu and not a gpu, use [requirements_cpu.txt](./requirements_cpu.txt) rather than requirements.txt .
+
+Note: If you use a virtual machine from [lambdaLabs](https://lambdalabs.com/) use [requirements_lambdalabs.txt](./requirements_lambdalabs.txt) rather than requirements.txt
+
+## Execution
+There are many scripts and ways of execution that were tried during the development of this project. Here we list all of them, in order to execute them you need to be in their directory. Below we also include examples of runnning them.
+
+
+- bash [runExperimentOnLeonhard.sh](./src/experimentConfigs/runExperimentOnLeonhard.sh) `<leonhard-username> <path-to-configuration-inside-Leonhard>` This script submits a training of a model to run by the leonhard cluster in under 24 hours using a gpu. The model and the preprocessing are described by the configuration file provided. After running the training the validation results are stored inside the [report.json](./docs/report.json) and uploaded, so that they can be viewed in web.
+- bash [runExperimentAndUploadReportCluster.sh](./src/experimentConfigs/runExperimentAndUploadReportCluster.sh) `<path-to-configuration-inside-Leonhard>`  This script is executed inside the cluster. Its purpose is to load the modules and environment needed by the scripts to run, execute the training and then upload the report of the training. This should be executed inside the cluster using the bsub command. To submit this while inside the cluster you can type:
+- bash [runExperimentAndUploadReport.sh](./src/experimentConfigs/runExperimentAndUploadReport.sh) `<path-to-configuration-inside-your-pc>` This script loads the environment needed to execute the experiment.py and then executes the training of the model. After the training ends, the results are stored inside docs/report.json and uploaded to github This scripts also assumes that a cil-venv environment exists in the bas of the repo and tries to load it.
+- bash [uploadNewReport.sh](./src/experimentConfigs/uploadNewReport.sh) `<report-file-to-upload =../../docs/report.json>`  This scripts uploads the report.json to github by commiting it and pushing to the branch that the local github project is currently on. It accepts one argument the path of the report file. The argument by default is `../../docs/report.json`.
+- `python` [experiment.py](./src/experimentConfigs/experiment.py) `test_path=<path-to-configuration> report_path=<path-to-the-report.json-file>` This script provides an entry to the framework and launches an experiment(training) from a configuration file. The configuration file is a json file containing configuration for the model and the preprocessing. The validation results of the training are stored inside the json file specified. If this is not specified `docs/report.json` is used by default. Args for this script are the `test_path` for setting the path of the configuration json file and the `report_path` for setting the path for the report json file to be written or appended.
+- `python` [submission.py](./src/experimentConfigs/submission.py) `load_path=<directory-containing-'model'-and-'tokenizer'>  batch_size=<batch-size-used-for-the-model=256>  device=<gpu-id|cpu-id =cuda:0|cpu> text_path=<path-where-test_data.txt is =../../data/test_data.txt>` 
+- `python` [cleaningText.py](./src/preprocessing/cleaningText.py) `data_path=<path-text-file-with-a-tweet-per-line> output=<path-to-output-cleaned-text-file>` 
+
+
+- `python` [hastagExperiment.py](./src/experimentConfigs/hastagExperiment.py)
+- `python` hastag.py script to extract hashtags
+
+### Experimentation on Leonhard
+Run these only after completing the setup section.
+
+From your pc's console:
+```bash
+cd <path-to-Computational-Intelligence-Lab-directory>
+cd src/experimentConfigs
+bash runExperimentOnLeonhard.sh <leonhard-username> <path-to-configuration-inside-Leonhard> report_path=../../docs/report.json
+```
+
+Typical paths to configuration:
+```
+/cluster/home/<leonhard-username>/Computational-Intelligence-Lab/src/configs/bertweet.json
+/cluster/home/<leonhard-username>/Computational-Intelligence-Lab/src/configs/xlnet_base.json
+/cluster/home/<leonhard-username>/Computational-Intelligence-Lab/src/configs/roberta_base.json
+```
+
+From inside leonhard:
+```bash
+module load gcc/6.3.0 python_gpu/3.8.5 hdf5/1.10.1 eth_proxy
+```
+
+## Configurations
+The configuration for each training are stored inside a json file. 
 
 ### Code Formatting
 
@@ -85,3 +156,10 @@ source ~/cil-venv/bin/activate \
 (Assume that you are running from project's root directory.)
 
 Please make sure that the proxy http://proxy.ethz.ch:3128 has been set for downloading external models.
+
+
+## Developers - Students
+
+- He Liu
+- Ioannis Athanasiadis
+- Levin Moser

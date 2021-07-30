@@ -1,5 +1,21 @@
 # This experiment file it is quite heavy on loading considering
 # the imported packages
+#
+# This script provides an entry to the framework and launches an experiment(training) 
+# from a configuration file. The configuration file is a json file containing configuration for the model
+# and the preprocessing. The validation results of the training are stored inside the json file specified. 
+# If this is not specified docs/report.json is used by default.
+#
+# Args for this script are:
+#    - test_path=<your-test-path> for setting the path of the configuration json file
+#    - report_path=<your-report-destination-path> for setting the path for the report json file to be written or appended. 
+#
+# Example of usage:
+#
+# python experimentConfigs/experiment.py test_path=experimentConfigs/robertaDefault.json \
+# report_path=report.json
+#
+
 import datetime as dt
 import enum
 import json

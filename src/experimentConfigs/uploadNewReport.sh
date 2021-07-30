@@ -1,4 +1,9 @@
 #!/bin/bash
+# This scripts uploads the report.json to github by commiting it and pushing to the branch that the
+# local github project is currently on. It accepts one argument the path of the report file.
+# The argument by default is ../../docs/report.json
+#
+
 if [[ ! -z $1 ]]; then
     REPORT_FILE=$1
 else

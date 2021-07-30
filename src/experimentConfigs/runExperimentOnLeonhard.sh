@@ -1,4 +1,10 @@
 #!/bin/bash
+# This script submits a training of a model to run by the leonhard cluster
+# in under 24 hours using a gpu. The model and the preprocessing are described
+# by the configuration file provided. After running the training the validation 
+# results are stored inside the [report.json](./docs/report.json) and uploaded, 
+# so that they can be viewed in web.
+
 # Please connect to ETHZ internal network before using this script
 declare USERNAME=$1
 declare TEST_PATH=$2
