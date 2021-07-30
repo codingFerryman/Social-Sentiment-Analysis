@@ -1,6 +1,6 @@
 #
 # This script creates a submission csv file to be submitted to the kaggle competition.
-# It loads an already trained model from its checkopoints. The device and the model's batch size
+# It loads an already trained model from its checkpoints. The device and the model's batch size
 # can be also specified in this file. 
 # 
 # A typical example of usage for roberta is:
