@@ -88,19 +88,23 @@ def _hashtag_matters(data_line: pd.Series, **kwargs):
     row = data_line
     _text = row['text']
     _prediction = row['prediction']
-    _score = row['score']
-    if _prediction == 1:
-        _pos_prob = _score
-        _neg_prob = 1 - _score
+    if '#' in _text:
+        _score = row['score']
+        if _prediction == 1:
+            _pos_prob = _score
+            _neg_prob = 1 - _score
+        else:
+            _pos_prob = 1 - _score
+            _neg_prob = _score
+        _pred = predict_by_hashtag(text=_text, pred_pos_prob=_pos_prob, pred_neg_prob=_neg_prob, **kwargs)
     else:
-        _pos_prob = 1 - _score
-        _neg_prob = _score
-    _pred = predict_by_hashtag(text=_text, pred_pos_prob=_pos_prob, pred_neg_prob=_neg_prob, **kwargs)
+        _pred = _prediction
     return _pred
 
 
 def hashtag_matters(data: pd.DataFrame, **kwargs):
-    data['new_prediction'] = data.apply(lambda row: _hashtag_matters(row, **kwargs), axis=1)
+    tqdm.pandas(desc="Hashtag analyzing: ")
+    data['new_prediction'] = data.progress_apply(lambda row: _hashtag_matters(row, **kwargs), axis=1)
     return data
 
 

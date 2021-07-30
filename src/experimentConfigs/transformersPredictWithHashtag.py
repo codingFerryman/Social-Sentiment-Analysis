@@ -52,7 +52,6 @@ class TransformersPredictWithHashtag(TransformersPredict):
         """
         if save_path is None:
             save_path = Path(self.load_path, 'submission.csv')
-        logger.info('The submission file will be saved to ' + str(save_path))
 
         pred_dict = {'Id': self.pred_df.id, 'Prediction': self.pred_df.new_prediction}
         pred_df = pd.DataFrame(pred_dict)
@@ -63,9 +62,4 @@ class TransformersPredictWithHashtag(TransformersPredict):
         pred_df.sort_values('Id', inplace=True)
         pred_df.to_csv(save_path, index=False)
 
-
-if __name__ == '__main__':
-    p = TransformersPredictWithHashtag(
-        load_path="/home/he/Workspace/cil-project/trainings/vinai/bertweet-base/20210709-101103")
-    p.predict()
-    p.submissionToFile()
+        logger.info('The submission file has been saved to ' + str(save_path))
