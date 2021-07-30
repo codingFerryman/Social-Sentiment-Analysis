@@ -1,12 +1,12 @@
 GitPython~=3.1
 numpy~=1.21.1
-tqdm<4.50.0,>=4.27
+tqdm~=4.61.0
 torch==1.9.0+cpu
-torchtext<0.10
-transformers~=4.8.2, <5.0.0
+torchtext==0.10.0
+transformers>=4.8.1, <5.0.0
 scikit-learn~=0.24.2
 pandas~=1.3.1
-datasets~=1.8.0
+datasets~=1.11.0
 coloredlogs~=15.0.1
 hyperopt~=0.2.5
 yapf
@@ -17,7 +17,7 @@ clean-text
 neuspell
 unidecode
 nltk
-modin[dask]
+distributed
 
 # Viz in notebook
 matplotlib
