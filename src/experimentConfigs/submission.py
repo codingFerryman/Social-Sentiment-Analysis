@@ -14,11 +14,13 @@ from pathlib import Path
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
-from utils import loggers
+from utils import loggers, set_seed
 from utils import get_data_path
 from transformersPredict import TransformersPredict
+from transformersPredictWithHashtag import TransformersPredictWithHashtag
 
 logger = loggers.getLogger("PredictForSubmission", True)
+set_seed()
 
 
 def main(args: list):
@@ -30,6 +32,7 @@ def main(args: list):
         - batch_size: The batch size in prediction. The default is 256
         - device: The index of cuda device for prediction.
             If not given, the program will automatically use the first cuda device otherwise the cpu
+        - hashtag_analysis: Use hashtag information or not in submission. Enable by default.
         - fast_tokenizer: Use Fast Tokenizer or not in predictions. Better to use the same as training tokenizer
             Using normal tokenizer by default
         - text_path: The text file to be processed. data/test_data.txt is used by default.
@@ -46,6 +49,10 @@ def main(args: list):
 
     text_path = argv.get('text_path', None)
 
+    hashtag_analysis = argv.get('hashtag', 'true').lower()
+    assert hashtag_analysis in ['true', 'false']
+    hashtag_analysis = False if 'f' in hashtag_analysis else True
+
     fast_tokenizer = argv.get('fast_tokenizer', 'false').lower()
     assert fast_tokenizer in ['true', 'false']
     fast_tokenizer = False if 'f' in fast_tokenizer else True
@@ -61,8 +68,12 @@ def main(args: list):
 
     logger.info(f"Predicting sentiment from data inside {text_path}")
 
-    trans_predict = TransformersPredict(load_path=load_path, text_path=text_path, device=device,
-                                        fast_tokenizer=fast_tokenizer)
+    if not hashtag_analysis:
+        trans_predict = TransformersPredict(load_path=load_path, text_path=text_path, device=device,
+                                            fast_tokenizer=fast_tokenizer)
+    else:
+        trans_predict = TransformersPredictWithHashtag(load_path=load_path, text_path=text_path, device=device,
+                                                       fast_tokenizer=fast_tokenizer)
     trans_predict.predict(batch_size=batch_size)
     trans_predict.submissionToFile()
 
