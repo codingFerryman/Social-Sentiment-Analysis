@@ -218,7 +218,7 @@ A full example for roberta can be seen [here](./src/configs/robertaHyperopt.json
 
 
 
-### Code Formatting
+## Code Formatting
 
 For code formatting please do these steps:
 1. install yapf: `pip install yapf`
