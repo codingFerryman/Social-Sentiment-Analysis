@@ -10,3 +10,4 @@ hyperopt
 datasets
 distributed
 unidecode
+vaderSentiment
