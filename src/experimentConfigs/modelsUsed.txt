@@ -1,4 +1,4 @@
-bertweet
-bert_base
+vinai/bertweet
+bert-base-uncased
 roberta_base
-xlnet_base
+xlnet-base-cased
