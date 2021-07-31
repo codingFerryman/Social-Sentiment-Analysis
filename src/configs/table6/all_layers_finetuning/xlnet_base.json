@@ -1,0 +1,55 @@
+{
+    "description": "xlnet preprocess (report document)",
+    "model_name_or_path": "xlnet-base-cased",
+    "data_load_ratio": 1,
+    "model_type": "transformers",
+    "tokenizer_type": "transformers",
+    "fast_tokenizer": false,
+    "text_pre_cleaning": "default",
+    "args": {
+        "epochs": 5,
+        "batch_size": 128,
+        "adafactor": false,
+        "warmup_steps": 100,
+        "weight_decay": 0.0001,
+        "learning_rate": 1e-5,
+        "evaluation_strategy": "epoch",
+        "save_strategy": "epoch",
+        "logging_strategy": "epoch",
+        "overwrite_output_dir": true,
+        "load_best_model_at_end": true,
+        "metric_for_best_model": "accuracy",
+        "early_stopping_patience": 3,
+        "early_stopping_threshold": 0.00001,
+        "train_val_split_iterator": "train_test_split",
+        "fp16": true,
+        "fine_tune_layers": {
+            "freeze": false,
+            "num_unfrozen_layers": 1,
+            "unfrozen_embeddings": true
+        },
+        "report_to": null
+    },
+    "tokenizer_config": {
+        "add_special_tokens": true,
+        "max_length": 64,
+        "padding": "max_length",
+        "truncation": true,
+        "return_token_type_ids": true,
+        "return_attention_mask": true
+    },
+    "model_config": {
+        "num_labels": 2,
+        "problem_type": "single_label_classification",
+        "max_length": 64,
+        "output_attentions": false,
+        "output_hidden_states": false,
+        "id2label": {
+            "1": 1,
+            "0": -1
+        }
+    },
+    "metric": [
+        "accuracy"
+    ]
+}
