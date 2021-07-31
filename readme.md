@@ -61,7 +61,7 @@ From your pc's console:
 ```bash
 cd <path-to-Computational-Intelligence-Lab-directory>
 cd src/experimentConfigs
-bash runExperimentOnLeonhard.sh <leonhard-username> <path-to-configuration-inside-Leonhard> report_path=../../docs/report.json
+bash runExperimentOnLeonhard.sh <leonhard-username> <path-to-configuration-inside-Leonhard>
 ```
 
 Example paths to the configuration:
@@ -217,6 +217,133 @@ Available hyperopt functions are: normal, lognormal, loguniform, qlognormal, qno
 A full example for roberta can be seen [here](./src/configs/robertaHyperopt.json).
 
 ## Reproducing The Report's Work
+
+```bash
+# The models of BERT, RoBERTa, BERTweet and XLNet are trained
+# and their submissions are extracted with or without cleaned dataset
+
+cd <path-to-Computational-Intelligence-Lab-directory>
+cd src/experimentConfigs
+leonhardUsername=<your-leonhard-username>
+```
+
+### Create Table I results
+```bash
+# run the simple training experiments and obtain the baselines
+bash runExperimentOnLeonhard.sh $leonhardUsername /cluster/home/$leonhardUsername/Computational-Intelligence-Lab/src/configs/table1/baselines/bertweet.json
+bash runExperimentOnLeonhard.sh $leonhardUsername /cluster/home/$leonhardUsername/Computational-Intelligence-Lab/src/configs/table1/baselines/bert_base.json
+bash runExperimentOnLeonhard.sh $leonhardUsername /cluster/home/$leonhardUsername/Computational-Intelligence-Lab/src/configs/table1/baselines/roberta_base.json
+bash runExperimentOnLeonhard.sh $leonhardUsername /cluster/home/$leonhardUsername/Computational-Intelligence-Lab/src/configs/table1/baselines/xlnet_base.json
+
+python submission.py load_path=../../trainings/bertweet/<last-date> batch_size=128 \
+text_path=../../data/test_data.txt # file is in ../../trainings/bertweet/<last-date>/submission.csv
+python submission.py load_path=../../trainings/bert_base/<last-date> batch_size=128 \
+text_path=../../data/test_data.txt # file is in ../../trainings/bert_base/<last-date>/submission.csv
+python submission.py load_path=../../trainings/roberta_base/<last-date> batch_size=128 \
+text_path=../../data/test_data.txt # file is in ../../trainings/roberta_base/<last-date>/submission.csv
+python submission.py load_path=../../trainings/xlnet_base/<last-date> batch_size=128 \
+text_path=../../data/test_data.txt # file is in ../../trainings/xlnet_base/<last-date>/submission.csv
+```
+
+```bash
+# to remove trainings already done
+rm -rf ../../trainings/*
+```
+
+
+```bash
+# run the simple training experiments of the baselines with preprocessing
+bash runExperimentOnLeonhard.sh $leonhardUsername /cluster/home/$leonhardUsername/Computational-Intelligence-Lab/src/configs/table1/preprocess/bertweet.json
+bash runExperimentOnLeonhard.sh $leonhardUsername /cluster/home/$leonhardUsername/Computational-Intelligence-Lab/src/configs/table1/preprocess/bert_base.json
+bash runExperimentOnLeonhard.sh $leonhardUsername /cluster/home/$leonhardUsername/Computational-Intelligence-Lab/src/configs/table1/preprocess/roberta_base.json
+bash runExperimentOnLeonhard.sh $leonhardUsername /cluster/home/$leonhardUsername/Computational-Intelligence-Lab/src/configs/table1/preprocess/xlnet_base.json
+
+python submission.py load_path=../../trainings/bertweet/<last-date> batch_size=128 \
+text_path=../../data/test_data.txt # file is in ../../trainings/bertweet/<last-date>/submission.csv
+python submission.py load_path=../../trainings/bert_base/<last-date> batch_size=128 \
+text_path=../../data/test_data.txt # file is in ../../trainings/bert_base/<last-date>/submission.csv
+python submission.py load_path=../../trainings/roberta_base/<last-date> batch_size=128 \
+text_path=../../data/test_data.txt # file is in ../../trainings/roberta_base/<last-date>/submission.csv
+python submission.py load_path=../../trainings/xlnet_base/<last-date> batch_size=128 \
+text_path=../../data/test_data.txt # file is in ../../trainings/xlnet_base/<last-date>/submission.csv
+```
+
+### Create Table II results
+
+For general preprocessing see `Create Table I`.
+
+```bash
+
+```
+
+### Create Table III results
+
+```bash
+```
+
+### Create Table IV results
+
+```bash
+
+```
+
+### Create Table VI results
+
+```bash
+# first line is the baseline with preprocessing and it is the same as in table's 1 second line
+# run the simple training experiments of the baselines with preprocessing
+bash runExperimentOnLeonhard.sh $leonhardUsername /cluster/home/$leonhardUsername/Computational-Intelligence-Lab/src/configs/table1/preprocess/bertweet.json
+bash runExperimentOnLeonhard.sh $leonhardUsername /cluster/home/$leonhardUsername/Computational-Intelligence-Lab/src/configs/table1/preprocess/bert_base.json
+bash runExperimentOnLeonhard.sh $leonhardUsername /cluster/home/$leonhardUsername/Computational-Intelligence-Lab/src/configs/table1/preprocess/roberta_base.json
+bash runExperimentOnLeonhard.sh $leonhardUsername /cluster/home/$leonhardUsername/Computational-Intelligence-Lab/src/configs/table1/preprocess/xlnet_base.json
+
+python submission.py load_path=../../trainings/bertweet/<last-date> batch_size=128 \
+text_path=../../data/test_data.txt # file is in ../../trainings/bertweet/<last-date>/submission.csv
+python submission.py load_path=../../trainings/bert_base/<last-date> batch_size=128 \
+text_path=../../data/test_data.txt # file is in ../../trainings/bert_base/<last-date>/submission.csv
+python submission.py load_path=../../trainings/roberta_base/<last-date> batch_size=128 \
+text_path=../../data/test_data.txt # file is in ../../trainings/roberta_base/<last-date>/submission.csv
+python submission.py load_path=../../trainings/xlnet_base/<last-date> batch_size=128 \
+text_path=../../data/test_data.txt # file is in ../../trainings/xlnet_base/<last-date>/submission.csv
+
+# second line and third line
+# run the simple training experiments of the baselines with preprocessing
+bash runExperimentOnLeonhard.sh $leonhardUsername /cluster/home/$leonhardUsername/Computational-Intelligence-Lab/src/configs/table6/all_layers_finetuning/bertweet.json
+bash runExperimentOnLeonhard.sh $leonhardUsername /cluster/home/$leonhardUsername/Computational-Intelligence-Lab/src/configs/table6/all_layers_finetuning/bert_base.json
+bash runExperimentOnLeonhard.sh $leonhardUsername /cluster/home/$leonhardUsername/Computational-Intelligence-Lab/src/configs/table6/all_layers_finetuning/roberta_base.json
+bash runExperimentOnLeonhard.sh $leonhardUsername /cluster/home/$leonhardUsername/Computational-Intelligence-Lab/src/configs/table6/all_layers_finetuning/xlnet_base.json
+
+# get second line
+python submission.py load_path=../../trainings/bertweet/<earliest-date> batch_size=128 \
+text_path=../../data/test_data.txt # file is in ../../trainings/bertweet/<earliest-date>/submission.csv
+python submission.py load_path=../../trainings/bert_base/<earliest-date> batch_size=128 \
+text_path=../../data/test_data.txt # file is in ../../trainings/bert_base/<earliest-date>/submission.csv
+python submission.py load_path=../../trainings/roberta_base/<earliest-date> batch_size=128 \
+text_path=../../data/test_data.txt # file is in ../../trainings/roberta_base/<earliest-date>/submission.csv
+python submission.py load_path=../../trainings/xlnet_base/<earliest-date> batch_size=128 \
+text_path=../../data/test_data.txt # file is in ../../trainings/xlnet_base/<earliest-date>/submission.csv
+
+# get third line
+python submission.py load_path=../../trainings/bertweet/<latest-date> batch_size=128 \
+text_path=../../data/test_data.txt # file is in ../../trainings/bertweet/<latest-date>/submission.csv
+python submission.py load_path=../../trainings/bert_base/<latest-date> batch_size=128 \
+text_path=../../data/test_data.txt # file is in ../../trainings/bert_base/<latest-date>/submission.csv
+python submission.py load_path=../../trainings/roberta_base/<latest-date> batch_size=128 \
+text_path=../../data/test_data.txt # file is in ../../trainings/roberta_base/<latest-date>/submission.csv
+python submission.py load_path=../../trainings/xlnet_base/<latest-date> batch_size=128 \
+text_path=../../data/test_data.txt # file is in ../../trainings/xlnet_base/<latest-date>/submission.csv
+
+```
+
+### Create Table VII results
+
+```bash
+
+```
+
+### Majority voting
+
+Download the best submissions from leonhard and use the [notebook](./src/models/majority_voting.ipynb).
 
 
 
