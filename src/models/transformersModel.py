@@ -1,5 +1,6 @@
 import os
 import pathlib
+import re
 import time
 import typing
 from pathlib import Path
@@ -9,6 +10,7 @@ import transformers
 from datasets import load_metric
 from transformers import AutoModelForSequenceClassification, AutoConfig
 from transformers import EarlyStoppingCallback
+from transformers import PreTrainedModel
 from transformers import TrainingArguments, Trainer
 
 from models.Model import ModelConstruction, get_iterator_splitter_from_name
