@@ -18,52 +18,6 @@ from utils.others import get_project_path, get_data_path
 logger = getLogger("CleaningText", True)
 PROJECT_PATH = get_project_path()
 DATA_PATH = get_data_path()
-# ProgressBar.enable()
-
-EMOTICONS = r"""
-    (?:
-      [<>]?
-      [:;=8]                     # eyes
-      [\-o\*\']?                 # optional nose
-      [\)\]\(\[dDpP/\:\}\{@\|\\] # mouth
-      |
-      [\)\]\(\[dDpP/\:\}\{@\|\\] # mouth
-      [\-o\*\']?                 # optional nose
-      [:;=8]                     # eyes
-      [<>]?
-      |
-      <3                         # heart
-    )"""
-
-REGEXPS = (
-    # ASCII Emoticons
-    EMOTICONS,
-    # ASCII Arrows
-    r"""[\-]+>|<[\-]+""",
-    # Twitter hashtags:
-    r"""(?:\#+[\w_]+[\w\'_\-]*[\w_]+)""",
-    # Remaining word types:
-    r"""
-    (?:[^\W\d_](?:[^\W\d_]|['\-_])+[^\W\d_]) # Words with apostrophes or dashes.
-    |
-    (?:[+\-]?\d+[,/.:-]\d+[+\-]?)  # Numbers, including fractions, decimals.
-    |
-    (?:[\w_]+)                     # Words without apostrophes or dashes.
-    |
-    (?:\.(?:\s*\.){1,})            # Ellipsis dots.
-    |
-    (?:\S)                         # Everything else that isn't whitespace.
-    """,
-)
-
-WORD_RE = regex.compile(r"""(%s)""" % "|".join(REGEXPS), regex.VERBOSE | regex.I | regex.UNICODE)
-
-# WORD_RE performs poorly on these patterns:
-HANG_RE = regex.compile(r"([^a-zA-Z0-9])\1{3,}")
-
-# The emoticon string gets its own regex so that we can preserve case for
-# them as needed:
-EMOTICON_RE = regex.compile(EMOTICONS, regex.VERBOSE | regex.I | regex.UNICODE)
 
 
 def reduce_lengthening(text: str, reduce_to_length: int = 3):
@@ -90,25 +44,6 @@ def cleaning_default(text: Union[str, list], **kwargs):
         Union[str, List[str]]: the same type as text
     """
     to_be_removed = r'(<url>)|(<user>)|\.{3,}|(http[^a-zA-Z])'
-    if type(text) is str:
-        return regex.sub(to_be_removed, '', text.strip())
-    else:
-        _tmp = pd.Series(text)
-        _tmp = _tmp.str.strip()
-        _result = _tmp.str.replace(to_be_removed, '').to_list()
-        return _result
-
-
-def cleaning_masks(text: Union[str, list], **kwargs) -> Union[str, List[str]]:
-    """just remove <user>, <url>, and ... with a single string representation.
-
-    Args:
-        text (Union[str, List[str]): list of texts to strip
-
-    Returns:
-        Union[str, List[str]]: the same type as text
-    """
-    to_be_removed = r'(<url>)|(<user>)|(\.{3})'
     if type(text) is str:
         return regex.sub(to_be_removed, '', text.strip())
     else:
@@ -145,11 +80,12 @@ def _remove_punct(text: str, keep_neutral=False):
 
 
 def _cleaning_tweet(text: str, **kwargs):
-    # dtknzr = TreebankWordDetokenizer()
-    # text = dtknzr.detokenize(text.split())
-    no_punct = kwargs.get("no_punct", False)
+    reduce2len = kwargs.get('reduce2len', None)
+    clean_punct = kwargs.get("clean_punct", False)
     keep_neutral_punct = kwargs.get("keep_neutral_punct", False)
-    text = cleaning_default(text)
+    clean_num = kwargs.get("clean_num", False)
+    replace_num_with = str(kwargs.get("replace_num_with", "0"))
+    text = cleaning_default(text)  # General preprocessing
     text = clean(text,
                  fix_unicode=True,  # fix various unicode errors
                  to_ascii=True,  # transliterate to closest ASCII representation
@@ -157,44 +93,45 @@ def _cleaning_tweet(text: str, **kwargs):
                  no_urls=True,  # replace all URLs with a special token
                  no_emails=True,  # replace all email addresses with a special token
                  no_phone_numbers=True,  # replace all phone numbers with a special token
-                 no_numbers=True,  # replace all numbers with a special token
-                 no_digits=True,  # replace all digits with a special token
+                 no_numbers=clean_num,  # replace all numbers with a special token
+                 no_digits=clean_num,  # replace all digits with a special token
                  no_currency_symbols=True,  # replace all currency symbols with a special token
                  no_punct=False,  # remove punctuations
                  replace_with_punct="",  # instead of removing punctuations you may replace them
                  replace_with_url="",
                  replace_with_email="",
                  replace_with_phone_number="",
-                 replace_with_number="",
-                 replace_with_digit="",
+                 replace_with_number=replace_num_with,
+                 replace_with_digit=replace_num_with,
                  replace_with_currency_symbol="",
                  lang="en"  # set to 'de' for German special handling
                  )
-    if no_punct:
+    if clean_punct:
         text = _remove_punct(text, keep_neutral_punct)
-    reduce2len = kwargs.get('reduce2len', None)
-    if reduce2len != None:
+
+    if reduce2len is not None:
         text = reduce_lengthening(text, reduce2len)
-    # Shorten problematic sequences of characters
-    # safe_text = HANG_RE.sub(r"\1\1\1", text)
-    # Tokenize:
-    # words = WORD_RE.findall(safe_text)
-    # text = " ".join(words)
     return text
 
 
-def cleaning_tweet(text_list: List[str], reduce2len: int = None, check_spell: bool = False, batch_size: int = 512,
-                   is_test: bool = False, n_workers: int = 10) -> List[str]:
+def cleaning_tweet(text_list: List[str], check_spell: bool = False, batch_size: int = 512,
+                   is_test: bool = False, n_workers: int = 10, **kwargs) -> List[str]:
     """This function cleans (preprocess) sentences in text_list as if they are tweets
 
     Args:
         text_list (List[str]): list containing the strings texts of tweets to clean.
-        reduce2len (int, optional): the minimum length of a tweet. Defaults to 3.
         check_spell (bool, optional): If any misspellings should be also corrected. Defaults to False.
         batch_size (int, optional): The texts in text_list is processed in batches of size batch_size. Defaults to 512.
         is_test (bool, optional): Whether the text_list corresponds to the testing data and not the training or validation data. Defaults to False.
         n_workers (int, optional): number of workers (=number of processes) to use when cleaning the tweets. Defaults to 10.
-
+        kwargs:
+            reduce2len (int, optional): the minimum length of a tweet.
+            clean_punct (bool, optional): If any punctuations should be removed. Defaults to False.
+            keep_neutral_punct (bool, optional): If neutral punctuations should be kept during cleaning
+                valid only when clean_punct is True
+            clean_num (bool, optional): If any numbers and digits should be removed. Defaults to False.
+            replace_num_with (str, optional): Replace numbers and digits with a given string
+                valid only when clean_num is True
     Returns:
         List[str]: A list containing cleaned (preprocessed) strings of tweets
     """
@@ -208,14 +145,14 @@ def cleaning_tweet(text_list: List[str], reduce2len: int = None, check_spell: bo
         for test_sent in text_list:
             _id = test_sent.split(',', 1)[0]
             _sent = test_sent.split(',', 1)[-1]
-            _sent_cleaned = _cleaning_tweet(_sent, reduce2len=reduce2len)
+            _sent_cleaned = _cleaning_tweet(_sent, **kwargs)
             _result = ",".join([str(_id), _sent_cleaned])
             _tmp.append(_result)
         text_list = _tmp
     else:
         logger.info(f"Cleaning text by {n_workers} workers. It may take around 60 min, please wait ...")
         _text_list = text_list
-        tmp = Parallel(n_jobs=n_workers)(delayed(_cleaning_tweet)(tel, reduce2len=reduce2len) for tel in _text_list)
+        tmp = Parallel(n_jobs=n_workers)(delayed(_cleaning_tweet)(tel, **kwargs) for tel in _text_list)
         text_list = tmp
 
     if check_spell is True:

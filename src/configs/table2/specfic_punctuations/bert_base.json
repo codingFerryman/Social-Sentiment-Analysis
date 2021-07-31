@@ -1,0 +1,53 @@
+{
+    "description": "bert baseline",
+    "model_name_or_path": "bert-base-uncased",
+    "data_load_ratio": 1,
+    "model_type": "transformers",
+    "tokenizer_type": "transformers",
+    "fast_tokenizer": false,
+    "text_pre_cleaning": "tweet",
+    "text_pre_cleaning_args": {
+        "clean_punct": true,
+        "keep_neutral_punct": true
+    },
+    "args": {
+        "epochs": 1,
+        "batch_size": 128,
+        "learning_rate": 5e-5,
+        "evaluation_strategy": "epoch",
+        "save_strategy": "epoch",
+        "logging_strategy": "epoch",
+        "overwrite_output_dir": true,
+        "load_best_model_at_end": true,
+        "metric_for_best_model": "accuracy",
+        "train_val_split_iterator": "train_test_split",
+        "fp16": false,
+        "fine_tune_layers": {
+            "freeze": true,
+            "num_unfrozen_layers": 0,
+            "unfrozen_embeddings": false
+        },
+        "report_to": null
+    },
+    "tokenizer_config": {
+        "add_special_tokens": true,
+        "max_length": 64,
+        "padding": "max_length",
+        "truncation": true,
+        "return_token_type_ids": true,
+        "return_attention_mask": true
+    },
+    "model_config": {
+        "num_labels": 2,
+        "problem_type": "single_label_classification",
+        "output_attentions": false,
+        "output_hidden_states": false,
+        "id2label": {
+            "1": 1,
+            "0": -1
+        }
+    },
+    "metric": [
+        "accuracy"
+    ]
+}
