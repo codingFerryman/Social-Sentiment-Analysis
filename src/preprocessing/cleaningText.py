@@ -1,3 +1,4 @@
+import multiprocessing
 import os
 import string
 import sys
@@ -116,15 +117,17 @@ def _cleaning_tweet(text: str, **kwargs):
 
 
 def cleaning_tweet(text_list: List[str], check_spell: bool = False, batch_size: int = 512,
-                   is_test: bool = False, n_workers: int = 10, **kwargs) -> List[str]:
+                   is_test: bool = False, n_workers: int = -1, **kwargs) -> List[str]:
     """This function cleans (preprocess) sentences in text_list as if they are tweets
 
     Args:
         text_list (List[str]): list containing the strings texts of tweets to clean.
         check_spell (bool, optional): If any misspellings should be also corrected. Defaults to False.
         batch_size (int, optional): The texts in text_list is processed in batches of size batch_size. Defaults to 512.
-        is_test (bool, optional): Whether the text_list corresponds to the testing data and not the training or validation data. Defaults to False.
-        n_workers (int, optional): number of workers (=number of processes) to use when cleaning the tweets. Defaults to 10.
+        is_test (bool, optional): Whether the text_list corresponds to the testing data and not the training or validation data.
+            Defaults to False.
+        n_workers (int, optional): number of workers (=number of processes) to use when cleaning the tweets.
+            Defaults to the number of logical processors.
         kwargs:
             reduce2len (int, optional): the minimum length of a tweet.
             clean_punct (bool, optional): If any punctuations should be removed. Defaults to False.
@@ -151,6 +154,8 @@ def cleaning_tweet(text_list: List[str], check_spell: bool = False, batch_size: 
             _tmp.append(_result)
         text_list = _tmp
     else:
+        if n_workers == -1:
+            n_workers = multiprocessing.cpu_count()
         logger.info(f"Cleaning text by {n_workers} workers. Please wait ...")
         _text_list = text_list
         tmp = Parallel(n_jobs=n_workers)(delayed(_cleaning_tweet)(tel, **kwargs) for tel in _text_list)
