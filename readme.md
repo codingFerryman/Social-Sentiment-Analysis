@@ -143,7 +143,7 @@ The main parameters for the experiment/training to be launched are described by:
 - >description: description of the experiment. This is later used as the experiment name inside the report.json,
 - >model_name_or_path: The model name according to the huggingface transformers or a path to another model,
 - >data_load_ratio: a number in the interval (0,1] indicating how many data will be used from the dataset,
-- >model_type: type of model to use. It can be "transformers" for using the transformers model or "bagOfWords2LayerModel" for using a model based on a bag of words. 
+- >model_type: type of model to use. It can be "transformers" for using the transformers model or other (left for future development) for using a model based on a bag of words. 
 - >tokenizer_type: It can be "transformers" for using a transformers pretrained tokenizer,
 - >fast_tokenizer: Whether to use a fast tokenizer implementation,
 
@@ -230,19 +230,17 @@ leonhardUsername=<your-leonhard-username>
 ### Create Table I results
 ```bash
 # run the simple training experiments and obtain the baselines
-bash runExperimentOnLeonhard.sh $leonhardUsername /cluster/home/$leonhardUsername/Computational-Intelligence-Lab/src/configs/table1/baselines/bertweet.json
-bash runExperimentOnLeonhard.sh $leonhardUsername /cluster/home/$leonhardUsername/Computational-Intelligence-Lab/src/configs/table1/baselines/bert_base.json
-bash runExperimentOnLeonhard.sh $leonhardUsername /cluster/home/$leonhardUsername/Computational-Intelligence-Lab/src/configs/table1/baselines/roberta_base.json
-bash runExperimentOnLeonhard.sh $leonhardUsername /cluster/home/$leonhardUsername/Computational-Intelligence-Lab/src/configs/table1/baselines/xlnet_base.json
-
-python submission.py load_path=../../trainings/bertweet/<last-date> batch_size=128 \
-text_path=../../data/test_data.txt # file is in ../../trainings/bertweet/<last-date>/submission.csv
-python submission.py load_path=../../trainings/bert_base/<last-date> batch_size=128 \
-text_path=../../data/test_data.txt # file is in ../../trainings/bert_base/<last-date>/submission.csv
-python submission.py load_path=../../trainings/roberta_base/<last-date> batch_size=128 \
-text_path=../../data/test_data.txt # file is in ../../trainings/roberta_base/<last-date>/submission.csv
-python submission.py load_path=../../trainings/xlnet_base/<last-date> batch_size=128 \
-text_path=../../data/test_data.txt # file is in ../../trainings/xlnet_base/<last-date>/submission.csv
+for MODEL_TYPE in $(cat modelsUsed.txt)
+do
+bash runExperimentOnLeonhard.sh $leonhardUsername /cluster/home/$leonhardUsername/Computational-Intelligence-Lab/src/configs/table1/baselines/$MODE_TYPE.json
+sleep 24h # sleep 24 hours until the training is done
+MODEL_PATH=../../trainings/$MODEL_TYPE
+scp -r $leonhardUsername@login.leonhard.ethz.ch:/Computational-Intelligence-Lab/trainings/$MODEL_TYPE $MODEL_PATH
+allModelTrainings=`ls -lrd $MODEL_PATH/*/`
+latest_training="${allModelTrainings##* }"
+python submission.py load_path=$latest_training batch_size=128 \
+text_path=../../data/test_data.txt & # file is in ../../trainings/$MODEL_TYPE/<last-date>/submission.csv
+done
 ```
 
 ```bash
@@ -256,12 +254,13 @@ rm -rf ../../trainings/*
 for MODEL_TYPE in $(cat modelsUsed.txt)
 do
 bash runExperimentOnLeonhard.sh $leonhardUsername /cluster/home/$leonhardUsername/Computational-Intelligence-Lab/src/configs/table1/preprocess/$MODEL_TYPE.json
-MODEL_PATH=trainings/$MODEL_TYPE
+sleep 24h # sleep 24 hours until the training is done
+MODEL_PATH=../../trainings/$MODEL_TYPE
 scp -r $leonhardUsername@login.leonhard.ethz.ch:/Computational-Intelligence-Lab/trainings/$MODEL_TYPE $MODEL_PATH
 allModelTrainings=`ls -lrd $MODEL_PATH/*/`
 latest_training="${allModelTrainings##* }"
 python submission.py load_path=$latest_training batch_size=128 \
-text_path=../../data/test_data.txt # file is in ../../trainings/bertweet/<last-date>/submission.csv
+text_path=../../data/test_data.txt & # file is in ../../trainings/$MODEL_TYPE/<last-date>/submission.csv
 done
 ```
 
@@ -293,26 +292,30 @@ For general preprocessing see `Create Table I`.
 for MODEL_TYPE in $(cat modelsUsed.txt)
 do
 bash runExperimentOnLeonhard.sh $leonhardUsername /cluster/home/$leonhardUsername/Computational-Intelligence-Lab/src/configs/table1/preprocess/$MODEL_TYPE.json
-MODEL_PATH=trainings/$MODEL_TYPE
+sleep 24h # sleep 24 hours until the training is done
+MODEL_PATH=../../trainings/$MODEL_TYPE
 scp -r $leonhardUsername@login.leonhard.ethz.ch:/Computational-Intelligence-Lab/trainings/$MODEL_TYPE $MODEL_PATH
 allModelTrainings=`ls -lrd $MODEL_PATH/*/`
 latest_training="${allModelTrainings##* }"
 python submission.py load_path=$latest_training batch_size=128 \
-text_path=../../data/test_data.txt # file is in $latest_training/submission.csv
+text_path=../../data/test_data.txt & # file is in $latest_training/submission.csv
 done
 
 
 # second line and third line
 # run the simple training experiments of the baselines with preprocessing
+mkdir -pv ../../trainings2
 for MODEL_TYPE in $(cat modelsUsed.txt)
 do
+ssh $leonhardUsername@login.leonhard.ethz.ch "rm -rf Computational-Intelligence-Lab/trainings/$MODEL_TYPE/*" # remove trainings from leonhard in order to get the earliest training of the new training
 bash runExperimentOnLeonhard.sh $leonhardUsername /cluster/home/$leonhardUsername/Computational-Intelligence-Lab/src/configs/table6/all_layers_finetuning/$MODEL_TYPE.json
-MODEL_PATH=trainings/$MODEL_TYPE
+sleep 24h # sleep 24 hours until the training is done
+MODEL_PATH=../../trainings2/$MODEL_TYPE
 scp -r $leonhardUsername@login.leonhard.ethz.ch:/Computational-Intelligence-Lab/trainings/$MODEL_TYPE $MODEL_PATH
 allModelTrainings=`ls -ld $MODEL_PATH/*/`
 earliest_training="${allModelTrainings##* }"
 python submission.py load_path=$earliest_training batch_size=128 \
-text_path=../../data/test_data.txt # file is in $earliest_training/submission.csv
+text_path=../../data/test_data.txt & # file is in $earliest_training/submission.csv
 done
 
 # get third line
@@ -322,7 +325,7 @@ MODEL_PATH=trainings/$MODEL_TYPE
 allModelTrainings=`ls -lrd $MODEL_PATH/*/`
 latest_training="${allModelTrainings##* }"
 python submission.py load_path=$latest_training batch_size=128 \
-text_path=../../data/test_data.txt # file is in ../../trainings/bertweet/<latest-date>/submission.
+text_path=../../data/test_data.txt & # file is in ../../trainings/bertweet/<latest-date>/submission.
 done
 
 ```
