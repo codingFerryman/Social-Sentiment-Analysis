@@ -304,8 +304,4 @@ if __name__ == "__main__":
     if Path().resolve().parts[1] == 'cluster':
         os.environ["WANDB_DISABLED"] = "true"  # for cluster we need to disable this
         os.environ["TRANSFORMERS_CACHE"] = os.path.join(os.getenv("SCRATCH"), '.cache/huggingface/')
-    main([
-        '',
-        'test_path=/home/he/Workspace/cil-project/src/configs/table3/reducelen2/bert_base.json'
-    ])
     main(sys.argv)
