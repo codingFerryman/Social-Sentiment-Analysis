@@ -38,7 +38,7 @@ This is our project ETHZ CIL Text Classification 2021 of CIL course in ETH Zuric
 - Results on test data can be seen in the respective Kaggle competition.
 
 ## Setup
-To work with this project a certain procedure is needed. First clone this repo. Then we recommend using the automated scripts for setup. These scripts create a virtual environment and download any data needed for this repo. Please be inside the ETHZ network while using them, to download the dataset.
+To work with this project a certain procedure is needed. First clone this repo. Then we recommend using the automated scripts for setup. If the files where not cloned then a git init is executed without a specified origin, for some scripts to be able to be executed. These scripts create a virtual environment and download any data needed for this repo. Please be inside the ETHZ network while using them, to download the dataset.
 
 Using an automated script:
 ```bash
@@ -54,6 +54,10 @@ bash setup_leonhard.sh
 or doing it manually:
 ```bash
 cd <path-to-Computational-Intelligence-Lab-directory>
+if [ ! -d ./.git/ ]
+then
+git init
+fi
 mkdir -pv trainings # where training checkpoints are stored
 python -m venv ./cil-venv
 source venv/bin/activate # on windows this path differs

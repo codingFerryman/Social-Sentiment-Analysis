@@ -9,6 +9,13 @@ module load gcc/6.3.0 python_gpu/3.8.5 hdf5/1.10.1 eth_proxy
 PIP_CACHE_DIR=$SCRATCH/.cache/.pip
 export PIP_CACHE_DIR
 
+# create .git directory
+if [ ! -d ./.git/ ]
+then
+git init
+fi
+
+
 # Create virtual environment
 if [ ! -d ~/cil-venv/ ]
 then

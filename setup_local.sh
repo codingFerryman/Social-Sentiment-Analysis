@@ -3,6 +3,11 @@
 # This script is for setting up the environment on the local machine
 # You should have python3.8-venv installed on your computer
 
+if [ ! -d ./.git/ ]
+then
+git init
+fi
+
 CIL_LOCALREPO=$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)
 
 chmod +x ${CIL_LOCALREPO}/setup_dataset.sh
