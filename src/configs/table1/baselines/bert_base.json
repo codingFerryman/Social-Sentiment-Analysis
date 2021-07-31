@@ -1,7 +1,7 @@
 {
     "description": "bert baseline",
     "model_name_or_path": "bert-base-uncased",
-    "data_load_ratio": 1,
+    "data_load_ratio": "full_baseline",
     "model_type": "transformers",
     "tokenizer_type": "transformers",
     "fast_tokenizer": false,
