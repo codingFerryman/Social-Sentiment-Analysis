@@ -1,4 +1,4 @@
-# Computational Intelligence Lab Project 2
+# [Computational Intelligence Lab Project 2](https://github.com/supernlogn/Computational-Intelligence-Lab)
 This is our project ETHZ CIL Text Classification 2021 of CIL course in ETH Zurich.
 
 
@@ -11,7 +11,7 @@ This is our project ETHZ CIL Text Classification 2021 of CIL course in ETH Zuric
 ## Setup
 To work with this project a certain procedure is needed. First clone this repo. Then we recommend using the automated scripts for setup. These scripts create a virtual environment and download any data needed for this repo. Please be inside the ETHZ network while using them, to download the dataset.
 
-Use an automated script:
+Using an automated script:
 ```bash
 cd <path-to-Computational-Intelligence-Lab-directory>
 # gpu local
@@ -22,10 +22,7 @@ bash setup_leonhard.sh
 ".\setup_local_windows.ps1"
 ```
 
-
-
-
-or do it manually:
+or doing it manually:
 ```bash
 cd <path-to-Computational-Intelligence-Lab-directory>
 mkdir -pv trainings # where training checkpoints are stored
@@ -132,6 +129,11 @@ python cleaningText.py data_path=../../data/train_neg_full.txt output=cleaned_da
 ```bash
 python hashtagExperiment.py dataset=full load_path=../../trainings/roberta-base/20210709-102233 freq=500 prob=0.7
 ```
+
+### Majority voting
+After running some models and having the submission files, a majority voting algorithm can be used. To use this see our majority voting [notebook](src/models/majority_voting.ipynb).
+
+
 
 ## Configurations
 The configuration for each training is stored inside a json file. See [example](./src/configs/roberta_base.json). This json file specifies the parameters for preprocessing, tokenization and the model. 
@@ -247,11 +249,15 @@ The most important parts of this repository structure are presented below.
 
 ├── [src](./src) Here is all the source code of the group's solution
 
-│   ├── [experimentConfigs](./src/experimentConfigs/) Here are the experiment configurations. There are many json files in here each describing a series of experiments. This helps identify which are the best combinations of parameters/models/preprocessors to solve the problem. 
+├── [configs](./configs/) Here are the configuration files for running trainings of models.
 
-│   ├── [models](./src/models/) Various models used in this repository.
+│   ├── [experimentConfigs](./src/experimentConfigs/) Here are the experiment configurations. There are many json files in here each describing a series of experiments. This helps identify which are the best combinations of parameters/models/preprocessors to solve the problem.
 
-│   │   ├── [Model.py](./src/models/) An abstract model used in this framework to execute a model. Since models are TF, pytorch or any other frameworks models, a wrapper class is needed to be constructed as interface to call their trainining functions and to test them in the problem. 
+│   ├── [explorations](./src/explorations) Here are all the methods and strategies tried before making them models or methods in 
+
+│   ├── [models](./src/models/) Various models used in this repository. Mainly the transformersModel.py is used.
+
+<!-- │   │   ├── [Model.py](./src/models/) An abstract model used in this framework to execute a model. Since models are TF, pytorch or any other frameworks models, a wrapper class is needed to be constructed as interface to call their trainining functions and to test them in the problem. 
 
 │   │   ├── [bagOfWords2LayersModel.py](./src/models/bagOfWords2LayersModel.py) A simple bag of words model with 2 non-linear (relu) layers.
 
@@ -261,11 +267,11 @@ The most important parts of this repository structure are presented below.
 
 │   │   └── [trivialModel.py](./src/models/trivialModel.py) This is a trivial model to test that `Model.py` and its inheritance work. 
 
-│   ├── [notebooks] (./src/notebooks/) Notebooks that are used inside this project for a more intuitive/visualized perspective of the tools developed. 
+│   ├── [notebooks] (./src/notebooks/) Notebooks that are used inside this project for a more intuitive/visualized perspective of the tools developed.  -->
 
 │   ├── [preprocessing](./src/preprocessing/) The preprocessing of input as tokenization is implemented here. Each file contains a different approach and it is likely to be connected with a model inside the models folder. 
 
-│   │   ├── [InputPipeline.py](./src/preprocessing/InputPipeline.py) An abstract pipeline of preprocessing the input. Preprocessing can work with TF, pytorch or any other frameworks used in models. This class interfaces the input preprocessing and it can be used by a facade class in order to train any model present in this framework.
+<!-- │   │   ├── [InputPipeline.py](./src/preprocessing/InputPipeline.py) An abstract pipeline of preprocessing the input. Preprocessing can work with TF, pytorch or any other frameworks used in models. This class interfaces the input preprocessing and it can be used by a facade class in order to train any model present in this framework.
 
 │   │   ├── [bagOfWordsPipeline.py](./src/preprocessing/bagOfWordsPipeline.py) A simple bag of words tokenizer. This works with `bagOfWords2LayersModel`.
 
@@ -273,11 +279,11 @@ The most important parts of this repository structure are presented below.
 Currently this is only for transformer tokenizers.
 
 │ │ ├── [pretrainedTransformersPipeline.py](./src/preprocessing/pretrainedTransformersPipeline.py) A generic wrapper for
-reading the tweeter dataset for the pytorch or the tensorflow framework. It works with `transformersModel` wrapper.
+reading the tweeter dataset for the pytorch or the tensorflow framework. It works with `transformersModel` wrapper. -->
 
 ├── [tests](./tests/) test bash scripts or integration tests in any language are put here.
 
-├── [trainings](./trainings/) Here the training of each model are stored to a specific folder.
+├── [trainings](./trainings/) Here the training of each model are stored to a specific folder. This folder is created by the user and is not present in Github repository when downloaded.
 
 ## Dependencies
 
@@ -294,9 +300,6 @@ All trainings need to be submitted to the 24 hour queue:
 - 8+ cpu cores
 - 10+ GB of RAM
 - 1 GPU with 10GB+ VRAM, Typically this would be a GeForceRTX2080Ti
-
-
-
 
 
 ## Developers - Students
