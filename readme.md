@@ -275,21 +275,6 @@ For general preprocessing see `Create Table I`.
 ### Create Table III results
 
 ```bash
-# Create the baselines
-for MODEL_TYPE in $(cat modelsUsed.txt)
-do
-bash runExperimentOnLeonhard.sh $leonhardUsername /cluster/home/$leonhardUsername/Computational-Intelligence-Lab/src/configs/table3/baselines/$MODEL_TYPE.json
-sleep 24h # sleep 24 hours until the training is done
-MODEL_PATH=../../trainings/$MODEL_TYPE
-scp -r $leonhardUsername@login.leonhard.ethz.ch:/Computational-Intelligence-Lab/trainings/$MODEL_TYPE $MODEL_PATH
-allModelTrainings=`ls -lrd $MODEL_PATH/*/`
-latest_training="${allModelTrainings##* }"
-python submission.py load_path=$latest_training batch_size=128 \
-text_path=../../data/test_data.txt & # file is in ../../trainings/$MODEL_TYPE/<last-date>/submission.csv
-done
-```
-
-```bash
 # Create the reduction up to length 2
 for MODEL_TYPE in $(cat modelsUsed.txt)
 do
@@ -321,9 +306,24 @@ done
 
 ### Create Table IV results
 
-```bash
+For baselines see table 1 general preprocessing, for spell checking see below:
 
+
+```bash
+# Create the NeuSpell BERT line
+for MODEL_TYPE in $(cat modelsUsed.txt)
+do
+bash runExperimentOnLeonhard.sh $leonhardUsername /cluster/home/$leonhardUsername/Computational-Intelligence-Lab/src/configs/table4/neuspell/$MODEL_TYPE.json
+sleep 24h # sleep 24 hours until the training is done
+MODEL_PATH=../../trainings/$MODEL_TYPE
+scp -r $leonhardUsername@login.leonhard.ethz.ch:/Computational-Intelligence-Lab/trainings/$MODEL_TYPE $MODEL_PATH
+allModelTrainings=`ls -lrd $MODEL_PATH/*/`
+latest_training="${allModelTrainings##* }"
+python submission.py load_path=$latest_training batch_size=128 \
+text_path=../../data/test_data.txt & # file is in ../../trainings/$MODEL_TYPE/<last-date>/submission.csv
+done
 ```
+
 
 ### Create Table VI results
 
@@ -332,7 +332,7 @@ done
 # run the simple training experiments of the baselines with preprocessing
 for MODEL_TYPE in $(cat modelsUsed.txt)
 do
-bash runExperimentOnLeonhard.sh $leonhardUsername /cluster/home/$leonhardUsername/Computational-Intelligence-Lab/src/configs/table1/preprocess/$MODEL_TYPE.json
+bash runExperimentOnLeonhard.sh $leonhardUsername /cluster/home/$leonhardUsername/Computational-Intelligence-Lab/src/configs/table1/preprocessing/$MODEL_TYPE.json
 sleep 24h # sleep 24 hours until the training is done
 MODEL_PATH=../../trainings/$MODEL_TYPE
 scp -r $leonhardUsername@login.leonhard.ethz.ch:/Computational-Intelligence-Lab/trainings/$MODEL_TYPE $MODEL_PATH
