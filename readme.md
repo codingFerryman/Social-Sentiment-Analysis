@@ -217,7 +217,7 @@ Available hyperopt functions are: normal, lognormal, loguniform, qlognormal, qno
 A full example for roberta can be seen [here](./src/configs/robertaHyperopt.json).
 
 ## Reproducing The Report's Work
-
+This assumes that both local and leonhard setup has been done.
 ```bash
 # The models of BERT, RoBERTa, BERTweet and XLNet are trained
 # and their submissions are extracted with or without cleaned dataset
@@ -275,7 +275,48 @@ For general preprocessing see `Create Table I`.
 ### Create Table III results
 
 ```bash
+# Create the baselines
+for MODEL_TYPE in $(cat modelsUsed.txt)
+do
+bash runExperimentOnLeonhard.sh $leonhardUsername /cluster/home/$leonhardUsername/Computational-Intelligence-Lab/src/configs/table3/baselines/$MODEL_TYPE.json
+sleep 24h # sleep 24 hours until the training is done
+MODEL_PATH=../../trainings/$MODEL_TYPE
+scp -r $leonhardUsername@login.leonhard.ethz.ch:/Computational-Intelligence-Lab/trainings/$MODEL_TYPE $MODEL_PATH
+allModelTrainings=`ls -lrd $MODEL_PATH/*/`
+latest_training="${allModelTrainings##* }"
+python submission.py load_path=$latest_training batch_size=128 \
+text_path=../../data/test_data.txt & # file is in ../../trainings/$MODEL_TYPE/<last-date>/submission.csv
+done
+```
 
+```bash
+# Create the reduction up to length 2
+for MODEL_TYPE in $(cat modelsUsed.txt)
+do
+bash runExperimentOnLeonhard.sh $leonhardUsername /cluster/home/$leonhardUsername/Computational-Intelligence-Lab/src/configs/table3/reducelen2/$MODEL_TYPE.json
+sleep 24h # sleep 24 hours until the training is done
+MODEL_PATH=../../trainings/$MODEL_TYPE
+scp -r $leonhardUsername@login.leonhard.ethz.ch:/Computational-Intelligence-Lab/trainings/$MODEL_TYPE $MODEL_PATH
+allModelTrainings=`ls -lrd $MODEL_PATH/*/`
+latest_training="${allModelTrainings##* }"
+python submission.py load_path=$latest_training batch_size=128 \
+text_path=../../data/test_data.txt & # file is in ../../trainings/$MODEL_TYPE/<last-date>/submission.csv
+done
+```
+
+```bash
+# Create the reduction up to length 3
+for MODEL_TYPE in $(cat modelsUsed.txt)
+do
+bash runExperimentOnLeonhard.sh $leonhardUsername /cluster/home/$leonhardUsername/Computational-Intelligence-Lab/src/configs/table3/reducelen3/$MODEL_TYPE.json
+sleep 24h # sleep 24 hours until the training is done
+MODEL_PATH=../../trainings/$MODEL_TYPE
+scp -r $leonhardUsername@login.leonhard.ethz.ch:/Computational-Intelligence-Lab/trainings/$MODEL_TYPE $MODEL_PATH
+allModelTrainings=`ls -lrd $MODEL_PATH/*/`
+latest_training="${allModelTrainings##* }"
+python submission.py load_path=$latest_training batch_size=128 \
+text_path=../../data/test_data.txt & # file is in ../../trainings/$MODEL_TYPE/<last-date>/submission.csv
+done
 ```
 
 ### Create Table IV results
