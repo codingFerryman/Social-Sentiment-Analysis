@@ -1,4 +1,6 @@
 import json
+import math
+import multiprocessing
 import os
 import sys
 from pathlib import Path
@@ -65,7 +67,8 @@ def extract_hashtag_dataset(model_path: Path, dataset_file="full", data_path=Non
                     return to_append_series
             return
 
-        _clean_result = Parallel(n_jobs=10)(
+        _num_workers = int(math.ceil(multiprocessing.cpu_count() * 0.75))
+        _clean_result = Parallel(n_jobs=_num_workers)(
             delayed(_clean)(_txt) for _txt in tqdm(data_t, desc=f"Generating {filename}"))
         _clean_result = [_r for _r in _clean_result if _r is not None]
         df_t = df_t.append(_clean_result)
