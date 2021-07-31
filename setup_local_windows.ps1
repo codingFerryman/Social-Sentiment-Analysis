@@ -22,6 +22,12 @@ if ((Get-ChildItem $CIL_LOCALREPO\data\*.txt -File | Measure-Object).Count -eq 5
     Write-Host "Downloaded!"
 }
 
+if (Test-Path -Path .git) {
+    Write-Host ".git directory already exists."
+} else {
+    git init
+}
+
 if (Test-Path -Path $CIL_LOCALREPO\venv) {
     Write-Host "Virtual environment already exists."
 } else {
