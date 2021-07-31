@@ -14,11 +14,19 @@ from transformers import TrainingArguments, Trainer
 from models.Model import ModelConstruction, get_iterator_splitter_from_name
 from preprocessing.cleaningText import cleaningMap
 from preprocessing.pretrainedTransformersPipeline import PretrainedTransformersPipeLine
-from utils import get_project_path, get_transformers_layers_num, loggers
+from utils import get_project_path, loggers
 from utils.diskArray import DiskArray
 
 logger = loggers.getLogger("TransformersModel", True)
 
+
+def get_transformers_layers_num(model: PreTrainedModel) -> int:
+    layer_numbers = []
+    for name, _ in model.named_parameters():
+        match = re.search('layer.(\d+)', name)
+        if match:
+            layer_numbers.append(int(match.group(1)))
+    return max(layer_numbers)
 
 def getTransformersTokenizer(
         transformersModelName: str = None,

@@ -7,6 +7,8 @@ import numpy as np
 import torch
 from transformers import PreTrainedModel
 
+__all__ = ['set_seed', 'get_project_path', 'get_data_path', 'prepend_multiple_lines']
+
 
 def set_seed(seed: int = 2021):
     """
@@ -33,14 +35,6 @@ def get_project_path() -> Path:
 def get_data_path() -> Path:
     return Path(get_project_path(), 'data')
 
-
-def get_transformers_layers_num(model: PreTrainedModel) -> int:
-    layer_numbers = []
-    for name, _ in model.named_parameters():
-        match = re.search('layer.(\d+)', name)
-        if match:
-            layer_numbers.append(int(match.group(1)))
-    return max(layer_numbers)
 
 def prepend_multiple_lines(file_name, list_of_lines):
     """Insert given list of strings as new lines at the beginning of a file"""
