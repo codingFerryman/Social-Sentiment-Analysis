@@ -198,7 +198,7 @@ While training the parameter under args are regarded as hyperparameters. These p
 For each parameter inside args of the json configuration the hyperopt optimization can be specified as:
 
 ```json
-argsParameter: {"use_hyperopt": <use-hyperoptimization-or-note>, "hyperopt_function":<hyperopt function name>, "arguments": {<arguments of the hyperopt function>}}
+argsParameter: {"use_hyperopt": <use-hyperoptimization-or-not>, "hyperopt_function":<hyperopt function name>, "arguments": {<arguments of the hyperopt function>}}
 ```
 
 Example:
