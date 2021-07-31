@@ -282,7 +282,7 @@ rm -rf ../../trainings/*
 # run the simple training experiments of the baselines with preprocessing
 for MODEL_TYPE in $(cat modelsUsed.txt)
 do
-bash runExperimentOnLeonhard.sh $leonhardUsername /cluster/home/$leonhardUsername/Computational-Intelligence-Lab/src/configs/table1/preprocess/$MODEL_TYPE.json
+bash runExperimentOnLeonhard.sh $leonhardUsername /cluster/home/$leonhardUsername/Computational-Intelligence-Lab/src/configs/table1/general_preprocessing/$MODEL_TYPE.json
 sleep 24h # sleep 24 hours until the training is done
 MODEL_PATH=../../trainings/$MODEL_TYPE
 scp -r $leonhardUsername@login.leonhard.ethz.ch:/Computational-Intelligence-Lab/trainings/$MODEL_TYPE $MODEL_PATH
@@ -296,9 +296,23 @@ done
 ### Create Table II results
 
 For general preprocessing see `Create Table I`.
+For the other lines:
 
 ```bash
-
+for lineName in $(cat ../configs/table2/lineNames.txt)
+do
+    for MODEL_TYPE in $(cat modelsUsed.txt)
+    do
+    bash runExperimentOnLeonhard.sh $leonhardUsername /cluster/home/$leonhardUsername/Computational-Intelligence-Lab/src/configs/table2/$lineName/$MODEL_TYPE.json
+    sleep 24h # sleep 24 hours until the training is done
+    MODEL_PATH=../../trainings/$MODEL_TYPE
+    scp -r $leonhardUsername@login.leonhard.ethz.ch:/Computational-Intelligence-Lab/trainings/$MODEL_TYPE $MODEL_PATH
+    allModelTrainings=`ls -lrd $MODEL_PATH/*/`
+    latest_training="${allModelTrainings##* }"
+    python submission.py load_path=$latest_training batch_size=128 \
+    text_path=../../data/test_data.txt & # file is in ../../trainings/$MODEL_TYPE/<last-date>/submission.csv
+    done
+done
 ```
 
 ### Create Table III results
