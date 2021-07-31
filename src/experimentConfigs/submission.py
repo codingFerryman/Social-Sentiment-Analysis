@@ -47,7 +47,7 @@ def main(args: List[str]):
     load_path = argv.get('load_path', None)
     assert load_path, "No load_path specified"
 
-    batch_size = argv.get('batch_size', 128)
+    batch_size = int(argv.get('batch_size', 128))
 
     device = argv.get('device', None)
 

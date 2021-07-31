@@ -9,7 +9,7 @@ import pandas as pd
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 from utils import get_data_path, loggers
-from experimentConfigs.submission import TransformersPredict
+from experimentConfigs.transformersPredict import TransformersPredict
 
 logger = loggers.getLogger("EvaluateTrainDataset", True)
 
@@ -121,7 +121,7 @@ def main(args: List[str]):
     load_path = argv.get('load_path', None)
     assert load_path, "No load_path specified"
 
-    batch_size = argv.get('batch_size', 256)
+    batch_size = int(argv.get('batch_size', 256))
 
     device = argv.get('device', None)
 
