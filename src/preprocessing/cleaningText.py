@@ -85,7 +85,7 @@ def _cleaning_tweet(text: str, **kwargs):
     clean_punct = kwargs.get("clean_punct", False)
     keep_neutral_punct = kwargs.get("keep_neutral_punct", False)
     clean_num = kwargs.get("clean_num", False)
-    replace_num_with = str(kwargs.get("replace_num_with", "0"))
+    replace_num_with = str(kwargs.get("replace_num_with", ""))
     text = cleaning_default(text)  # General preprocessing
     text = clean(text,
                  fix_unicode=True,  # fix various unicode errors
@@ -151,7 +151,7 @@ def cleaning_tweet(text_list: List[str], check_spell: bool = False, batch_size: 
             _tmp.append(_result)
         text_list = _tmp
     else:
-        logger.info(f"Cleaning text by {n_workers} workers. It may take around 60 min, please wait ...")
+        logger.info(f"Cleaning text by {n_workers} workers. Please wait ...")
         _text_list = text_list
         tmp = Parallel(n_jobs=n_workers)(delayed(_cleaning_tweet)(tel, **kwargs) for tel in _text_list)
         text_list = tmp
