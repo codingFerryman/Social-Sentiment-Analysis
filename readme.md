@@ -1,6 +1,35 @@
 # [Computational Intelligence Lab Project 2](https://github.com/supernlogn/Computational-Intelligence-Lab)
 This is our project ETHZ CIL Text Classification 2021 of CIL course in ETH Zurich.
 
+## Contents
+- [Results](#results)
+- [Setup](#setup)
+- [Execution](#execution)
+    - [Experimentation on Leonhard](#experimentation-on-leonhard)
+    - [Experimentation locally](#experimentation-locally)
+    - [Submission to Kaggle](#submission to-kaggle)
+    - [Cleaning the dataset](#cleaning the-dataset)
+    - [See the impact of hashtags](#see-the-impact-of-hashtags)
+    - [Majority voting](#majority-voting)
+- [Configurations](#configurations)
+    - [args](#args)
+    - [tokenizer_config](#tokenizer-config)
+    - [model_config](#model_config)
+    - [Hyperparameter optimization](#hyperparameter-optimization)
+- [Reproducing The Report's Work](#reproducing-the-report's-work)
+    - [Create Table I results](#create-table-i-results)
+    - [Create Table II results](#create-table-ii-results)
+    - [Create Table III results](#create-table-iii-results)
+    - [Create Table IV results](#create-table-iv-results)
+    - [Create Table VI results](#create-table-vi-results)
+    - [Create Table VII results](#create-table-vii-results)
+    - [Majority voting results](#majority-voting-results)
+- [Code Formatting](#code-formatting)
+- [Repo structure](#repo-structure)
+- [Dependencies](#dendencies)
+- [Cluster training requirements](#cluster-training-requirements)
+- [Developers - Students](#Developers---Students)
+- [Acknowledgements](#acknowledgements)
 
 
 ## Results
@@ -387,7 +416,7 @@ python src/explorations/hashtagExperiment.py dataset=full-or-sub load_path=lates
 done
 ```
 
-### Majority voting
+### Majority voting results
 
 Download the best submissions from leonhard and use the [notebook](./src/models/majority_voting.ipynb).
 
