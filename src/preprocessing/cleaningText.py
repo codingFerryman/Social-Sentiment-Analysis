@@ -172,8 +172,9 @@ def _cleaning_tweet(text: str, **kwargs):
                  )
     if no_punct:
         text = _remove_punct(text, keep_neutral_punct)
-    # reduce2len = kwargs.get('reduce2len', 3)
-    # text = reduce_lengthening(text, reduce2len)
+    reduce2len = kwargs.get('reduce2len', None)
+    if reduce2len != None:
+        text = reduce_lengthening(text, reduce2len)
     # Shorten problematic sequences of characters
     # safe_text = HANG_RE.sub(r"\1\1\1", text)
     # Tokenize:
@@ -182,7 +183,7 @@ def _cleaning_tweet(text: str, **kwargs):
     return text
 
 
-def cleaning_tweet(text_list: List[str], reduce2len: int = 3, check_spell: bool = False, batch_size: int = 512,
+def cleaning_tweet(text_list: List[str], reduce2len: int = None, check_spell: bool = False, batch_size: int = 512,
                    is_test: bool = False, n_workers: int = 10) -> List[str]:
     """This function cleans (preprocess) sentences in text_list as if they are tweets
 
@@ -277,7 +278,7 @@ def cleaningMap(clFunction: str) -> Callable:
         "default": cleaning_default,
         "masks": cleaning_masks,
         "strip": cleaning_strip,
-        "tweet": cleaning_tweet
+        "tweet": cleaning_tweet,
     }
     assert clFunction in d.keys(), f"There is no {clFunction} in cleaning functions"
     return d[clFunction]
@@ -287,6 +288,7 @@ def main(args: List[str]):
     """The function for cleaning data and export the cleaned data to a new file"""
     argv = {a.split('=')[0]: a.split('=')[1] for a in args[1:]}
     data_path = argv.get('data_path', Path(DATA_PATH, 'test_data.txt'))
+    reduce2len = argv.get('redcuce2len', None)
     assert data_path is not None, "No data_path specified"
     input_path = Path(data_path)
     input_file = input_path.parts[-1]
@@ -302,7 +304,7 @@ def main(args: List[str]):
     input_data = cleaning_strip(input_data)
     input_data = list(filter(None, input_data))
 
-    cleaned = cleaning_tweet(input_data, is_test=True if 'test' in input_file_name else False)
+    cleaned = cleaning_tweet(input_data, reduce2len=reduce2len,is_test=True if 'test' in input_file_name else False)
     cleaned_lines = [t + '\n' for t in cleaned]
 
     with open(Path(output_path), 'w') as fw:

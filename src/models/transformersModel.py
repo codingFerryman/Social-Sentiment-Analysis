@@ -66,7 +66,7 @@ def getTransformersTokenizer(
 class TransformersModel(ModelConstruction):
     def __init__(self, modelName_or_pipeLine=None, tokenizer_name_or_path=None,
                  loadFunction=None, fast_tokenizer=None,
-                 text_pre_cleaning='default'):
+                 text_pre_cleaning='default', textPreCleaningArgs:dict={}):
         if modelName_or_pipeLine is None:
             # Set the default model to roberta-base
             modelName_or_pipeLine = "roberta-base"
@@ -85,7 +85,7 @@ class TransformersModel(ModelConstruction):
             self._modelName = modelName_or_pipeLine.tokenizer.name_or_path
             self._dataLoaded = self.pipeLine.is_data_loaded()
 
-        self.text_pre_cleaning_function = cleaningMap(text_pre_cleaning)
+        self.text_pre_cleaning_function = lambda input_text: cleaningMap(text_pre_cleaning)(input_text, **textPreCleaningArgs)
         # Initialise some variables
         self._registeredMetrics = []
         self.metric = ('accuracy',)
@@ -164,6 +164,8 @@ class TransformersModel(ModelConstruction):
         splitter = get_iterator_splitter_from_name(train_val_split_iterator)
 
         # The callable function to pre-cleaning the texts
+
+
         encodedDatasetArgs = {'splitter': splitter,
                               'tokenizerConfig': tokenizer_config,
                               'cleaning_function': self.text_pre_cleaning_function}

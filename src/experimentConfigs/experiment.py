@@ -46,7 +46,7 @@ hf_logging.enable_explicit_format()
 # types denoted
 class ModelType(enum.Enum):
     transformers = "transformers"
-    bagOfWords2LayerModel = "BagOfWords2LayerModel"
+    # bagOfWords2LayerModel = "BagOfWords2LayerModel"
 
 
 class TokenizerType(enum.Enum):
@@ -126,7 +126,8 @@ def launchExperimentFromDict(d: dict, reportPath: str = None):
         model = TransformersModel(modelName_or_pipeLine=model_name_or_path,
                                   tokenizer_name_or_path=tokenizer_name_or_path,
                                   fast_tokenizer=d.get('fast_tokenizer'),
-                                  text_pre_cleaning=d.get('text_pre_cleaning', 'default'))
+                                  text_pre_cleaning=d.get('text_pre_cleaning', 'default'),
+                                  textPreCleaningArgs=d.get('text_pre_cleaning_args', {}))
 
     if type(d['metric']) is str:
         d['metric'] = [d['metric']]
