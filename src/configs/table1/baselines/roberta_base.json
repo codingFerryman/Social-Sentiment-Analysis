@@ -1,7 +1,7 @@
 {
     "description": "roberta baseline",
     "model_name_or_path": "roberta-base",
-    "data_load_ratio": 1,
+    "data_load_ratio": "full_baseline",
     "model_type": "transformers",
     "tokenizer_type": "transformers",
     "fast_tokenizer": false,
