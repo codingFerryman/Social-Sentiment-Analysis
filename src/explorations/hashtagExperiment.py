@@ -82,7 +82,7 @@ def predict_by_hashtag(text: str,
     hashtag_dict = load_hashtag_config()
     for _w in text.split():
         if _w.startswith('#') and len(_w) > 1:
-            if _w[1:] in hashtag_dict.keys():
+            if _w[1:].replace('#', '') in hashtag_dict.keys():
                 tag = _w[1:]
                 neg_freq = hashtag_dict[tag]['NegFreq']
                 pos_freq = hashtag_dict[tag]['PosFreq']
@@ -152,8 +152,8 @@ def main(args: List[str]):
     PREDICTION_FILE = Path(load_path, 'pred_train_' + dataset_file + '.csv')
     DATA_FILE = Path(PROJECT_DIRECTORY, 'data/' + dataset_file + '_data.txt')
 
-    freq_threshold = int(argv.get("freq", 100))
-    prob_threshold = float(argv.get("prob", 0.6))
+    freq_threshold = int(argv.get("freq", 500))
+    prob_threshold = float(argv.get("prob", 0.7))
 
     logger.info(f"The frequency and ratio thresholds are set to {freq_threshold}, and {prob_threshold} respectively.")
 
