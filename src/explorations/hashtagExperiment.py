@@ -152,8 +152,8 @@ def main(args: List[str]):
     PREDICTION_FILE = Path(load_path, 'pred_train_' + dataset_file + '.csv')
     DATA_FILE = Path(PROJECT_DIRECTORY, 'data/' + dataset_file + '_data.txt')
 
-    freq_threshold = int(argv.get("freq", 100))
-    prob_threshold = float(argv.get("prob", 0.6))
+    freq_threshold = int(argv.get("freq", 500))
+    prob_threshold = float(argv.get("prob", 0.7))
 
     logger.info(f"The frequency and ratio thresholds are set to {freq_threshold}, and {prob_threshold} respectively.")
 
