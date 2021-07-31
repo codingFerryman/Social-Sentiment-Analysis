@@ -82,7 +82,7 @@ def predict_by_hashtag(text: str,
     hashtag_dict = load_hashtag_config()
     for _w in text.split():
         if _w.startswith('#') and len(_w) > 1:
-            if _w[1:] in hashtag_dict.keys():
+            if _w[1:].replace('#', '') in hashtag_dict.keys():
                 tag = _w[1:]
                 neg_freq = hashtag_dict[tag]['NegFreq']
                 pos_freq = hashtag_dict[tag]['PosFreq']

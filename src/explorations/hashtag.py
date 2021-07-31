@@ -17,7 +17,7 @@ def extract_hashtag(text_list: list) -> Tuple[list, int]:
     sentence_count = 0
     for text in text_list:
         for word in text.split():
-            if word[0] == '#':
+            if word.startswith('#'):
                 hashtag = word[1:]
                 if len(hashtag) != 0:
                     if '#' in hashtag:
