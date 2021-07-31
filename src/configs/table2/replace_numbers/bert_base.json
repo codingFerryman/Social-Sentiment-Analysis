@@ -21,7 +21,7 @@
         "load_best_model_at_end": true,
         "metric_for_best_model": "accuracy",
         "train_val_split_iterator": "train_test_split",
-        "fp16": false,
+        "fp16": true,
         "fine_tune_layers": {
             "freeze": true,
             "num_unfrozen_layers": 0,

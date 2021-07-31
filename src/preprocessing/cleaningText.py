@@ -35,7 +35,8 @@ def reduce_lengthening(text: str, reduce_to_length: int = 3):
 
 
 def cleaning_default(text: Union[str, list], **kwargs):
-    """Default cleaning removes <user>, <url>, ..., and http:/ or characters from string
+    """Default cleaning removes http:/ or characters from string
+    <user>, <url>, ... are already removed during data loading
 
     Args:
         text (Union[str, list]): [description]
@@ -43,7 +44,7 @@ def cleaning_default(text: Union[str, list], **kwargs):
     Returns:
         Union[str, List[str]]: the same type as text
     """
-    to_be_removed = r'(<url>)|(<user>)|\.{3,}|(http[^a-zA-Z])'
+    to_be_removed = r'(http[^a-zA-Z])'
     if type(text) is str:
         return regex.sub(to_be_removed, '', text.strip())
     else:
@@ -213,7 +214,6 @@ def cleaningMap(clFunction: str) -> Callable:
     """
     d = {
         "default": cleaning_default,
-        "masks": cleaning_masks,
         "strip": cleaning_strip,
         "tweet": cleaning_tweet,
     }
