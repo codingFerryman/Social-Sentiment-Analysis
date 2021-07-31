@@ -214,7 +214,7 @@ def cleaning_tweet(text_list: List[str], reduce2len: int = 3, check_spell: bool 
     else:
         logger.info(f"Cleaning text by {n_workers} workers. It may take around 60 min, please wait ...")
         _text_list = text_list
-        tmp = Parallel(n_jobs=n_workers)(delayed(_cleaning_tweet)(tel) for tel in _text_list)
+        tmp = Parallel(n_jobs=n_workers)(delayed(_cleaning_tweet)(tel, reduce2len=reduce2len) for tel in _text_list)
         text_list = tmp
 
     if check_spell is True:
