@@ -65,7 +65,7 @@ def extract_hashtag_dataset(model_path: Path, dataset_file="full", data_path=Non
                     return to_append_series
             return
 
-        _clean_result = Parallel(n_jobs=8)(
+        _clean_result = Parallel(n_jobs=10)(
             delayed(_clean)(_txt) for _txt in tqdm(data_t, desc=f"Generating {filename}"))
         _clean_result = [_r for _r in _clean_result if _r is not None]
         df_t = df_t.append(_clean_result)
@@ -82,8 +82,8 @@ def predict_by_hashtag(text: str,
     hashtag_dict = load_hashtag_config()
     for _w in text.split():
         if _w.startswith('#') and len(_w) > 1:
-            if _w[1:].replace('#', '') in hashtag_dict.keys():
-                tag = _w[1:].replace('#', '')
+            tag = _w[1:].replace('#', '')
+            if tag in hashtag_dict.keys():
                 neg_freq = hashtag_dict[tag]['NegFreq']
                 pos_freq = hashtag_dict[tag]['PosFreq']
                 neg_ratio = hashtag_dict[tag]['NegRatio']
