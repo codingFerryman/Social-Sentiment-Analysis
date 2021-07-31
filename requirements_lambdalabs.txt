@@ -11,3 +11,4 @@ spacy
 hyperopt
 datasets
 distributed
+vaderSentiment
