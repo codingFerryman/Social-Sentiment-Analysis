@@ -9,7 +9,7 @@ import pandas as pd
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 from utils import get_data_path, loggers
-from experimentConfigs.transformersPredict import TransformersPredict
+from experiments.transformersPredict import TransformersPredict
 
 logger = loggers.getLogger("EvaluateTrainDataset", True)
 

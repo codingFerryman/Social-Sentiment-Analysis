@@ -1,11 +1,10 @@
 *~**
 *.pyc
 *.png
-*.csv
-data/*.txt
+#*.csv
+#data/*.txt
 venv/*
 vscode/*
-sklearn
 .ipynb_checkpoints/*
 trainings/
 dist/

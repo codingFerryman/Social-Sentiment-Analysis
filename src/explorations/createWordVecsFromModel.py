@@ -10,7 +10,7 @@ import sklearn
 from sklearn import decomposition
 
 # local imports
-from experimentConfigs.transformersPredict import TransformersPredict
+from experiments.transformersPredict import TransformersPredict
 from utils import diskArray
 from utils.diskArray import DiskArray
 
@@ -47,4 +47,3 @@ del(daNeg)
 #%%
 # daPos = DiskArray.load("/home/sniper/projects_local/CIL/Computational-Intelligence-Lab/data/extracted-features/roberta-features/roberta-base-pos-features.diskArray")
 # print(len(daPos))
-

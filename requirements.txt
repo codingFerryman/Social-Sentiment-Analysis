@@ -1,14 +1,14 @@
-GitPython~=3.1
-numpy~=1.21.1
+GitPython
+numpy
 tqdm~=4.61.0
 torch==1.9.0+cu111
 torchtext==0.10.0
 transformers>=4.8.1, <5.0.0
-scikit-learn~=0.24.2
-pandas~=1.3.1
+scikit-learn
+pandas
 datasets~=1.11.0
-coloredlogs~=15.0.1
-hyperopt~=0.2.5
+coloredlogs
+hyperopt
 vaderSentiment
 yapf
 emoji

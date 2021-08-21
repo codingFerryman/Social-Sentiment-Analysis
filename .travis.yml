@@ -13,6 +13,6 @@ tests:
   - python download_dataset.py
   - bash tests/all_test.sh
 report:
-  - cd src/experimentConfigs
+  - cd src/experiments
   - python -m http.server
 # TODO: report metrics

@@ -12,7 +12,7 @@
 #
 # Example of usage:
 #
-# python experimentConfigs/experiment.py test_path=experimentConfigs/robertaDefault.json \
+# python experiments/experiment.py test_path=experiments/robertaDefault.json \
 # report_path=report.json
 #
 
@@ -113,7 +113,7 @@ def launchExperimentFromDict(d: dict, reportPath: str = None):
         reportPath (str, optional): The json file to write or append the report. to. Defaults to './report.json'.
     """
     if reportPath is None:
-        reportPath = os.path.join(PROJECT_DIRECTORY, 'src', 'experimentConfigs', 'report.json')
+        reportPath = os.path.join(PROJECT_DIRECTORY, 'src', 'experiments', 'report.json')
     model = ModelConstruction  # default model which does nothing
 
     # check if model type is of type transformers
@@ -283,7 +283,7 @@ def main(args: List[str]):
     - test_path=<your test path> for setting the path of the test json file
     - report_path=<your report destination path> for setting the path for the report to be written or appended. 
     call it like:
-    python experimentConfigs/experiment.py test_path=experimentConfigs/robertaDefault.json report_path=report.json
+    python experiments/experiment.py test_path=experiments/robertaDefault.json report_path=report.json
     Args:
         args (List[str]): a dictionary containing the program arguments (sys.argv)
     """
