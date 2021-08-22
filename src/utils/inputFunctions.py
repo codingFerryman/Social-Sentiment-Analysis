@@ -5,13 +5,36 @@ from typing import Union, Tuple
 import numpy as np
 import pandas as pd
 
-from .loggers import getLogger
-from .others import get_data_path
-from .others import set_seed
+from loggers import getLogger
+from others import get_data_path
+from others import set_seed
 
 DATA_DIRECTORY = get_data_path()
 logger = getLogger("InputPipeline", debug=True)
 set_seed()
+
+
+def loadBDCI2019Sentiment(dataFile: str = None):
+    if dataFile is None:
+        dataFile = PurePath(DATA_DIRECTORY, 'zh', 'BDCI2019', 'sentiment_task.csv')
+    data_df = pd.read_csv(dataFile, encoding='utf-8', index_col=0)
+    data_df = preprocessBDCI2019(data_df)
+    return data_df
+
+
+def loadBDCI2019NegativeEntity(dataFile: str = None):
+    if dataFile is None:
+        dataFile = PurePath(DATA_DIRECTORY, 'zh', 'BDCI2019', 'financial_neg_task.csv')
+    data_df = pd.read_csv(dataFile, encoding='gb2312', encoding_errors="replace")
+    data_df = preprocessBDCI2019(data_df)
+    return data_df
+
+def preprocessBDCI2019(data: pd.DataFrame):
+    remove_regex = r'(\?)|(\{IMG:\d+\})|(\u3000)|(\xa0)|(\s)'
+    for cl in data.columns:
+        if data[cl].dtype == 'O':
+            data[cl] = data[cl].str.replace(remove_regex, "", regex=True)
+    return data
 
 def loadData(dataDirectory: str = None, ratio: Union[str, float, int] = "full") -> Tuple[list, list, list]:
     """
@@ -104,3 +127,7 @@ def randomizeData(train_pos: list, train_neg: list) -> Tuple[np.ndarray, np.ndar
     res_pos = np.random.shuffle(train_pos)
     res_neg = np.random.shuffle(train_neg)
     return res_pos, res_neg
+
+if __name__ == '__main__':
+    test_data = loadBDCI2019Sentiment()
+    pass
