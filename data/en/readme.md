@@ -14,3 +14,7 @@ The data files in this folder are additional English datasets.
 [Financial Phrase Bank with 75% Agreement](./Sentences_75Agree.txt)
 - This dataset contains the sentiments for financial news headlines from the perspective of a retail investor.
 - Acknowledgement: Malo, P., Sinha, A., Korhonen, P., Wallenius, J., & Takala, P. (2014). Good debt or bad debt: Detecting semantic orientations in economic texts. Journal of the Association for Information Science and Technology, 65(4), 782-796.
+
+Thomson Reuters News Analytics (TRNA) Dataset
+- This dataset includes the headline of news, with their timestamps and sentiment scores.
+- Unfortunately, this dataset is not open to the public.
