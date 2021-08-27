@@ -19,6 +19,7 @@ neuspell
 unidecode
 nltk
 distributed
+sqlalchemy
 
 # Viz in notebook
 matplotlib
