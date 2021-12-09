@@ -17,12 +17,12 @@ fi
 
 
 # Create virtual environment
-if [ ! -d ~/cil-venv/ ]
-then
-  python -m venv ~/cil-venv
-else
-  echo "venv already exists"
-fi
+# if [ ! -d ~/cil-venv/ ]
+# then
+#   python -m venv ~/cil-venv
+# else
+#   echo "venv already exists"
+# fi
 
 # If you want you can also add it to your ~/.bashrc
 source ~/cil-venv/bin/activate
